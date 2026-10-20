@@ -165,26 +165,39 @@ a bound); elsewhere `LoopBounds` checks only the exit's rounds. `help_thread`'s 
 era's seqno check this branch added (see Findings).
 
 `WaitFree` bounds every operation's steps. `wf[t]` keeps one count per operation in progress on
-thread t, its own program's and each destructor's; a step counts for the innermost operation, so a
-destructor's operations are counted on their own, each against its own bound. The bound (`OpBound`)
-depends on T, the constants and the retirement history only: a protected load takes at most 3 x
-`LoadAttempts` + 1 steps (a raise, a load and an epoch read per attempt, then the load after
-escalating) and an unprotected load one; pin, the guard's drop, a write or retire, flush and exit
-take their `*Ctl` term plus 16 x `Hist` (flush's and exit's terms count a tid claim, which a flush
-or an exit on a thread with no tid makes while it has something to submit or adopt;
+thread t, its own program's and each destructor's; a step counts for the innermost operation, so
+a destructor's operations are counted on their own, each against its own bound. The bound
+(`OpBound`) depends on T, the constants and the retirement history only: a protected load takes at
+most 3 x `LoadAttempts` + 1 steps (a raise, a load and an epoch read per attempt, then the load
+after escalating) and an unprotected load one; pin, the guard's drop, a write or retire, flush and
+exit take their `*Ctl` term plus 16 x `Hist` (flush's and exit's terms count a tid claim, which a
+flush or an exit on a thread with no tid makes while it has something to submit or adopt;
 `RC_flush_orphan`, `RC_wf_unpinned_flush` and `RC_wf_unpinned_exit` count the steps of such
-claims). `Hist` = nodes x (1 + threads) bounds
-the placements of nodes into slot lists (a node is placed at most once per submission of its batch:
+claims). `Hist` = node objects x (1 + threads) bounds the
+placements of nodes into slot lists (a node is placed at most once per submission of its batch:
 the first, and one more per exit that re-arms it), and each placement costs at most 16 steps over
-its life (its insert, the traversal that takes it, its free). The `*Ctl` terms count every other
-step, label by label (`Reclaim.tla`): for instance a slow path takes 5 steps to publish its
-request, at most T + 2 passes of 8 steps and a traversal's last step each, then either the
-self-completion (4 steps and a drain) or the detach and the republication (9 steps, a detach of at
-most 1 + 3 x `DetachBound` steps, a traversal and a drain); a `help_thread` takes 4 steps to read
-the request, at most T + 2 passes of a `do_update` and 5 steps, then the answer, a detach, the
-hand-over and the helper slot left (10 steps, a detach, two traversals and a drain). No
-configuration counts steps with `Recycle`: `Hist` counts node ids, and a recycled id is retired
-once per incarnation, so the bound would have to count incarnations.
+its life (its insert, the traversal that takes it, its free). Without `Recycle` the node objects
+are the node ids (`MaxNodes`). With `Recycle` every take from the pool starts one more object,
+so the objects are `MaxNodes` plus the sum of every id's incarnation count, evaluated in the state
+checked; a write or a retire of a fresh node also takes one step more, the take (`TakeCtl`). The `*Ctl` terms count every other step,
+label by label (`Reclaim.tla`): for instance a slow path takes 5 steps to publish its request,
+at most T + 2 passes of 8 steps and a traversal's last step each, then either the self-completion
+(4 steps and a drain) or the detach and the republication (9 steps, a detach of at most
+1 + 3 x `DetachBound` steps, a traversal and a drain); a `help_thread` takes 4 steps to read the
+request, at most T + 2 passes of a `do_update` and 5 steps, then the answer, a detach, the
+hand-over and the helper slot left (10 steps, a detach, two traversals and a drain).
+
+Counting objects rather than ids is what makes the bound hold under recycling: the argument for
+16 steps per placement is about one life of a node, and one operation can, in principle, free
+more objects than there are ids, since the drops it runs can take back a node it freed and
+retire it again (an argument; the configurations here are too small to tell the two counts
+apart, TLC finding the id count respected too). `RC_wf_recycle` and `RC_wf_recycle_dtor` check
+`LoopBounds` and `WaitFree` with recycling on: a reader with a writer whose later writes take
+back freed nodes, and a drop that takes back, inside the walk that freed it, the node freed a
+step before; `RC_wit_wf_reuse` and `RC_wit_wf_dtor_reuse` show both reuses happen in those
+exact settings. The loop bounds do not change with recycling: only the detach bound involves
+nodes, through the nesting of destructors counted per id, and an id's next life starts only
+after its destructor ended, so an id never nests inside its own destructor.
 
 A stalled thread delays no one: `RC_live_stall` schedules only thread 2 fairly and lets thread 1
 stop for good at any step of its exit, the park of its orphans and the release of its tid
@@ -233,8 +246,9 @@ of the configurations below, which have two threads, a few nodes and epochs up t
 for those scenarios, not a proof for every number of threads and nodes.
 
 If the writer in step 5 skipped `RetiredNode::new()`, A would go out with the header of its first
-life, birth epoch included. `reclaim.rs` says memory safety does not depend on that write; the
-model checks the claim, and "What TLC found" below says where it holds and where it does not.
+life, birth epoch included. The first version of the recycling docs in `reclaim.rs` said memory
+safety does not depend on that write; the model checks that claim, "What TLC found" below says
+where it holds and where it does not, and the docs now require the write.
 
 #### What the model adds
 
@@ -270,6 +284,9 @@ model checks the claim, and "What TLC found" below says where it holds and where
   node would pass.
 - `ListsHoldNoFreed`, made stricter the same way: no slot list reaches a node in the pool or in
   use again.
+- `WaitFree`, with its bound counting node objects: every operation, and every operation a drop
+  runs, ends within its step bound, which counts each take from the pool as one more object
+  (see "Wait-freedom" above). `LoopBounds` as before.
 - Every other property is unchanged and checked as before (`NoDoubleFree` also catches a second
   `dealloc` of a node already in the pool).
 - `BirthFresh` checks the birth epochs `RetiredNode::new()` stamps; the configurations that skip
@@ -328,36 +345,50 @@ All use two threads unless said otherwise, and every node recycles.
   from the pool; a node going out with a birth epoch older than `RetiredNode::new()` would stamp;
   and one going out with a birth epoch later than it would stamp. If TLC found none of these, the
   passing configurations would check nothing about them.
+- `RC_wf_recycle` (pass). Step counts with recycling: a cut-down `RC_recycle` (thread 1 reads
+  cell 1 in two guards, thread 2 replaces it three times and flushes between), every operation's
+  steps counted. It checks `LoopBounds` and `WaitFree` with the bound counting node objects, and
+  would catch a recycling path that makes an operation loop or wait beyond those bounds.
+- `RC_wf_recycle_dtor` (pass). Step counts with reuse inside a walk: a cut-down
+  `RC_recycle_dtor`, node 1's drop taking back, inside the walk that frees its batch, the node the
+  same walk freed a step before. It checks `LoopBounds` and `WaitFree`, the walk's operation and
+  each operation the drop runs counted on their own.
+- `RC_wit_wf_reuse`, `RC_wit_wf_dtor_reuse` (each must break its witness). In the two
+  step-counted settings exactly: a reader holds a node in a later incarnation, and a drop inside
+  a walk takes a node from the pool, so the two checks above really count steps through reuse.
 
 #### What TLC found
 
 With `Recycle` the code as built passes (`RC_recycle`, `RC_recycle_dtor`): in these scenarios a
 pointer a guard holds keeps its incarnation until the guard drops, and kovan reads or writes no
 node once its destructor ran, also when a drop the walk runs takes back from the pool the node
-the same walk freed a step before (`RC_wit_dtor_reuse` shows that case is reached). About the
-contract the Recycling nodes section of `reclaim.rs` states:
+the same walk freed a step before (`RC_wit_dtor_reuse` shows that case is reached). With step
+counts on (`RC_wf_recycle`, 1,638,997 distinct states; `RC_wf_recycle_dtor`, 1,639,234), every
+operation stays within its step bound and every loop within its bound, the bound counting node
+objects. About the contract in the Recycling nodes section of `reclaim.rs`:
 
 - **Skipping `RetiredNode::new()` is safe only while the header is the one kovan left.**
   `RC_recycle_stale`, `RC_recycle_dtor_stale`, `RC_recycle_stale_lag` and
   `RC_recycle_stale_link_next` pass; `RC_mut_stale_link_birth` breaks `NoUseAfterFree` (121,028
-  states). `reclaim.rs` says memory safety does not depend on the write. That holds while the
-  header is the one kovan left: retirement rewrites `batch_link` and `refs_or_next` (and the
+  states). The first version of these docs said memory safety does not depend on the write. That
+  holds while the header is the one kovan left: retirement rewrites `batch_link` and `refs_or_next` (and the
   destructor, which the model does not keep in the node) before anything reads them, `next` is
   written before each read (reset before the node enters a slot list, set on a refs-node before
   it serves as a free-list or orphan link), and a kept `birth_epoch` is one kovan stamped or
   lowered, never later than the global epoch when the node goes out again, so never later than
   the epoch a reader publishes before it loads the node. It holds as well for a pool that links
-  its nodes through `next`. But the same section gives `dealloc` the whole allocation, "the
+  its nodes through `next`. But the same docs give `dealloc` the whole allocation, "the
   embedded `RetiredNode` included", and a pool whose link lands on the `birth_epoch` word sends
   the node out with a pointer for its birth epoch. The batch it is retired in then has an
   earliest birth above the epoch of every reservation that has not escalated, and the retire
   frees it at once. In the counterexample thread 1 loads node 1 in its second incarnation under a
   reservation at epoch 3; thread 2 replaces and retires it, its scan skips thread 1's slot, and
-  the batch is freed while thread 1 still holds node 1. The claim needs a condition the docs do
-  not state: nothing but kovan wrote the header since the node's last retirement.
+  the batch is freed while thread 1 still holds node 1. The claim needed a condition those docs
+  did not state: nothing but kovan wrote the header since the node's last retirement. The docs
+  now require the write instead.
 - **A kept birth epoch can be later than the stamp it stands in for** (`RC_wit_stale_later`;
-  `RC_recycle_stale_lag` passes). The docs present a kept epoch as older than a fresh stamp (it
-  "can only make kovan defer a batch"). A thread whose cached epoch lags (thread 1, pinned at the
+  `RC_recycle_stale_lag` passes). The first version of the docs presented a kept epoch as older
+  than a fresh stamp (it "can only make kovan defer a batch"). A thread whose cached epoch lags (thread 1, pinned at the
   first epoch) can take back a node another thread stamped later; skipping the write then keeps
   the later epoch, so the node's batch is given to fewer slots than the write would give it. In
   `RC_recycle_stale_lag` that never let a batch go too early: the kept epoch is still at most the
@@ -657,6 +688,10 @@ step counts, no recycling. RF, EF, cache and epochs abbreviate `RetireFreq`, `Ep
 | `RC_wit_dtor_reuse` | a drop, run inside a reclamation walk, takes a node from the pool. | cells 2, nodes 6, recycle | `NoDtorReuseW` broken |
 | `RC_wit_stale_reuse` | a recycled node is about to go out with a birth epoch older than the one `RetiredNode::new` would stamp. | nodes 4, recycle | `NoStaleReuseW` broken |
 | `RC_wit_stale_later` | a recycled node is about to go out with a birth epoch later than the one `RetiredNode::new` would stamp on the recycling thread. | nodes 5, recycle | `NoStaleLaterW` broken |
+| `RC_wf_recycle` | Step counts with recycling: a reader in two guards while a writer replaces cell 1 three times and flushes between, taking back freed nodes. | nodes 4, recycle, steps counted yes | pass |
+| `RC_wf_recycle_dtor` | Step counts with reuse inside a walk: node 1's drop takes back the node the same walk freed a step before. | cells 2, nodes 6, recycle, steps counted yes | pass |
+| `RC_wit_wf_reuse` | in `RC_wf_recycle`'s setting, a section holds a node in a later incarnation. | nodes 4, recycle, steps counted yes | `NoHeldReusedW` broken |
+| `RC_wit_wf_dtor_reuse` | in `RC_wf_recycle_dtor`'s setting, a drop inside a walk takes a node from the pool. | cells 2, nodes 6, recycle, steps counted yes | `NoDtorReuseW` broken |
 
 ### Findings
 

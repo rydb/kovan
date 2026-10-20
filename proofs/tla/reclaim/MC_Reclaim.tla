@@ -227,6 +227,22 @@ P_recycle_lag == [t \in {1, 2} |-> IF t = 1 THEN <<P, After(2, 12), Wr(1), U, Fl
 \* once, which runs that node's dealloc inside the retire call, on the writing thread. Under
 \* pool_lock_held the write still holds the pool's lock at that moment.
 P_pool_lock == [t \in {1} |-> <<P, Wr(1), U, Fl, Wr(1)>>]
+\* Step counting with recycling, the basic case, cut down from P_recycle so that counting every
+\* operation's steps stays small enough to check: thread 1 reads cell 1 in two guards; thread 2
+\* replaces cell 1 three times, flushing after the first two writes, so a later write can take
+\* back a node an earlier one retired while thread 1 reads (RC_wit_wf_reuse shows that happens).
+\* The check: no operation of either thread takes more steps than its bound, the bound counting
+\* every node object (each reuse of an id is one more object).
+P_wf_recycle == [t \in {1, 2} |-> IF t = 1 THEN <<P, Ld(1), U, P, Ld(1), U>>
+                                           ELSE <<P, Wr(1), U, Fl, P, Wr(1), U, Fl, P, Wr(1), U>>]
+\* Step counting with reuse inside a walk, cut down from P_recycle_dtor: thread 1 retires node 1
+\* (by replacing it) and a fresh node, then flushes; node 1's drop (DtorRW2Recycle), run inside
+\* the walk that frees its batch, reads and replaces cell 2, and can take back the node the walk
+\* freed a step before (RC_wit_wf_dtor_reuse shows that happens); thread 2 replaces cell 2 and
+\* flushes. The check: the walk's operation, and each operation the drop runs, counted on its own,
+\* stay within their bounds.
+P_wf_recycle_dtor == [t \in {1, 2} |-> IF t = 1 THEN <<P, Wr(1), Rt, U, Fl>>
+                                                ELSE <<P, Wr(2), U, Fl>>]
 
 \* ------------------------------------------------------------ liveness and bounds
 

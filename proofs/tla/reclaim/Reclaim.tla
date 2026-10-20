@@ -7422,6 +7422,11 @@ EpochBound == ep <= MaxEpoch
 \* when the era closed, one per thread and nesting level of its destructors (detach_nodes),
 \* alloc_tid claims at most one bit per released id and retries its compare_exchange at most once
 \* per id another thread took (slot.rs), an exit runs EXIT_ROUNDS rounds.
+\* Recycling changes none of these. Only the detach bound involves nodes, through the nesting of
+\* destructors, which DtorDepth counts by node id. A node's next life starts only once its
+\* destructor has ended (the take needs the node in the pool, and the destructor's last step is
+\* what puts it there), so one id is never nested inside its own destructor, and the nesting is
+\* still at most one level per id with a destructor program.
 DtorDepth == Cardinality({n \in Nodes : Dtor[n] # <<>>})
 DetachBound == 2 + Cardinality(Threads) * (1 + DtorDepth)
 LoopBounds ==
@@ -7439,7 +7444,30 @@ LoopBounds ==
 \* every node is placed in a slot list at most once per submission of its batch (the first, and
 \* one more per exit that re-arms it), and each placement costs a bounded number of steps (its
 \* insert, the traversal that takes it, its free). README.md derives each term.
-Hist == MaxNodes * (1 + Cardinality(Threads))
+\*
+\* With Recycle, "every node" must mean every node object, not every node id. Each id has its
+\* first life, and each take from the pool starts one more life of it (ninc counts them). The
+\* argument above is about one life: retired once, placed at most once per submission of its
+\* batch, freed once. Counting ids is not enough in general (an argument, not a TLC result):
+\* nothing stops one operation from freeing more objects than there are ids, because the drops
+\* it runs can take back from the pool a node it freed and retire it again, and that new life's
+\* batch can be freed by the same operation. So the bound counts the objects that exist so far.
+\* (The step-counted recycling configurations are too small to tell the two apart: TLC finds the
+\* id-count bound respected there too.) Without Recycle no id is ever taken back, every ninc
+\* stays 0, and Objects is MaxNodes, the bound before recycling.
+\*
+\* The sum of f over the set S (f a function, S a finite part of its domain).
+RECURSIVE SumOver(_, _)
+SumOver(f, S) == IF S = {} THEN 0 ELSE LET x == CHOOSE y \in S : TRUE IN f[x] + SumOver(f, S \ {x})
+\* Node objects so far: one first life per id (MaxNodes, which bounds the fresh allocations),
+\* plus one per take from the pool (the sum of every id's incarnation count).
+Objects == MaxNodes + SumOver(ninc, Nodes)
+\* The placements the whole history can make: at most 1 + T per object (the first submission,
+\* and one more per thread's exit that re-arms it).
+Hist == Objects * (1 + Cardinality(Threads))
+\* (Recycle) the take from the pool is one more step of a write or of a retire of a fresh node
+\* (WR1 or RN1, before WR2 or RN2). Without Recycle there is no take: 0.
+TakeCtl == IF Recycle THEN 1 ELSE 0
 \* The steps outside that per-node work, label by label: a traversal's and a free's last step,
 \* a drain (DF1, DF2 and its free's last step; each further round frees a batch a destructor
 \* cached), traverse_into_cache (TC1, TC2, a free, a traversal; TC3 only in the copies).
@@ -7474,9 +7502,13 @@ OpBound(op) ==
       [] op = "lu" -> 1
       [] op = "unpin" -> 3 + DoUpdCtl + 16 * Hist
       [] op = "pin" -> PinCtl + 16 * Hist
-      [] op \in {"wr", "rt"} -> 1 + RetireCtl + 16 * Hist
+      \* a write or a retire of a fresh node: its first step, the take from the pool (with
+      \* Recycle), the retire's own steps, and the per-object work of the whole history
+      [] op \in {"wr", "rt"} -> 1 + TakeCtl + RetireCtl + 16 * Hist
       [] op = "fl" -> FlushCtl + 16 * Hist
       [] op = "ex" -> ExitCtl + 16 * Hist
+\* No operation in progress has taken more steps than its bound. Hist is evaluated in the state
+\* checked, so with Recycle it counts the objects made so far, whose number only grows.
 WaitFree == \A t \in Threads : \A i \in DOMAIN wf[t] : wf[t][i].n <= OpBound(wf[t][i].op)
 
 \* ---------------------------------------------------------------- properties

@@ -86,6 +86,8 @@ RC_recycle_stale                   MC_Reclaim         pass
 RC_recycle_dtor_stale              MC_Reclaim         pass
 RC_recycle_stale_link_next         MC_Reclaim         pass
 RC_recycle_stale_lag               MC_Reclaim         pass
+RC_wf_recycle                      MC_Reclaim         pass
+RC_wf_recycle_dtor                 MC_Reclaim         pass
 RC_mut_reuse_retired               MC_Reclaim         violated:NoUseAfterFree
 RC_mut_read_after_dealloc          MC_Reclaim         violated:NoUseAfterFree
 RC_mut_stale_link_birth            MC_Reclaim         violated:NoUseAfterFree
@@ -94,3 +96,5 @@ RC_wit_reuse                       MC_Reclaim         violated:NoHeldReusedW
 RC_wit_dtor_reuse                  MC_Reclaim         violated:NoDtorReuseW
 RC_wit_stale_reuse                 MC_Reclaim         violated:NoStaleReuseW
 RC_wit_stale_later                 MC_Reclaim         violated:NoStaleLaterW
+RC_wit_wf_reuse                    MC_Reclaim         violated:NoHeldReusedW
+RC_wit_wf_dtor_reuse               MC_Reclaim         violated:NoDtorReuseW
