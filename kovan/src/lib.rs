@@ -43,8 +43,10 @@
 //!   steps above; batches an exiting thread cannot place are parked on its
 //!   thread ID and adopted by `flush()`, both without a lock: one load tells
 //!   whether any ID holds parked batches, and each call adopts one ID's
-//!   chain, on a thread that never pinned too (it claims a thread ID first,
-//!   as a first pin does, only while some batch is parked).
+//!   chain, on a thread that never pinned too. A thread that never pinned
+//!   claims a thread ID first, as a first pin does, in `flush()` while some
+//!   batch is parked or its own batch holds values it retired, and at exit
+//!   while its batch holds values.
 //!
 //! Every walk of a slot list takes the list with one exchange first, so it
 //! is as long as the list was at that instant: one entry per batch

@@ -215,8 +215,7 @@ impl Handle {
         match self.tid.get() {
             Some(tid) => tid,
             None => {
-                let tid = self.global().alloc_tid();
-                self.tid.set(Some(tid));
+                let tid = self.claim_tid();
                 // On nightly, #[thread_local] doesn't run Drop.
                 // Register a sentinel that calls cleanup() on thread exit.
                 #[cfg(feature = "nightly")]
@@ -226,6 +225,16 @@ impl Handle {
                 tid
             }
         }
+    }
+
+    /// Claim a thread ID for this handle (`alloc_tid`), which its exit
+    /// releases. The exit itself claims through this, not `tid()`: on
+    /// nightly it runs inside the sentinel's destructor, which `tid()`
+    /// would reach.
+    fn claim_tid(&self) -> usize {
+        let tid = self.global().alloc_tid();
+        self.tid.set(Some(tid));
+        tid
     }
 
     /// Protect: era tracking on load — **wait-free**, bounded at
@@ -988,6 +997,15 @@ impl Handle {
         // read.
         let first = self.batch_first.get();
         if first.is_null() {
+            // On nightly a thread's exit (`cleanup`) runs only from the
+            // sentinel, which a thread registers when it claims an ID. A
+            // thread with no ID that starts a batch registers it here, so
+            // its exit runs and submits the batch; without this the batch of
+            // a thread that never pinned would never be submitted on nightly.
+            #[cfg(feature = "nightly")]
+            if self.tid.get().is_none() {
+                let _ = HANDLE_CLEANUP_SENTINEL.try_with(|_| {});
+            }
             // First node in batch -> becomes batch_last (refs-node)
             self.batch_last.set(node_ptr);
             unsafe {
@@ -1516,15 +1534,21 @@ impl Handle {
     ///
     /// Each call also adopts the batches exited threads parked on one thread
     /// ID (`adopt_orphans`), on a thread that has no ID yet too: it claims
-    /// one first, as its first pin would, only when some ID holds a chain.
+    /// one first, as its first pin would, when some ID holds a chain or its
+    /// own batch holds values it retired without pinning.
     fn flush(&self) {
         // A thread that has never claimed an ID has no slot to drain, but it
-        // must still adopt: a thread that only ever flushes would otherwise
-        // leave what exited threads parked there for good. It claims an ID
-        // only when one load tells that some ID holds a chain, since the ID
-        // stays taken until the thread exits, and only while that exit is
-        // still to run, as the exit is what releases it.
-        if self.tid.get().is_none() && !(self.global().orphans_parked() && exit_pending()) {
+        // must still submit what it retired (unpinned retires fill its batch
+        // without an ID) and adopt: a thread that only ever flushes would
+        // otherwise leave its batch, and what exited threads parked, for
+        // good. It claims an ID only when its batch holds a value or one load
+        // tells that some ID holds a chain, since the ID stays taken until
+        // the thread exits, and only while that exit is still to run, as the
+        // exit is what releases it.
+        if self.tid.get().is_none()
+            && ((self.batch_first.get().is_null() && !self.global().orphans_parked())
+                || !exit_pending())
+        {
             return;
         }
         // Skip if we're already inside a reclamation operation (e.g. a
@@ -1625,6 +1649,13 @@ impl Handle {
     /// Cleanup thread-local state. Called on thread exit.
     /// Extracted from Drop so it can also be called by the nightly sentinel.
     fn cleanup(&self) {
+        // A thread that retired without ever pinning holds a batch and no
+        // ID: it claims one, as a first pin would, and exits as any thread
+        // does (submits, parks what cannot be placed, releases the ID last).
+        // Without an ID its batch would be dropped with the handle, unfreed.
+        if self.tid.get().is_none() && !self.batch_first.get().is_null() {
+            self.claim_tid();
+        }
         if let Some(tid) = self.tid.get() {
             // The destructors this exit runs reach this handle, `HANDLE`
             // being the thread-local whose destructor runs it.
@@ -2022,7 +2053,8 @@ pub unsafe fn retire<T: 'static>(ptr: *mut T) {
 /// Each call also adopts the batches that exited threads could not place and
 /// left parked on one thread ID, and retires them with the calling thread's
 /// own: also on a thread that never pinned, which then claims a thread ID for
-/// that (only while some batch is parked) and releases it when it exits.
+/// that (only while some batch is parked, or while its own batch holds values
+/// it retired) and releases it when it exits.
 ///
 /// **Note:** This only flushes the calling thread's state. To flush all threads,
 /// each thread must call `flush()` independently or exit (which triggers cleanup).

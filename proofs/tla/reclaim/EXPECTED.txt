@@ -15,6 +15,7 @@ RC_exit_tid                        MC_Reclaim         pass
 RC_exit_chain                      MC_Reclaim         pass
 RC_orphan                          MC_Reclaim         pass
 RC_flush_orphan                    MC_Reclaim         pass
+RC_unpinned_retire                 MC_Reclaim         pass
 RC_help_dtor                       MC_Reclaim         pass
 RC_reenter                         MC_Reclaim         pass
 RC_reenter_rt                      MC_Reclaim         pass
@@ -50,6 +51,7 @@ RC_mut_help_no_seqno_check         MC_Reclaim         violated:LoopBounds
 RC_mut_stale_birth                 MC_Reclaim         violated:BirthFresh
 RC_mut_flush_keeps_reservation     MC_Reclaim         violated:FlushReleases
 RC_mut_flush_needs_tid             MC_Reclaim         violated:OrphansAdopted
+RC_mut_batch_needs_tid             MC_Reclaim         violated:NoLoss
 RC_mut_load_traverses              MC_Reclaim         violated:NoUseAfterFree
 RC_mut_no_era_check                MC_Reclaim         violated:NoUseAfterFree
 RC_mut_no_help                     MC_Reclaim         violated:LoopBounds

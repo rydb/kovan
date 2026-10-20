@@ -117,6 +117,17 @@ P_flush_orphan == [t \in {1, 2, 3} |-> CASE t = 1 -> <<P, Wr(1), U, Ex>>
 P_flush_orphan_live == [t \in {1, 2, 3} |-> CASE t = 1 -> <<P, Wr(1), U, Ex>>
                                              [] t = 2 -> <<P, Ld(1), U, Ex>>
                                              [] t = 3 -> <<Join(1), Fl>>]
+\* Values retired by threads that never pin (README.md tells the story). With a batch of two
+\* (RetireFreq 2), one retire does not submit: the value waits in the thread's own batch, and the
+\* thread has no tid (a pin claims one, as do a flush or an exit that needs one and the epoch
+\* advance of every EpochFreq-th retire; with EpochFreq 2, one retire makes no advance).
+\* Thread 1 retires one value, flushes, then exits: the flush must claim a tid and submit.
+\* Thread 2 retires one value, then just exits: the exit must claim a tid and submit.
+\* Thread 3 pins, unpins and exits: from its pin to its exit its slot reserves an epoch, and a
+\* one-value batch cannot be placed then, so a submission may also have to keep or park it.
+P_unpinned == [t \in {1, 2, 3} |-> CASE t = 1 -> <<Rt, Fl, Ex>>
+                                    [] t = 2 -> <<Rt, Ex>>
+                                    [] t = 3 -> <<P, U, Ex>>]
 
 \* ------------------------------------------------------------ re-entrance with helping
 
