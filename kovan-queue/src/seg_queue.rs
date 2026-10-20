@@ -1,302 +1,891 @@
+//! An unbounded, lock-free, linearizable FIFO queue for many producers and
+//! many consumers.
+//!
+//! # The algorithm
+//!
+//! The queue is a linked list of segments of 32 cells (`SEGMENT_SIZE`). Each
+//! end of the queue, the tail where pushes work and the head where pops
+//! work, is a claim word and a segment pointer. A claim word packs a segment
+//! id and an index: one fetch-add on it claims cell `index` of segment `id`,
+//! for that thread alone, and an index past the segment's end says the
+//! segment is full (at the tail) or drained (at the head).
+//!
+//! - A push claims a cell with one fetch-add on the tail word, writes its
+//!   value into the cell and publishes it with one compare-and-swap of the
+//!   cell's state from `EMPTY` to `FULL`. When its index is past the end, it
+//!   links a successor segment whose first cell already holds its value (one
+//!   compare-and-swap of `next`), then moves the tail word to the successor's
+//!   second cell; when another push linked a successor first, it moves the
+//!   word there and tries again.
+//! - A pop claims a cell with one fetch-add on the head word and swaps the
+//!   cell's state to `TAKEN`. If the state was `FULL` it returns the value.
+//!   If it was `EMPTY`, the cell's push has claimed it but not written yet (or
+//!   no push has claimed it): the swap takes the cell out of play, that push's
+//!   compare-and-swap fails and it pushes again at a later index, and the pop
+//!   claims the next cell. Before claiming, a pop reads both words: when every
+//!   index pushes claimed is claimed by pops too and no successor can exist,
+//!   the queue is empty and the pop returns without claiming. When every cell
+//!   of the head segment is claimed and a successor exists, the pop moves the
+//!   head word to the successor, then the pointers (the tail pointer first,
+//!   so neither end points at the old segment), and the pop whose
+//!   compare-and-swap moved the head pointer retires the segment.
+//!
+//! The words move first and the pointers follow, so a pointer is never past
+//! its word's segment (except the tail pointer, which a pop may move one
+//! segment past a tail word that is being moved): a thread loads the pointer,
+//! then claims through the word, and walks forward from the pointer to the
+//! segment its claim names.
+//!
+//! This is the segmented infinite-array design of the queues built on
+//! fetch-add (Morrison and Afek's LCRQ, Correia and Ramalhete's
+//! FAAArrayQueue), with the claim words packed as in the established segment
+//! queues and kovan's memory reclamation. The earlier design scanned each
+//! segment from its first slot for the first written one and passed over a
+//! slot still being written, so a pop could return a producer's second value
+//! before its first; claiming cells by index makes the order of the indices
+//! the order of the queue.
+//!
+//! # Linearizability
+//!
+//! Each cell is claimed by at most one push and one pop, and the words only
+//! move forward, so the cells line up in one total order (segment by
+//! segment, index by index) that every thread agrees on. A push's place in
+//! the queue is the cell it finally wrote; a pop takes the value of its cell.
+//! A push that completed before another started holds the lower cell, so its
+//! value comes out first; one producer's values come out in the order it
+//! pushed them, and with one consumer they come out exactly in cell order. A
+//! pop answers empty only from words read in order (head, then tail) that
+//! show every cell claimed by pushes claimed by pops too, with no successor
+//! segment possible or none found. The TLA+ model in `proofs/tla/segqueue/`
+//! checks these claims step by step for small configurations, and the Lean
+//! proof in `proofs/lean/Kovan/SegQueue.lean` the sequential arithmetic
+//! (the words, the positions, the length) they rest on.
+//!
+//! Every atomic access to shared memory here is sequentially consistent.
+//! That makes the hardware run this code as the interleavings the model
+//! checks; on x86-64 and on aarch64 it costs nothing over acquire/release for
+//! the read-modify-writes and loads used here, and the code makes no other
+//! store to a cell another thread can reach.
+//!
+//! # Progress
+//!
+//! - [`SegQueue::push`] is lock-free. It retries only when a pop took its
+//!   cell out of play, or when another push linked the successor first (that
+//!   push completed). A segment has 32 cells, so after at most that many
+//!   claims a push finds it full, and the push that links the successor
+//!   completes with that very step: nothing can take a cell of a segment that
+//!   is not linked yet.
+//! - [`SegQueue::pop`] is lock-free and never waits for a stopped producer:
+//!   a claimed cell whose value has not landed is re-read a bounded number of
+//!   times (`PATIENCE`), then taken out of play.
+//! - [`SegQueue::try_pop`] never waits and never takes a cell out of play: it
+//!   answers [`TryPopError::Busy`] when the next cell is claimed and not yet
+//!   written, so a consumer can register a waker and park until the
+//!   producer, after its push returns, wakes it.
+//! - [`SegQueue::len`] is two loads. [`SegQueue::is_empty`], and `pop` and
+//!   `try_pop` on an empty queue, are two loads too, except right after a
+//!   segment filled up, when they look at the head segment's successor.
+//! - Nothing here is wait-free: one thread can lose every race to others that
+//!   keep completing.
+//!
+//! # Memory reclamation
+//!
+//! A segment is retired through kovan once the head pointer moved past it,
+//! after the tail pointer did. A retired segment holds no value: every one of
+//! its cells was claimed by a pop, which takes the value or takes the cell
+//! out of play while it is pinned, and kovan frees the segment only after
+//! those pins. So a retired segment is freed through a type-erased header
+//! that knows only the segment's layout, and the queue needs no `T: 'static`
+//! bound (the proof is on the private `Header` type).
+
 use std::cell::UnsafeCell;
+use std::error::Error;
+use std::fmt;
+use std::marker::PhantomData;
 use std::mem::MaybeUninit;
 use std::ptr;
-use std::sync::atomic::Ordering;
+use std::sync::atomic::Ordering::{Relaxed, SeqCst};
 
-use crate::utils::{CacheAligned, backoff_hint};
-use kovan::{Atomic, RetiredNode, Shared, pin};
+use crate::utils::CacheAligned;
+use kovan::{Atomic, Guard, Reclaimable, RetiredNode, Shared, pin, retire_reclaimable};
 
-// `head`/`tail` (below) and each `Segment::next` are `kovan::Atomic<T>`,
-// already shuttle-instrumented by this crate's `shuttle` feature cascading
-// into `kovan/shuttle` (see this crate's Cargo.toml). `Slot::state` and
-// `len` are this queue's own plain atomics, on top of that -- swapped here
-// the same way `array_queue.rs` swaps its self-contained head/tail/stamp,
-// so a consumer's slot-state scan and a producer's slot claim are checker
-// scheduling points too, matching `kovan-channel`'s `Signal`/`WaitList`
-// swap.
+// The segment pointers are `kovan::Atomic<T>`, already shuttle-instrumented
+// by this crate's `shuttle` feature cascading into `kovan/shuttle` (see this
+// crate's Cargo.toml). The claim words and the cell states are this queue's
+// own atomics, swapped here so every claim, every cell read-modify-write and
+// every word read is a scheduling point of the checker too.
 #[cfg(feature = "shuttle")]
-use shuttle::sync::atomic::AtomicUsize;
+use shuttle::sync::atomic::{AtomicU64, AtomicUsize};
 #[cfg(not(feature = "shuttle"))]
-use std::sync::atomic::AtomicUsize;
+use std::sync::atomic::{AtomicU64, AtomicUsize};
 
+/// Cells per segment. Kept at the size of the earlier design, so an empty
+/// queue takes about the memory it took before.
 const SEGMENT_SIZE: usize = 32;
+/// `log2(SEGMENT_SIZE)`: a segment's first position is its id shifted by it.
+const SEGMENT_SHIFT: u32 = SEGMENT_SIZE.trailing_zeros();
 
-/// Slot state: Empty, ready to be written.
-const SLOT_EMPTY: usize = 0;
-/// Slot state: Currently being written to.
-const SLOT_WRITING: usize = 1;
-/// Slot state: Contains a value, ready to be read.
-const SLOT_WRITTEN: usize = 2;
-/// Slot state: Value has been read/consumed.
-const SLOT_CONSUMED: usize = 3;
+/// How many times a pop re-reads a claimed cell whose value has not landed
+/// before it takes the cell out of play. A producer's write takes a few
+/// nanoseconds, so a short wait avoids most retries under contention; the
+/// bound keeps the pop from waiting on a producer that was descheduled.
+const PATIENCE: usize = 16;
 
-struct Slot<T> {
+/// The low bits of a claim word: the index. A fetch-add raises the index by
+/// one; every thread that finds the index past the segment's end moves the
+/// word to the next segment before it claims again, so the index stays below
+/// `SEGMENT_SIZE` plus the number of threads (kovan hands out at most 65,536
+/// thread ids), far below `2^20`, and never carries into the id.
+const INDEX_BITS: u32 = 20;
+const INDEX_MASK: u64 = (1 << INDEX_BITS) - 1;
+/// The high bits of a claim word: the segment id, counted modulo `2^44`. Two
+/// segments a thread can compare are never `2^43` ids apart.
+const ID_MASK: u64 = u64::MAX >> INDEX_BITS;
+/// Queue positions (`id * SEGMENT_SIZE + index`) are counted modulo `2^49`.
+const POS_MASK: u64 = (ID_MASK << SEGMENT_SHIFT) | (SEGMENT_SIZE as u64 - 1);
+
+/// Cell state: no value, and no pop has passed the cell.
+const EMPTY: usize = 0;
+/// Cell state: the producer's value is in the cell, not yet taken.
+const FULL: usize = 1;
+/// Cell state: a pop took the value, or passed the cell before any value
+/// landed (its producer then pushes again elsewhere).
+const TAKEN: usize = 2;
+
+/// The claim word naming cell `index` of segment `id`.
+fn word(id: u64, index: u64) -> u64 {
+    ((id & ID_MASK) << INDEX_BITS) | index
+}
+
+/// The segment id of a claim word.
+fn id_of(w: u64) -> u64 {
+    w >> INDEX_BITS
+}
+
+/// The index of a claim word.
+fn index_of(w: u64) -> u64 {
+    w & INDEX_MASK
+}
+
+/// The id after `id`.
+fn next_id(id: u64) -> u64 {
+    id.wrapping_add(1) & ID_MASK
+}
+
+/// `true` when segment id `a` is behind `b` (modulo `2^44`).
+fn behind(a: u64, b: u64) -> bool {
+    let d = b.wrapping_sub(a) & ID_MASK;
+    d != 0 && d < 1 << 43
+}
+
+/// The queue position of a claim word: its segment's first position plus
+/// the claimed cells, capped at the segment's end (claims past the end only
+/// tell that the segment is full or drained).
+fn position(w: u64) -> u64 {
+    ((id_of(w) << SEGMENT_SHIFT) + index_of(w).min(SEGMENT_SIZE as u64)) & POS_MASK
+}
+
+/// One cell: its state and the value, initialised exactly while the state
+/// is `FULL`.
+struct Cell<T> {
     state: AtomicUsize,
     value: UnsafeCell<MaybeUninit<T>>,
 }
 
+/// The type-erased head of every segment, the node kovan retires.
+///
+/// kovan's [`retire_reclaimable`] needs a `'static` node type. `Header` is
+/// one whatever `T` is: it holds kovan's [`RetiredNode`] and a function,
+/// instantiated for the segment's `T`, that frees the segment's memory. kovan
+/// calls it through [`Reclaimable::dealloc`] once no guard can reach the
+/// segment.
+///
+/// Why freeing a segment this way is sound for any `T`, with or without
+/// borrowed data in it:
+///
+/// 1. A segment is retired only after the head pointer moved past it, which
+///    happens only after the head word moved past it, which happens only
+///    once the head word's index passed `SEGMENT_SIZE` in it: every cell was
+///    claimed by a pop. Each such pop swaps its cell to `TAKEN` while it is
+///    pinned, either moving the value out (it was `FULL`) or taking the cell
+///    out of play (it was `EMPTY`, and its producer, also pinned, moves its
+///    value back out). Pushes write only cells they claimed and only while
+///    pinned.
+/// 2. kovan calls `dealloc` only after every guard that could reach the
+///    segment was dropped, so after all of those swaps: no cell of a segment
+///    being freed holds a value.
+/// 3. `free` frees the allocation with the layout of `Segment<T>` and reads
+///    nothing else: no value of type `T` is read, written or dropped, and no
+///    reference of any lifetime in `T` is touched. The layout depends only on
+///    the size and alignment of `T`, which no lifetime changes.
+///
+/// So running `free` after the data borrowed by some `T` is gone touches
+/// none of it, and the queue needs no `T: 'static`. (Retiring a
+/// `Box<Segment<T>>` with [`kovan::retire`] instead would need `T: 'static`,
+/// because its drop glue could in general drop a `T`.)
+#[repr(C)]
+struct Header {
+    retired: RetiredNode,
+    free: unsafe fn(*mut Header),
+}
+
+// SAFETY: `RetiredNode` is the first field of the `#[repr(C)]` `Header`, and
+// `Header` is the first field of every `#[repr(C)]` `Segment<T>`, so the
+// segment's address is the node's. `dealloc` only frees memory (see above)
+// and cannot panic.
+unsafe impl Reclaimable for Header {
+    fn retired_node(&self) -> &RetiredNode {
+        &self.retired
+    }
+
+    fn retired_node_mut(&mut self) -> &mut RetiredNode {
+        &mut self.retired
+    }
+
+    unsafe fn dealloc(node: *mut Self) {
+        // SAFETY: kovan calls this once, when no thread can reach the
+        // segment; `free` was set for this segment's `T` when it was made.
+        unsafe { ((*node).free)(node) }
+    }
+}
+
+/// Frees a segment of `T`s without touching any `T`.
+///
+/// # Safety
+///
+/// `header` heads a `Segment<T>` made by [`Segment::alloc`] that no thread
+/// can reach any more and whose cells hold no value.
+unsafe fn free_segment<T>(header: *mut Header) {
+    // `MaybeUninit` has no drop glue: this only returns the memory, with the
+    // layout `Box::<Segment<T>>::new_uninit` allocated it with.
+    // SAFETY: the caller's contract; `Header` is at offset 0 of the segment.
+    drop(unsafe { Box::from_raw(header.cast::<MaybeUninit<Segment<T>>>()) });
+}
+
 #[repr(C)]
 struct Segment<T> {
-    retired: RetiredNode,
-    slots: [Slot<T>; SEGMENT_SIZE],
+    header: Header,
+    /// The successor, linked once by the push that found this segment full.
     next: Atomic<Segment<T>>,
-    id: usize,
+    /// The segment's id, modulo `2^44`: the id its cells' claim words carry.
+    id: u64,
+    cells: [Cell<T>; SEGMENT_SIZE],
 }
 
 impl<T> Segment<T> {
-    fn new(id: usize) -> Segment<T> {
-        // Use `core::array::from_fn` to construct each slot explicitly with known-good values.
-        let slots = core::array::from_fn(|_| Slot {
-            state: AtomicUsize::new(SLOT_EMPTY),
-            value: UnsafeCell::new(MaybeUninit::uninit()),
-        });
-        Segment {
-            retired: RetiredNode::new(),
-            slots,
-            next: Atomic::null(),
-            id,
+    /// A segment with every cell empty.
+    fn alloc(id: u64) -> *mut Segment<T> {
+        let mut seg = Box::<Segment<T>>::new_uninit();
+        let p = seg.as_mut_ptr();
+        // SAFETY: `p` is the box's own uninitialised allocation. Every field
+        // but the cells' values is written; a value is a `MaybeUninit`, valid
+        // uninitialised, so the whole segment is initialised afterwards.
+        unsafe {
+            (&raw mut (*p).header).write(Header {
+                retired: RetiredNode::new(),
+                free: free_segment::<T>,
+            });
+            (&raw mut (*p).next).write(Atomic::null());
+            (&raw mut (*p).id).write(id);
+            let cells = (&raw mut (*p).cells).cast::<Cell<T>>();
+            for i in 0..SEGMENT_SIZE {
+                (&raw mut (*cells.add(i)).state).write(AtomicUsize::new(EMPTY));
+            }
+            Box::into_raw(seg.assume_init())
         }
     }
 }
 
-pub struct SegQueue<T> {
-    head: CacheAligned<Atomic<Segment<T>>>,
-    tail: CacheAligned<Atomic<Segment<T>>>,
-    len: AtomicUsize,
+/// Walks from `seg` to the segment with id `id`, or `None` when `seg` is
+/// already past it. A thread loads an end's pointer before it reads or claims
+/// through the end's word, and a pointer is never moved past its word's
+/// segment before the word is, so the walk only goes forward over linked
+/// segments.
+fn locate<'g, T>(
+    mut seg: Shared<'g, Segment<T>>,
+    id: u64,
+    guard: &'g Guard,
+) -> Option<&'g Segment<T>> {
+    loop {
+        // SAFETY: never null (checked below for the successors), and the
+        // guard keeps every segment reachable from a loaded pointer allocated.
+        let s = unsafe { seg.deref() };
+        if s.id == id {
+            return Some(s);
+        }
+        if !behind(s.id, id) {
+            return None;
+        }
+        seg = s.next.load(SeqCst, guard);
+        if seg.is_null() {
+            return None;
+        }
+    }
 }
 
+/// Moves the value out of a cell this thread claimed, if it holds one.
+///
+/// The swap to `TAKEN` decides the cell: a value already there is ours, and
+/// a producer that had not written yet finds its compare-and-swap failing.
+fn take<T>(cell: &Cell<T>) -> Option<T> {
+    if cell.state.swap(TAKEN, SeqCst) == FULL {
+        // SAFETY: `FULL` means the producer's write happened before its
+        // compare-and-swap, which our swap read; only the claimer of the
+        // cell swaps it, so the value is moved out once.
+        Some(unsafe { cell.value.get().read().assume_init() })
+    } else {
+        None
+    }
+}
+
+/// What the two claim words say about the front of the queue.
+#[derive(Clone, Copy)]
+enum View {
+    /// No value is in the queue at the moment the tail word was read.
+    Empty,
+    /// A push has claimed the cell the head word names: a pop can claim it.
+    Claimed,
+    /// Every cell of the head word's segment is claimed by pops and a
+    /// successor may exist: only the segment's `next` tells.
+    Drained,
+}
+
+/// Classifies the head word `hw` and the tail word `tw`, read in that order.
+///
+/// An `Empty` answer holds at the moment `tw` was read: the head word was
+/// then at least `hw` (it only moves forward), every cell pushes had claimed
+/// was claimed by pops, and no successor of the head segment could exist (a
+/// successor is linked only by a push that found the segment full, after the
+/// tail word's index passed `SEGMENT_SIZE` in that segment).
+fn classify(hw: u64, tw: u64) -> View {
+    let (sh, d) = (id_of(hw), index_of(hw));
+    let (st, e) = (id_of(tw), index_of(tw));
+    let full = SEGMENT_SIZE as u64;
+    if st == sh {
+        if d < e.min(full) {
+            View::Claimed
+        } else if e <= full {
+            // No push found the segment full yet, so no successor exists.
+            View::Empty
+        } else {
+            View::Drained
+        }
+    } else if next_id(st) == sh {
+        // The tail word is still being moved into the head's segment: the
+        // only cell pushes claimed there is the first, which holds the value
+        // of the push that linked the segment.
+        if d == 0 { View::Claimed } else { View::Empty }
+    } else if d < full {
+        // The tail word is past the head's segment, so that segment is full.
+        View::Claimed
+    } else {
+        View::Drained
+    }
+}
+
+/// Why [`SegQueue::try_pop`] returned no value.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub enum TryPopError {
+    /// The queue holds no value.
+    Empty,
+    /// A push has claimed the queue's next cell and not written its value
+    /// yet: a value is on its way. A single consumer can register a waker
+    /// and park; the producer wakes it once its push returns.
+    Busy,
+}
+
+impl fmt::Display for TryPopError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(match self {
+            TryPopError::Empty => "the queue is empty",
+            TryPopError::Busy => "the next value is still being pushed",
+        })
+    }
+}
+
+impl Error for TryPopError {}
+
+/// One end of the queue: the claim word and the segment it names (or one
+/// next to it while the two are being moved).
+struct End<T> {
+    word: AtomicU64,
+    seg: Atomic<Segment<T>>,
+}
+
+/// An unbounded, lock-free, linearizable FIFO queue for many producers and
+/// many consumers.
+///
+/// Values come out in one total order consistent with real time: a push
+/// that returned before another push started comes out first, so one
+/// producer's values always come out in the order it pushed them.
+///
+/// ```
+/// use kovan_queue::seg_queue::SegQueue;
+///
+/// let q = SegQueue::new();
+/// q.push(1);
+/// q.push(2);
+/// assert_eq!(q.pop(), Some(1));
+/// assert_eq!(q.pop(), Some(2));
+/// assert_eq!(q.pop(), None);
+/// ```
+pub struct SegQueue<T> {
+    head: CacheAligned<End<T>>,
+    tail: CacheAligned<End<T>>,
+    /// The queue owns the values in its cells.
+    _values: PhantomData<T>,
+}
+
+// SAFETY: values move between threads through the queue, which is all
+// `T: Send` allows; the queue never hands out a shared reference to a value.
 unsafe impl<T: Send> Send for SegQueue<T> {}
+// SAFETY: as above; every shared cell is reached through atomics.
 unsafe impl<T: Send> Sync for SegQueue<T> {}
 
-impl<T: 'static> Default for SegQueue<T> {
+impl<T> Default for SegQueue<T> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<T: 'static> SegQueue<T> {
+impl<T> SegQueue<T> {
     /// Creates a new unbounded queue.
     pub fn new() -> SegQueue<T> {
-        let segment = Box::into_raw(Box::new(Segment::new(0)));
-        let head = Atomic::new(segment);
-        let tail = Atomic::new(segment);
-
+        let segment = Segment::alloc(0);
+        let end = || End {
+            word: AtomicU64::new(word(0, 0)),
+            seg: Atomic::new(segment),
+        };
         SegQueue {
-            head: CacheAligned::new(head),
-            tail: CacheAligned::new(tail),
-            len: AtomicUsize::new(0),
+            head: CacheAligned::new(end()),
+            tail: CacheAligned::new(end()),
+            _values: PhantomData,
         }
     }
 
     /// Pushes an element into the queue.
     pub fn push(&self, value: T) {
-        let backoff = crossbeam_utils::Backoff::new();
         let guard = pin();
-
+        let mut value = value;
+        // A segment this push allocated and could not link: kept for its next
+        // full segment, freed at the end if not needed.
+        let mut spare: *mut Segment<T> = ptr::null_mut();
         loop {
-            let tail = self.tail.load(Ordering::Acquire, &guard);
-
-            if tail.is_null() {
+            let tail = self.tail.seg.load(SeqCst, &guard);
+            let w = self.tail.word.fetch_add(1, SeqCst);
+            let (s, i) = (id_of(w), index_of(w));
+            if i < SEGMENT_SIZE as u64 {
+                let Some(seg) = locate(tail, s, &guard) else {
+                    // Not reached: a claim of a cell names a linked segment at
+                    // or past the pointer loaded before it. Were it reached,
+                    // the cell would stay empty and the pop claiming it would
+                    // take it out of play: the value is still ours.
+                    debug_assert!(false, "a claimed cell's segment is not linked");
+                    continue;
+                };
+                if !ptr::eq(seg, tail.as_raw()) {
+                    // The pointer lags behind the word: walk it forward once.
+                    self.catch_up_tail(&guard);
+                }
+                let Some(cell) = seg.cells.get(i as usize) else {
+                    continue;
+                };
+                // SAFETY: the cell is ours alone among producers, and no pop
+                // reads a cell's value before it reads `FULL`.
+                unsafe { cell.value.get().write(MaybeUninit::new(value)) };
+                if cell
+                    .state
+                    .compare_exchange(EMPTY, FULL, SeqCst, SeqCst)
+                    .is_ok()
+                {
+                    break;
+                }
+                // A pop passed the cell before the value landed: the value is
+                // still ours, written just above and read by no one.
+                // SAFETY: initialised by the write above.
+                value = unsafe { cell.value.get().read().assume_init() };
                 continue;
             }
-
-            let t = unsafe { tail.as_ref().unwrap() };
-            let next = t.next.load(Ordering::Acquire, &guard);
-
-            if !next.is_null() {
-                let _ = self.tail.compare_exchange(
-                    tail,
-                    next,
-                    Ordering::SeqCst,
-                    Ordering::Relaxed,
-                    &guard,
-                );
+            // Segment `s` is full.
+            let Some(seg) = locate(tail, s, &guard) else {
+                // A pop moved the tail pointer past `s`, onto the successor:
+                // the word follows it.
+                self.advance_tail_word(s);
                 continue;
-            }
-
-            for i in 0..SEGMENT_SIZE {
-                let slot = &t.slots[i];
-                let state = slot.state.load(Ordering::Acquire);
-
-                if state == SLOT_EMPTY {
-                    if slot
-                        .state
-                        .compare_exchange(
-                            SLOT_EMPTY,
-                            SLOT_WRITING,
-                            Ordering::SeqCst,
-                            Ordering::Relaxed,
-                        )
-                        .is_ok()
-                    {
-                        unsafe {
-                            slot.value.get().write(MaybeUninit::new(value));
-                        }
-                        slot.state.store(SLOT_WRITTEN, Ordering::Release);
-                        self.len.fetch_add(1, Ordering::Relaxed);
+            };
+            let mut next = seg.next.load(SeqCst, &guard);
+            if next.is_null() {
+                if spare.is_null() {
+                    spare = Segment::alloc(next_id(s));
+                }
+                // SAFETY: `spare` is unpublished: this thread is its only user.
+                // Its first cell takes the value, so the push is complete the
+                // moment the segment is linked.
+                unsafe {
+                    (*spare).id = next_id(s);
+                    let first = &(*spare).cells[0];
+                    first.value.get().write(MaybeUninit::new(value));
+                    first.state.store(FULL, Relaxed);
+                }
+                // SAFETY: a live segment, and the null pointer, compared.
+                let (new, null) =
+                    unsafe { (Shared::from_raw(spare), Shared::from_raw(ptr::null_mut())) };
+                match seg.next.compare_exchange(null, new, SeqCst, SeqCst, &guard) {
+                    Ok(_) => {
+                        self.advance_tail(tail, s, new, &guard);
                         return;
                     }
-                } else if state == SLOT_WRITING {
-                    continue;
+                    Err(other) => {
+                        next = other;
+                        // SAFETY: still unpublished: take the value back and
+                        // empty the cell for the segment's next use.
+                        unsafe {
+                            let first = &(*spare).cells[0];
+                            value = first.value.get().read().assume_init();
+                            first.state.store(EMPTY, Relaxed);
+                        }
+                    }
                 }
             }
+            self.advance_tail(tail, s, next, &guard);
+        }
+        if !spare.is_null() {
+            // SAFETY: never published, and its cells hold no value.
+            unsafe { free_segment::<T>(spare.cast()) };
+        }
+    }
 
-            // Segment is full, allocate new one
-            let new_segment = Box::into_raw(Box::new(Segment::new(t.id + 1)));
-            let new_shared = unsafe { Shared::from_raw(new_segment) };
+    /// Moves the tail past full segment `s`, whose successor `next` is linked:
+    /// the word first, then the pointer (`tail`, loaded before the claim that
+    /// found `s` full).
+    fn advance_tail(
+        &self,
+        tail: Shared<'_, Segment<T>>,
+        s: u64,
+        next: Shared<'_, Segment<T>>,
+        guard: &Guard,
+    ) {
+        self.advance_tail_word(s);
+        // SAFETY: never null, kept allocated by the guard.
+        if unsafe { tail.deref() }.id == s {
+            let _ = self
+                .tail
+                .seg
+                .compare_exchange(tail, next, SeqCst, SeqCst, guard);
+        } else {
+            self.catch_up_tail(guard);
+        }
+    }
 
-            // Shared::null() doesn't exist, use from_raw(null) or check logic.
-            // compare_exchange expects Shared.
-            // We want to compare against null.
-            let null_shared = unsafe { Shared::from_raw(ptr::null_mut()) };
+    /// Moves the tail word from full segment `s`, whose successor is linked,
+    /// to the successor's second cell (its first holds the value of the push
+    /// that linked it).
+    fn advance_tail_word(&self, s: u64) {
+        let mut w = self.tail.word.load(SeqCst);
+        while id_of(w) == s {
+            match self
+                .tail
+                .word
+                .compare_exchange(w, word(next_id(s), 1), SeqCst, SeqCst)
+            {
+                Ok(_) => return,
+                Err(now) => w = now,
+            }
+        }
+    }
 
-            if t.next
-                .compare_exchange(
-                    null_shared,
-                    new_shared,
-                    Ordering::SeqCst,
-                    Ordering::Relaxed,
-                    &guard,
-                )
+    /// Moves the tail pointer forward until it reaches the tail word's
+    /// segment (or the segment after it, where a pop may have put it).
+    fn catch_up_tail(&self, guard: &Guard) {
+        loop {
+            let tail = self.tail.seg.load(SeqCst, guard);
+            // SAFETY: never null, kept allocated by the guard.
+            let t = unsafe { tail.deref() };
+            if !behind(t.id, id_of(self.tail.word.load(SeqCst))) {
+                return;
+            }
+            let next = t.next.load(SeqCst, guard);
+            if next.is_null() {
+                return;
+            }
+            let _ = self
+                .tail
+                .seg
+                .compare_exchange(tail, next, SeqCst, SeqCst, guard);
+        }
+    }
+
+    /// The head word and what the two words say, read without a guard: the
+    /// words are in the queue itself, never freed while it lives.
+    fn view(&self) -> (u64, View) {
+        let hw = self.head.word.load(SeqCst);
+        let tw = self.tail.word.load(SeqCst);
+        (hw, classify(hw, tw))
+    }
+
+    /// Resolves a `Drained` view of the head word `hw`: `true` when the
+    /// segment it names has no successor (the queue is empty), otherwise moves
+    /// the head past the segment and returns `false`.
+    ///
+    /// `head` was loaded under `guard` after `hw` was read, or before; when it
+    /// is already past the segment, another pop moved the head on.
+    fn drained(&self, head: Shared<'_, Segment<T>>, hw: u64, guard: &Guard) -> bool {
+        let s = id_of(hw);
+        let Some(seg) = locate(head, s, guard) else {
+            return false;
+        };
+        let next = seg.next.load(SeqCst, guard);
+        if next.is_null() {
+            // Every cell of `s` was claimed by pops when `hw` was read, and no
+            // successor exists even now: the queue was empty at this load.
+            return true;
+        }
+        let mut w = self.head.word.load(SeqCst);
+        while id_of(w) == s {
+            match self
+                .head
+                .word
+                .compare_exchange(w, word(next_id(s), 0), SeqCst, SeqCst)
+            {
+                Ok(_) => break,
+                Err(now) => w = now,
+            }
+        }
+        self.catch_up_head(guard);
+        false
+    }
+
+    /// Moves the head pointer forward until it reaches the head word's
+    /// segment, retiring every segment it moves past. The tail pointer moves
+    /// off a segment before the head pointer does, so a retired segment is
+    /// reachable from neither.
+    fn catch_up_head(&self, guard: &Guard) {
+        loop {
+            let head = self.head.seg.load(SeqCst, guard);
+            // SAFETY: never null, kept allocated by the guard.
+            let h = unsafe { head.deref() };
+            if h.id == id_of(self.head.word.load(SeqCst)) {
+                return;
+            }
+            // The head word moved past `h`: every cell of `h` is claimed by a
+            // pop, and its successor is linked.
+            let next = h.next.load(SeqCst, guard);
+            if next.is_null() {
+                return;
+            }
+            if self.tail.seg.load(SeqCst, guard) == head {
+                let _ = self
+                    .tail
+                    .seg
+                    .compare_exchange(head, next, SeqCst, SeqCst, guard);
+            }
+            if self
+                .head
+                .seg
+                .compare_exchange(head, next, SeqCst, SeqCst, guard)
                 .is_ok()
             {
-                let _ = self.tail.compare_exchange(
-                    tail,
-                    new_shared,
-                    Ordering::SeqCst,
-                    Ordering::Relaxed,
-                    &guard,
-                );
-            } else {
-                unsafe { drop(Box::from_raw(new_segment)) };
+                // SAFETY: unlinked from both ends above, retired once (only
+                // the winner of this compare-and-swap retires it), and freed
+                // by kovan only after every guard that could reach it; its
+                // cells hold no value by then (see `Header`).
+                unsafe { retire_reclaimable(head.as_raw().cast::<Header>()) };
             }
-            backoff_hint(&backoff);
         }
     }
 
     /// Pops an element from the queue.
+    ///
+    /// Returns `None` when the queue held no value at some moment during the
+    /// call. Never waits for a producer: a cell whose producer has claimed it
+    /// but not written is taken out of play, and that producer pushes again.
     pub fn pop(&self) -> Option<T> {
-        let backoff = crossbeam_utils::Backoff::new();
+        let (mut hw, mut view) = self.view();
+        if let View::Empty = view {
+            return None;
+        }
         let guard = pin();
-
         loop {
-            let head = self.head.load(Ordering::Acquire, &guard);
-            let h = unsafe { head.as_ref().unwrap() };
-
-            let mut all_consumed = true;
-
-            for i in 0..SEGMENT_SIZE {
-                let slot = &h.slots[i];
-                let state = slot.state.load(Ordering::Acquire);
-
-                if state == SLOT_WRITTEN {
-                    if slot
-                        .state
-                        .compare_exchange(
-                            SLOT_WRITTEN,
-                            SLOT_CONSUMED,
-                            Ordering::SeqCst,
-                            Ordering::Relaxed,
-                        )
-                        .is_ok()
-                    {
-                        let value = unsafe { slot.value.get().read().assume_init() };
-                        self.len.fetch_sub(1, Ordering::Relaxed);
-                        return Some(value);
-                    }
-                } else if state == SLOT_EMPTY {
-                    let next = h.next.load(Ordering::Acquire, &guard);
-                    if next.is_null() {
+            let head = self.head.seg.load(SeqCst, &guard);
+            match view {
+                View::Empty => return None,
+                View::Drained => {
+                    if self.drained(head, hw, &guard) {
                         return None;
                     }
                 }
-
-                if slot.state.load(Ordering::Acquire) != SLOT_CONSUMED {
-                    all_consumed = false;
+                View::Claimed => {
+                    let w = self.head.word.fetch_add(1, SeqCst);
+                    let (s, d) = (id_of(w), index_of(w));
+                    // An index past the end: the segment is drained, which
+                    // the next view tells.
+                    if d < SEGMENT_SIZE as u64 {
+                        let seg = locate(head, s, &guard);
+                        // Always found: the pointer was loaded before the
+                        // claim, and a pointer is never past its word.
+                        debug_assert!(seg.is_some(), "a claimed cell's segment is not linked");
+                        if let Some(cell) = seg.and_then(|seg| seg.cells.get(d as usize)) {
+                            for _ in 0..PATIENCE {
+                                if cell.state.load(SeqCst) != EMPTY {
+                                    break;
+                                }
+                                spin_hint();
+                            }
+                            if let Some(value) = take(cell) {
+                                return Some(value);
+                            }
+                        }
+                    }
                 }
             }
+            (hw, view) = self.view();
+        }
+    }
 
-            let next = h.next.load(Ordering::Acquire, &guard);
-            if all_consumed
-                && !next.is_null()
-                && self
-                    .head
-                    .compare_exchange(head, next, Ordering::SeqCst, Ordering::Relaxed, &guard)
-                    .is_ok()
-            {
-                // Retire the old segment
-                // kovan::retire takes *mut T
-                unsafe { kovan::retire(head.as_raw()) };
-                continue;
+    /// Pops an element without waiting and without making any producer push
+    /// again.
+    ///
+    /// Returns [`TryPopError::Empty`] when the queue held no value at some
+    /// moment during the call, and [`TryPopError::Busy`] when the queue's
+    /// next cell was claimed by a push that had not written its value yet.
+    /// `Busy` lets a single consumer tell "nothing to wait for" from "a value
+    /// is about to land": it can register a waker, check once more, and park
+    /// until the producer, after its push returns, wakes it.
+    ///
+    /// ```
+    /// use kovan_queue::seg_queue::{SegQueue, TryPopError};
+    ///
+    /// let q = SegQueue::new();
+    /// assert_eq!(q.try_pop(), Err(TryPopError::Empty));
+    /// q.push(7);
+    /// assert_eq!(q.try_pop(), Ok(7));
+    /// ```
+    pub fn try_pop(&self) -> Result<T, TryPopError> {
+        if let (_, View::Empty) = self.view() {
+            return Err(TryPopError::Empty);
+        }
+        let guard = pin();
+        loop {
+            // The pointer first, then the words: the walk to the head word's
+            // segment goes forward.
+            let head = self.head.seg.load(SeqCst, &guard);
+            let (hw, view) = self.view();
+            match view {
+                View::Empty => return Err(TryPopError::Empty),
+                View::Drained => {
+                    if self.drained(head, hw, &guard) {
+                        return Err(TryPopError::Empty);
+                    }
+                }
+                View::Claimed => {
+                    let Some(cell) = locate(head, id_of(hw), &guard)
+                        .and_then(|seg| seg.cells.get(index_of(hw) as usize))
+                    else {
+                        // The head moved past `hw` meanwhile: look again.
+                        continue;
+                    };
+                    match cell.state.load(SeqCst) {
+                        EMPTY => return Err(TryPopError::Busy),
+                        // Claim the cell only if it is still the next one:
+                        // unlike a fetch-add, a failed compare-and-swap claims
+                        // nothing.
+                        FULL if self
+                            .head
+                            .word
+                            .compare_exchange(hw, hw + 1, SeqCst, SeqCst)
+                            .is_ok() =>
+                        {
+                            if let Some(value) = take(cell) {
+                                return Ok(value);
+                            }
+                        }
+                        // Another pop claimed the cell first.
+                        _ => {}
+                    }
+                }
             }
-
-            let current_head = self.head.load(Ordering::Acquire, &guard);
-            if current_head != head {
-                continue;
-            }
-
-            if h.next.load(Ordering::Acquire, &guard).is_null() {
-                return None;
-            }
-
-            backoff_hint(&backoff);
         }
     }
 
     /// Returns the number of elements in the queue.
     ///
-    /// This is an approximation in concurrent scenarios: elements may be pushed
-    /// or popped by other threads between the moment the length is read and the
-    /// moment the caller acts on the returned value.
-    #[inline]
+    /// Counts the cells claimed by pushes and not yet by pops, so a push in
+    /// progress counts and a pop in progress does not. This is an
+    /// approximation in concurrent scenarios: elements may be pushed or popped
+    /// by other threads between the moment the length is read and the moment
+    /// the caller acts on the returned value. With no operation in progress
+    /// it is exact.
     pub fn len(&self) -> usize {
-        self.len.load(Ordering::Relaxed)
+        let front = position(self.head.word.load(SeqCst));
+        let back = position(self.tail.word.load(SeqCst));
+        // Modulo the position space; a pop that passed a cell no push claimed
+        // yet puts the front ahead of the back, with no element there.
+        let n = back.wrapping_sub(front) & POS_MASK;
+        if n > POS_MASK >> 1 {
+            0
+        } else {
+            usize::try_from(n).unwrap_or(usize::MAX)
+        }
     }
 
     /// Returns `true` if the queue is empty.
-    #[inline]
+    ///
+    /// The answer [`pop`](Self::pop) would give at the same moment, without
+    /// taking anything: `true` when no value was in the queue at some moment
+    /// during the call, `false` when a push had claimed the next cell (a push
+    /// in progress counts, as it does for [`len`](Self::len)). An
+    /// approximation in concurrent scenarios, exact with no operation in
+    /// progress.
     pub fn is_empty(&self) -> bool {
-        self.len() == 0
+        loop {
+            match self.view() {
+                (_, View::Empty) => return true,
+                (_, View::Claimed) => return false,
+                (hw, View::Drained) => {
+                    let guard = pin();
+                    let head = self.head.seg.load(SeqCst, &guard);
+                    if self.drained(head, hw, &guard) {
+                        return true;
+                    }
+                }
+            }
+        }
     }
+}
+
+/// One step of a bounded spin. Under shuttle, an explicit yield, so the
+/// scheduler gives the producer being waited for a turn.
+#[inline(always)]
+fn spin_hint() {
+    #[cfg(feature = "shuttle")]
+    shuttle::hint::spin_loop();
+    #[cfg(not(feature = "shuttle"))]
+    std::hint::spin_loop();
 }
 
 impl<T> Drop for SegQueue<T> {
     fn drop(&mut self) {
-        // `pop()` calls `kovan::retire(head.as_raw())` on a segment *only after* a
-        // successful CAS that removes it from `self.head`.  Once retired, that segment
-        // is no longer reachable via the linked list.  `drop()` receives `&mut self`
-        // (exclusive ownership), so no concurrent pops can run.  The walk below starts
-        // from the current `self.head` and only visits segments that are *still owned*
-        // by the queue (i.e., not yet retired).  Kovan will independently reclaim the
-        // previously retired segments; `drop()` never touches them.
-        //
-        // The `pin()` below keeps all retired (but not yet freed) nodes alive during
-        // the walk.  When `guard` drops, kovan may free those retired nodes — but by
-        // that point we have already finished walking the live portion of the list.
+        // `&mut self`: no operation is in progress and no other thread can
+        // reach the queue. Every segment from the head pointer on is still
+        // linked and was never retired (a segment is retired only after the
+        // head pointer moved past it, and kovan frees those on its own,
+        // holding no value). A cell holds a value exactly when its state is
+        // `FULL`: dropping those drops every remaining value once.
         let guard = pin();
-        let mut current = self.head.load(Ordering::Relaxed, &guard);
-
-        while !current.is_null() {
-            unsafe {
-                let segment_ptr = current.as_raw();
-                let segment = &*segment_ptr;
-                let next = segment.next.load(Ordering::Relaxed, &guard);
-
-                for i in 0..SEGMENT_SIZE {
-                    if segment.slots[i].state.load(Ordering::Relaxed) == SLOT_WRITTEN {
-                        // drop_in_place on MaybeUninit<T> cast to *mut T is correct:
-                        // MaybeUninit<T> has the same layout as T and we confirmed
-                        // the slot is SLOT_WRITTEN (value is initialized).
-                        ptr::drop_in_place(segment.slots[i].value.get() as *mut T);
-                    }
+        let mut seg = self.head.seg.load(SeqCst, &guard).as_raw();
+        while !seg.is_null() {
+            // SAFETY: a linked segment no other thread can reach.
+            let s = unsafe { &*seg };
+            let next = s.next.load(SeqCst, &guard).as_raw();
+            for cell in &s.cells {
+                if cell.state.load(Relaxed) == FULL {
+                    // SAFETY: `FULL` means initialised and not moved out.
+                    unsafe { ptr::drop_in_place((*cell.value.get()).as_mut_ptr()) };
                 }
-
-                // SAFETY: segment_ptr was allocated via Box::into_raw in Segment::new()
-                // and has not been retired (it is still in the live linked list).
-                drop(Box::from_raw(segment_ptr));
-
-                current = next;
             }
+            // SAFETY: unreachable now, and its values were dropped above.
+            unsafe { free_segment::<T>(seg.cast()) };
+            seg = next;
         }
     }
 }

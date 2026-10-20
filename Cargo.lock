@@ -586,6 +586,7 @@ dependencies = [
 name = "kovan-queue"
 version = "0.1.22"
 dependencies = [
+ "criterion",
  "crossbeam-utils",
  "kovan",
  "shuttle",

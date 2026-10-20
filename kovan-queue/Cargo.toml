@@ -25,3 +25,12 @@ shuttle = { version = "0.9.1", optional = true }
 
 [dev-dependencies]
 shuttle = "0.9.1"
+
+# `criterion` (via its default `rayon` feature) does not compile for
+# `wasm32-*`: native-only, as in kovan and kovan-channel.
+[target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
+criterion = { version = "0.5.1", features = ["html_reports"] }
+
+[[bench]]
+name = "seg_queue"
+harness = false
