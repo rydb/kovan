@@ -1204,10 +1204,11 @@ impl Handle {
     /// Adopt the orphaned batches exited threads parked on one thread ID,
     /// merging them into this thread's accumulating batch.
     ///
-    /// Called from flush(), never from retire(): the pass over the IDs is
-    /// O(T), kept off the retire path. Bounded by that pass and by the chain
-    /// its one swap took, which no other thread extends: at most the batches
-    /// parked on that ID since its last adoption. Adopters run repeatedly and
+    /// Called from flush(), also on a thread that had no ID (its flush claims
+    /// one first), never from retire(): the pass over the IDs is O(T), kept
+    /// off the retire path. Bounded by that pass and by the chain its one
+    /// swap took, which no other thread extends: at most the batches parked
+    /// on that ID since its last adoption. Adopters run repeatedly and
     /// threads exit once, so every parked batch is adopted.
     fn adopt_orphans(&self) {
         // One merge per batch of the chain taken, which no other thread
@@ -1512,9 +1513,19 @@ impl Handle {
     /// those threads must flush themselves or exit. But it does guarantee that
     /// all nodes retired by THIS thread are submitted and that this thread's
     /// slots are drained.
+    ///
+    /// Each call also adopts the batches exited threads parked on one thread
+    /// ID (`adopt_orphans`), on a thread that has no ID yet too: it claims
+    /// one first, as its first pin would, only when some ID holds a chain.
     fn flush(&self) {
-        if self.tid.get().is_none() {
-            return; // Thread never participated in reclamation
+        // A thread that has never claimed an ID has no slot to drain, but it
+        // must still adopt: a thread that only ever flushes would otherwise
+        // leave what exited threads parked there for good. It claims an ID
+        // only when one load tells that some ID holds a chain, since the ID
+        // stays taken until the thread exits, and only while that exit is
+        // still to run, as the exit is what releases it.
+        if self.tid.get().is_none() && !(self.global().orphans_parked() && exit_pending()) {
+            return;
         }
         // Skip if we're already inside a reclamation operation (e.g. a
         // destructor from free_batch_list dropped an Atom which calls flush).
@@ -1533,6 +1544,7 @@ impl Handle {
         let saved_pin = self.pin_count.get();
         self.pin_count.set(saved_pin + 1);
 
+        // Claims the ID a thread without one adopts with (see above).
         let tid = self.tid();
         let global = self.global();
 
@@ -1833,6 +1845,26 @@ fn on_exiting_handle<R>(f: impl FnOnce(&Handle) -> R) -> Option<R> {
     (!handle.is_null()).then(|| f(unsafe { &*handle }))
 }
 
+/// Whether this thread's exit is still to run, so that it releases a thread
+/// ID claimed now. A thread-local destructor that runs after the exit finds
+/// it already run: on nightly the handle outlives the sentinel whose
+/// destructor runs the exit, and once the sentinel is destroyed a claim would
+/// hold its ID for good (and `tid()`'s access to the sentinel may panic).
+#[inline]
+fn exit_pending() -> bool {
+    #[cfg(feature = "nightly")]
+    {
+        HANDLE_CLEANUP_SENTINEL.try_with(|_| {}).is_ok()
+    }
+    #[cfg(not(feature = "nightly"))]
+    {
+        // The handle answered through `HANDLE`, whose destructor is the
+        // exit: still to run. During the exit the handle answers through
+        // `EXITING`, with `in_reclaim` set, so a flush there does nothing.
+        true
+    }
+}
+
 /// Current epoch for stamping a freshly allocated node's `birth_epoch`.
 ///
 /// Called by `RetiredNode::new`. Returns the thread-cached global epoch
@@ -1986,6 +2018,11 @@ pub unsafe fn retire<T: 'static>(ptr: *mut T) {
 ///
 /// Call this before dropping data structures that use kovan (e.g. at the end of
 /// a test or before process exit) to ensure retired nodes are freed promptly.
+///
+/// Each call also adopts the batches that exited threads could not place and
+/// left parked on one thread ID, and retires them with the calling thread's
+/// own: also on a thread that never pinned, which then claims a thread ID for
+/// that (only while some batch is parked) and releases it when it exits.
 ///
 /// **Note:** This only flushes the calling thread's state. To flush all threads,
 /// each thread must call `flush()` independently or exit (which triggers cleanup).

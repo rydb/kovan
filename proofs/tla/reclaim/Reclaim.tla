@@ -99,6 +99,9 @@ MutHelpFollows == Mutation = "help_follows_next_request"
 MutNoSeqnoCheck == Mutation = "help_no_seqno_check"
 MutStaleBirth == Mutation = "stale_birth"
 MutFlushKeep == Mutation = "flush_keeps_reservation"
+\* flush_needs_tid puts back the flush of kovan 0.1.22: on a thread that has no tid (it never
+\* pinned), flush() returns at its first line, so it never adopts what exited threads parked.
+MutFlushNeedsTid == Mutation = "flush_needs_tid"
 \* Mechanisms taken out, to show the properties depend on them.
 MutLoadTraverses == Mutation = "load_traverses"
 MutNoEraCheck == Mutation = "no_era_check"
@@ -1050,12 +1053,37 @@ end procedure;
 procedure Flush()
 variables fsv = 0, fx = NULL, ff = NULL, fl2 = NULL;
 begin
-FL1: \* no tid or re-entered: nothing; in_reclaim, the pin count raised
-    if tid[self] = NoTid \/ inr[self] then
+FL1: \* The start of flush(), one step: it reads the thread's own handle (its tid, in_reclaim,
+     \* the pin count) and, on a thread with no tid, one shared word: `orphaned`, the number of
+     \* tids on which exited threads left parked batches (orphan chains) for a flush to adopt.
+    \* Return at once in two cases. (1) The thread has no tid (it never pinned) and no batch is
+    \* parked anywhere (`orphaned = 0`): it has no slot to drain and nothing to adopt, and
+    \* claiming a tid would only hold one until the thread exits (the unit test
+    \* flush_without_a_tid_or_orphans_claims_none checks that it claims none; no property here
+    \* does). (2) This flush runs inside a destructor that a reclamation of this thread is
+    \* running (`inr`, in_reclaim): the outer operation finishes the work.
+    \* Under the mutation flush_needs_tid (the code before this fix) case (1) ignores `orphaned`:
+    \* a thread with no tid always returns here, so a thread that never pins never adopts, and a
+    \* batch parked while no thread with a tid flushes afterwards stays parked for good.
+    if (tid[self] = NoTid /\ (orphaned = 0 \/ MutFlushNeedsTid)) \/ inr[self] then
         return;
     else
+        \* As before the fix: in_reclaim set, the pin count saved (fsv) and raised by one.
         inr[self] := TRUE || fsv := pinc[self] || pinc[self] := pinc[self] + 1;
-        if pinc[self] # 1 then goto FL3 end if;
+        \* New: a thread with no tid gets here only when some batch is parked. It claims a tid
+        \* first (tid() through alloc_tid, the same claim a first pin makes; its exit releases
+        \* it), then goes on as any flush. With no guard live it drains its own list next (FL2)...
+        if tid[self] = NoTid /\ pinc[self] = 1 then
+            call AllocTid();
+            goto FL2;
+        \* ...and with a guard live it skips its own list and goes to the adoption (FL3).
+        elsif tid[self] = NoTid then
+            call AllocTid();
+            goto FL3;
+        \* A thread that already had a tid: unchanged (with a guard live, the own list is skipped).
+        elsif pinc[self] # 1 then
+            goto FL3;
+        end if;
     end if;
 FL2: \* the own list exchanged to 0 while the slot stays active
     fx := fst[tid[self]][0].lo || fst[tid[self]][0].lo := IF MutFlushDeact THEN INV ELSE NULL;
@@ -1627,7 +1655,7 @@ TidClaim3(self) == /\ pc[self] = "TidClaim3"
 TidFresh(self) == /\ pc[self] = "TidFresh"
                   /\ ah' = [ah EXCEPT ![self] = ntid]
                   /\ Assert(ntid < MaxTid, 
-                            "Failure of assertion at line 254, column 5.")
+                            "Failure of assertion at line 257, column 5.")
                   /\ pc' = [pc EXCEPT ![self] = "TidFresh2"]
                   /\ UNCHANGED << ep, slow, ntid, rel, orw, orphaned, lkT, lkO, 
                                   fst, sep, res, nst, nnx, nbl, nro, nbe, cell, 
@@ -5268,7 +5296,7 @@ LoadU(self) == LU1(self)
 
 WR1(self) == /\ pc[self] = "WR1"
              /\ Assert(nalloc < MaxNodes, 
-                       "Failure of assertion at line 195, column 5 of macro called at line 1023, column 5.")
+                       "Failure of assertion at line 198, column 5 of macro called at line 1026, column 5.")
              /\ /\ cbe' = [cbe EXCEPT ![self] = IF cbe[self] = 0 THEN ep ELSE cbe[self]]
                 /\ errs' = (errs \cup (IF (IF cbe[self] = 0 THEN ep ELSE cbe[self]) < adv[self]
                                        THEN {"stale_birth"} ELSE {}))
@@ -5319,7 +5347,7 @@ Write(self) == WR1(self)
 
 RN1(self) == /\ pc[self] = "RN1"
              /\ Assert(nalloc < MaxNodes, 
-                       "Failure of assertion at line 195, column 5 of macro called at line 1040, column 5.")
+                       "Failure of assertion at line 198, column 5 of macro called at line 1043, column 5.")
              /\ /\ cbe' = [cbe EXCEPT ![self] = IF cbe[self] = 0 THEN ep ELSE cbe[self]]
                 /\ errs' = (errs \cup (IF (IF cbe[self] = 0 THEN ep ELSE cbe[self]) < adv[self]
                                        THEN {"stale_birth"} ELSE {}))
@@ -5364,35 +5392,54 @@ RN1(self) == /\ pc[self] = "RN1"
 RetireNew(self) == RN1(self)
 
 FL1(self) == /\ pc[self] = "FL1"
-             /\ IF tid[self] = NoTid \/ inr[self]
+             /\ IF (tid[self] = NoTid /\ (orphaned = 0 \/ MutFlushNeedsTid)) \/ inr[self]
                    THEN /\ pc' = [pc EXCEPT ![self] = Head(stack[self]).pc]
                         /\ fsv' = [fsv EXCEPT ![self] = Head(stack[self]).fsv]
                         /\ fx' = [fx EXCEPT ![self] = Head(stack[self]).fx]
                         /\ ff' = [ff EXCEPT ![self] = Head(stack[self]).ff]
                         /\ fl2' = [fl2 EXCEPT ![self] = Head(stack[self]).fl2]
                         /\ stack' = [stack EXCEPT ![self] = Tail(stack[self])]
-                        /\ UNCHANGED << pinc, inr >>
+                        /\ UNCHANGED << pinc, inr, ah, aseen >>
                    ELSE /\ /\ fsv' = [fsv EXCEPT ![self] = pinc[self]]
                            /\ inr' = [inr EXCEPT ![self] = TRUE]
                            /\ pinc' = [pinc EXCEPT ![self] = pinc[self] + 1]
-                        /\ IF pinc'[self] # 1
-                              THEN /\ pc' = [pc EXCEPT ![self] = "FL3"]
-                              ELSE /\ pc' = [pc EXCEPT ![self] = "FL2"]
-                        /\ UNCHANGED << stack, fx, ff, fl2 >>
+                        /\ IF tid[self] = NoTid /\ pinc'[self] = 1
+                              THEN /\ stack' = [stack EXCEPT ![self] = << [ procedure |->  "AllocTid",
+                                                                            pc        |->  "FL2",
+                                                                            ah        |->  ah[self],
+                                                                            aseen     |->  aseen[self] ] >>
+                                                                        \o stack[self]]
+                                   /\ ah' = [ah EXCEPT ![self] = 0]
+                                   /\ aseen' = [aseen EXCEPT ![self] = {}]
+                                   /\ pc' = [pc EXCEPT ![self] = "AT0"]
+                              ELSE /\ IF tid[self] = NoTid
+                                         THEN /\ stack' = [stack EXCEPT ![self] = << [ procedure |->  "AllocTid",
+                                                                                       pc        |->  "FL3",
+                                                                                       ah        |->  ah[self],
+                                                                                       aseen     |->  aseen[self] ] >>
+                                                                                   \o stack[self]]
+                                              /\ ah' = [ah EXCEPT ![self] = 0]
+                                              /\ aseen' = [aseen EXCEPT ![self] = {}]
+                                              /\ pc' = [pc EXCEPT ![self] = "AT0"]
+                                         ELSE /\ IF pinc'[self] # 1
+                                                    THEN /\ pc' = [pc EXCEPT ![self] = "FL3"]
+                                                    ELSE /\ pc' = [pc EXCEPT ![self] = "FL2"]
+                                              /\ UNCHANGED << stack, ah, aseen >>
+                        /\ UNCHANGED << fx, ff, fl2 >>
              /\ UNCHANGED << ep, slow, ntid, rel, orw, orphaned, lkT, lkO, fst, 
                              sep, res, nst, nnx, nbl, nro, nbe, cell, nalloc, 
                              tid, bfst, blst, bcnt, acnt, flst, lcnt, cep, dep, 
                              cbe, held, lvl, gdep, rv, rok, opi, afr, acl, 
-                             detaching, adv, errs, which, ah, aseen, rt, pk, 
-                             ph, pt, pe, ai, am, ac, tf, tacc, tcache, tnx, 
-                             trf, dn, di, fl, fc, fnx, tt, tdo, twas, tloc, 
-                             tlc, dwas, dl, ce, ix, dt, dlo, sk, tg, kl, kt, 
-                             swas, spe, ssq, sfi, spr, sce, sex, sre, sps, hm, 
-                             hmx, hx, he, hme, hh, hsq, hce, hol, hoh, hps, 
-                             hep, rf, rr, rsk, rmx, ri, rl, rmin, radj, rprv, 
-                             rsi, rsj, rlate, rn, ecnt, ef, el, ewas, pce, pa, 
-                             lc, lp, le, la, uc, wc, xsv, xown, xf, xl, xx, 
-                             xcap, xu, xr, xph, xpt >>
+                             detaching, adv, errs, which, rt, pk, ph, pt, pe, 
+                             ai, am, ac, tf, tacc, tcache, tnx, trf, dn, di, 
+                             fl, fc, fnx, tt, tdo, twas, tloc, tlc, dwas, dl, 
+                             ce, ix, dt, dlo, sk, tg, kl, kt, swas, spe, ssq, 
+                             sfi, spr, sce, sex, sre, sps, hm, hmx, hx, he, 
+                             hme, hh, hsq, hce, hol, hoh, hps, hep, rf, rr, 
+                             rsk, rmx, ri, rl, rmin, radj, rprv, rsi, rsj, 
+                             rlate, rn, ecnt, ef, el, ewas, pce, pa, lc, lp, 
+                             le, la, uc, wc, xsv, xown, xf, xl, xx, xcap, xu, 
+                             xr, xph, xpt >>
 
 FL2(self) == /\ pc[self] = "FL2"
              /\ /\ fst' = [fst EXCEPT ![tid[self]][0].lo = IF MutFlushDeact THEN INV ELSE NULL]
@@ -6761,8 +6808,10 @@ TryCtl == 5 + 7 * MaxTid
 RetireCtl == 7 + TryCtl + TidCtl + HelpReadCtl
 AdoptCtl == 6 + 2 * MaxTid
 PinCtl == 2 + TidCtl + PinAttempts * (2 + DoUpdCtl) + SlowCtl
-\* FL1-FL4, FL6, FL7, FlushClear-FlushClear3, FL9, two traversals, two drains.
-FlushCtl == 10 + 2 * TICCtl + 2 * DrainCtl + AdoptCtl + TryCtl + HelpReadCtl
+\* FL1-FL4, FL6, FL7, FlushClear-FlushClear3, FL9, a tid claimed, two traversals, two drains.
+\* The claim (TidCtl, the steps of alloc_tid) is new: a flush on a thread with no tid claims one
+\* when batches are parked, and a bound without those steps would not cover that flush.
+FlushCtl == 10 + TidCtl + 2 * TICCtl + 2 * DrainCtl + AdoptCtl + TryCtl + HelpReadCtl
 ExitCtl == 20 + ExitRounds * (8 + TryCtl + TICCtl) + TidCtl + 6
 OpBound(op) ==
     CASE op = "ld" -> 3 * LoadAttempts + 1
@@ -6852,6 +6901,13 @@ NoBrokenLinkW == \A t \in Threads : pc[t] # "TL2"
 NoMergeW == \A t \in Threads : ~(pc[t] = "RE3" /\ rok[t] = FALSE)
 NoParkW == orphaned = 0
 NoAdoptW == \A t \in Threads : ~(pc[t] = "OrphanMerge" /\ ac[t] # NULL)
+\* "No flush ever claims a tid." A call of AllocTid that returns into flush (to FL2 or FL3) is
+\* made only by the new branch of FL1, on a thread with no tid while batches are parked. TLC
+\* breaking this shows that the configuration reaches that branch, so the properties checked on
+\* the same scenario (RC_flush_orphan) do cover it.
+NoFlushClaimW ==
+    \A t \in Threads : \A i \in DOMAIN stack[t] :
+        ~(stack[t][i].procedure = "AllocTid" /\ stack[t][i].pc \in {"FL2", "FL3"})
 NoRecycleW == \A t \in Threads : ~(pc[t] = "TidClaim3" /\ MinOf(aseen[t]) \in rel)
 NoCacheFreeW == \A t \in Threads : ~(pc[t] = "TC2" /\ tdo[t])
 NoReentrantTransitionW == \A t \in Threads : ~(lvl[t] > 0 /\ pc[t] = "PNC")

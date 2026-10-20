@@ -14,6 +14,7 @@ RC_exit_raw                        MC_Reclaim         pass
 RC_exit_tid                        MC_Reclaim         pass
 RC_exit_chain                      MC_Reclaim         pass
 RC_orphan                          MC_Reclaim         pass
+RC_flush_orphan                    MC_Reclaim         pass
 RC_help_dtor                       MC_Reclaim         pass
 RC_reenter                         MC_Reclaim         pass
 RC_reenter_rt                      MC_Reclaim         pass
@@ -24,6 +25,7 @@ RC_help_follows                    MC_Reclaim         pass
 RC_live                            MC_Reclaim         pass
 RC_live_drain                      MC_Reclaim         pass
 RC_live_stall                      MC_Reclaim         pass
+RC_live_orphan                     MC_Reclaim         pass
 RC_wf_pin                          MC_Reclaim         pass
 RC_wf_load                         MC_Reclaim         pass
 RC_wf_mix                          MC_Reclaim         pass
@@ -47,6 +49,7 @@ RC_find_help_torn_request          MC_Reclaim         pass
 RC_mut_help_no_seqno_check         MC_Reclaim         violated:LoopBounds
 RC_mut_stale_birth                 MC_Reclaim         violated:BirthFresh
 RC_mut_flush_keeps_reservation     MC_Reclaim         violated:FlushReleases
+RC_mut_flush_needs_tid             MC_Reclaim         violated:OrphansAdopted
 RC_mut_load_traverses              MC_Reclaim         violated:NoUseAfterFree
 RC_mut_no_era_check                MC_Reclaim         violated:NoUseAfterFree
 RC_mut_no_help                     MC_Reclaim         violated:LoopBounds
@@ -59,6 +62,7 @@ RC_wit_helped                      MC_Reclaim         violated:NoHelpedW
 RC_wit_merge                       MC_Reclaim         violated:NoMergeW
 RC_wit_park                        MC_Reclaim         violated:NoParkW
 RC_wit_adopt                       MC_Reclaim         violated:NoAdoptW
+RC_wit_flush_claim                 MC_Reclaim         violated:NoFlushClaimW
 RC_wit_recycle                     MC_Reclaim         violated:NoRecycleW
 RC_wit_dtor_held_retired           MC_Reclaim         violated:NoDtorHeldRetiredW
 RC_wit_cache_free                  MC_Reclaim         violated:NoCacheFreeW

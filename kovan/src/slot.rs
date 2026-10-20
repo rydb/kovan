@@ -707,7 +707,7 @@ impl ASMRState {
     /// taken is fixed by that swap: what exiting threads park afterwards
     /// waits for the next adoption.
     pub(crate) fn adopt_orphans(&self) -> *mut RetiredNode {
-        if self.orphaned.load(Ordering::Relaxed) == 0 {
+        if !self.orphans_parked() {
             return core::ptr::null_mut();
         }
         for tid in 0..self.max_threads() {
@@ -723,6 +723,15 @@ impl ASMRState {
             }
         }
         core::ptr::null_mut()
+    }
+
+    /// Whether some thread ID's orphan word holds a chain, by one load of
+    /// the count of such IDs (exact whenever no thread is between the steps
+    /// of a park or an adoption). Relaxed: a park this load does not see yet
+    /// waits for a later adoption, which loads the count again.
+    #[inline]
+    pub(crate) fn orphans_parked(&self) -> bool {
+        self.orphaned.load(Ordering::Relaxed) != 0
     }
 
     /// HR_NUM getter
