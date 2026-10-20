@@ -75,8 +75,9 @@ Lean: install elan once (`proofs/lean/README.md` says how). The recipes run
 ## Coverage
 
 - `tla/reclaim/`: kovan's memory reclamation (pin, the protected load, retire, the traversal,
-  flush, a thread's exit and the hand-over of its id), 69 configurations: 30 that must pass and
-  39 mutations and witnesses that must fail.
+  flush, a thread's exit and the hand-over of its id, the flush and the exit of a thread that
+  never pinned), 81 configurations: 36 that must pass and 45 mutations and witnesses that must
+  fail.
 - `tla/chained/`: `kovan_map::HashMap`, the chained map (the link words, the writes, the walks,
   the conditional writes, the freezing migration and clear), 47 configurations: 26 that must
   pass and 21 that must fail.
@@ -95,3 +96,9 @@ Lean: install elan once (`proofs/lean/README.md` says how). The recipes run
   inserts after it, and all failed copies together to at most `W * (2 * (n + I) + 2 * I)` for
   `W` threads making them, `n` entries at the start and `I` inserts; a concrete run shows two
   threads failing at the same count.
+- `lean/Kovan/FlushExit.lean`: the flush and the exit of a thread that never pinned, for one
+  thread and every sequence of retires, flushes, pins and its exit: exactly when each returns at
+  once, claims a tid or runs; every value the thread retired or adopted is submitted or parked
+  once it has exited (and with the exit as it was before the fix, a value can be kept nowhere);
+  a thread that keeps flushing adopts every chain parked on `maxThreads` tids within
+  `maxThreads` flushes.
