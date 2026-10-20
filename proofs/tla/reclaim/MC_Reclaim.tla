@@ -128,6 +128,16 @@ P_flush_orphan_live == [t \in {1, 2, 3} |-> CASE t = 1 -> <<P, Wr(1), U, Ex>>
 P_unpinned == [t \in {1, 2, 3} |-> CASE t = 1 -> <<Rt, Fl, Ex>>
                                     [] t = 2 -> <<Rt, Ex>>
                                     [] t = 3 -> <<P, U, Ex>>]
+\* The same, one claim at a time and small enough to count every step (README.md). With a batch of
+\* two, one retire does not submit, so thread 1 holds one value and no tid; thread 2 pins, unpins
+\* and exits, so from its pin to its exit a one-value batch cannot be placed.
+\* The exit claims: thread 1 retires one value, then exits.
+P_wf_unpinned_exit == [t \in {1, 2} |-> IF t = 1 THEN <<Rt, Ex>> ELSE <<P, U, Ex>>]
+\* The flush claims: thread 1 retires one value, flushes, then exits (with the tid its flush took).
+P_wf_unpinned_flush == [t \in {1, 2} |-> IF t = 1 THEN <<Rt, Fl, Ex>> ELSE <<P, U, Ex>>]
+\* One thread that retires one value, flushes, then keeps pinning and unpinning forever without
+\* exiting: only its flush can submit the value while it lives.
+P_unpinned_flush_live == [t \in {1} |-> <<Rt, Fl, Idle>>]
 
 \* ------------------------------------------------------------ re-entrance with helping
 
@@ -206,4 +216,9 @@ DrainLive == <>[](\A n \in Nodes : nst[n] = "retired" => Released(n))
 \* that flush must take the chain; if it does not, the chain stays parked forever and the
 \* property breaks.
 OrphansAdopted == <>[](\A i \in Tids : orw[i] = NULL)
+\* Every retired value is eventually freed. In words: from some moment on ("<>[]", eventually and
+\* then for good), no node is in the state "retired" (each one retired has been freed). The
+\* scenario that checks it has one thread retire a value without pinning, flush, and then live on
+\* without exiting: unless that flush submits the value, nothing ever frees it.
+RetiredFreed == <>[](\A n \in Nodes : nst[n] # "retired")
 =============================================================================

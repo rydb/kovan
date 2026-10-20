@@ -8,7 +8,7 @@ counterexample for every one, and none for the code as built.
 
 | where | what | run |
 |-------|------|-----|
-| `reclaim/` | `kovan`'s memory reclamation: the global epoch, each thread's reservation and helper slots, pin (the drained-epoch skip, the transition attempts, the helped slow path and the detach of its slot list), the protected load (the raise, the escalation to the unconditional reservation), the guard's drop, retire (batches, their placement in the eligible slots, the count, the merge of a batch that cannot be placed), the traversal and the free-list cache, destructors that pin, load and retire from inside a free, flush, a thread's exit (two rounds, the deactivation, the batches parked on its tid) and the tid's hand-over | `just tla reclaim` (about 42 minutes) |
+| `reclaim/` | `kovan`'s memory reclamation: the global epoch, each thread's reservation and helper slots, pin (the drained-epoch skip, the transition attempts, the helped slow path and the detach of its slot list), the protected load (the raise, the escalation to the unconditional reservation), the guard's drop, retire (batches, their placement in the eligible slots, the count, the merge of a batch that cannot be placed), the traversal and the free-list cache, destructors that pin, load and retire from inside a free, flush, a thread's exit (two rounds, the deactivation, the batches parked on its tid) and the tid's hand-over | `just tla reclaim` (32 to 73 minutes in the recorded runs, by the machine's load) |
 | `chained/` | `kovan_map::HashMap`, the chained map: link words with a deleted mark, a frozen flag and a held flag, one CAS per write, the unlink-then-retire rule, the walk that steps past a deleted node only through a live link, the conditional writes that hold the key's link while their closure runs, the freezing migration (which waits for a hold) and clear, the bucket-snapshot walk | `just tla chained` (about 23 minutes) |
 | `hopscotch/` | `kovan_map::HopscotchMap`: home buckets with hop bits, writer guard and move stamp, the guarded insert (existence scan, the bit published before the link, displacement toward the home), the guarded remove, the conditional writes (closure under the home guard, a compute of an absent key reserving its slot first), the lookup that rescans on a moved stamp, the resize that holds every writer guard, the clear, the walk across a table swap, the shrink a remove asks for and its threshold (the table's shrink word) | `just tla hopscotch` (about 3 minutes in the recorded run) |
 
@@ -111,8 +111,11 @@ Not modelled, and why:
   tid, for a later flush to adopt. `NoLoss` counts a parked batch as kept; that a flush does adopt
   it is `OrphansAdopted` (`RC_live_orphan`, a liveness property): every batch an exit parked is
   eventually adopted, by a flush on a thread that never pinned too (see "A flush on a thread that
-  never pinned" below). A value left in the batch of a thread that has exited is in no orphan chain,
-  so `NoLoss` does see it lost (`RC_mut_batch_needs_tid`).
+  never pinned" below). A value left in the batch of a thread that has exited is in no orphan
+  chain, so `NoLoss` does see it lost (`RC_mut_exit_skips_batch`). `RetiredFreed`
+  (`RC_live_unpinned_flush`, a liveness property): every retired value is eventually freed, also
+  one that a thread retired without pinning and then flushed while it lives on (see "Values retired
+  by a thread that never pinned" below).
 - `PinDrains`: an outermost pin traverses its slot list whenever the global epoch is not the one the
   slot published at its last drain. `DrainLive` (`RC_live_drain`, a liveness property): a thread
   that keeps pinning eventually releases every node its retires put in its own slot.
@@ -153,8 +156,9 @@ depends on T, the constants and the retirement history only: a protected load ta
 `LoadAttempts` + 1 steps (a raise, a load and an epoch read per attempt, then the load after
 escalating) and an unprotected load one; pin, the guard's drop, a write or retire, flush and exit
 take their `*Ctl` term plus 16 x `Hist` (flush's and exit's terms count a tid claim, which a flush
-or an exit on a thread with no tid makes while it has something to submit or adopt; no
-configuration counts the steps of an exit that claims one). `Hist` = nodes x (1 + threads) bounds
+or an exit on a thread with no tid makes while it has something to submit or adopt;
+`RC_flush_orphan`, `RC_wf_unpinned_flush` and `RC_wf_unpinned_exit` count the steps of such
+claims). `Hist` = nodes x (1 + threads) bounds
 the placements of nodes into slot lists (a node is placed at most once per submission of its batch:
 the first, and one more per exit that re-arms it), and each placement costs at most 16 steps over
 its life (its insert, the traversal that takes it, its free). The `*Ctl` terms count every other
@@ -382,10 +386,13 @@ step counts. RF, EF, cache and epochs abbreviate `RetireFreq`, `EpochFreq`, `Max
 | `RC_live_drain` | One thread that keeps pinning after its retires advanced the epoch and a load raised its reservation: every retired node is eventually released. | threads 1, tids 1, nodes 3 | pass |
 | `RC_live_stall` | Only thread 2 is scheduled fairly; thread 1 may stop for good at any step of its exit (a tid release, a park): thread 2's first pin, load, retire and flush end. | nodes 4 | pass |
 | `RC_live_orphan` | Weak fairness for every thread; a thread that never pinned flushes once after another exited with a batch it could not place: every parked batch is eventually adopted. | threads 3, tids 3, nodes 2 | pass |
+| `RC_live_unpinned_flush` | Weak fairness; one thread retires a value without pinning, flushes, then keeps pinning and unpinning without exiting: the value is eventually freed. | threads 1, tids 1, nodes 2, RF 2 | pass |
 | `RC_wf_pin` | Step counts: pins with one fast attempt against a thread that helps and advances the epoch at every flush. | nodes 1, pin attempts 1, epochs 8, steps counted yes | pass |
 | `RC_wf_load` | Step counts: loads against a writer that advances the epoch at every retire. | nodes 4, EF 1, load attempts 3, epochs 8, steps counted yes | pass |
 | `RC_wf_mix` | Step counts of every operation in the slow-path scenario. | nodes 3, EF 1, pin attempts 1, steps counted yes | pass |
 | `RC_wf_exit` | Step counts of exits and flushes running drops. | cells 2, nodes 5, steps counted yes | pass |
+| `RC_wf_unpinned_exit` | Step counts: a thread that never pinned retires one value and exits while another pins and unpins: its exit claims a tid and submits. | nodes 2, RF 2, steps counted yes | pass |
+| `RC_wf_unpinned_flush` | Step counts: a thread that never pinned retires one value, flushes and exits while another pins and unpins: its flush claims a tid and submits. | nodes 2, RF 2, steps counted yes | pass |
 | `RC_mut_drain_published` | drain_published: an outermost pin skips when the global epoch equals the epoch its slot publishes, which a protected load raised. | threads 1, tids 1, nodes 3 | `PinDrains` broken |
 | `RC_mut_drain_published_live` | drain_published, as a lasso: a thread that keeps pinning never traverses the list its own retires filled. | threads 1, tids 1, nodes 3 | `DrainLive` broken |
 | `RC_mut_escalated_drop_unnested` | escalated_drop_unnested: the escalated drop's transition runs with the pin count 0 and the cache copied out and written back, so a drop's own transition inside it loses what it traversed. | threads 1, tids 1, nodes 8, EF 1, cache 0, load attempts 1 | `NoLoss` broken |
@@ -406,7 +413,8 @@ step counts. RF, EF, cache and epochs abbreviate `RetireFreq`, `EpochFreq`, `Max
 | `RC_mut_stale_birth` | stale_birth: a thread that advances the epoch keeps stamping its allocations with the epoch it cached before. | threads 1, tids 1, nodes 3, EF 1 | `BirthFresh` broken |
 | `RC_mut_flush_keeps_reservation` | flush_keeps_reservation: flush with no guard live ends only an escalated section, leaving the reservation at the epoch it published. | threads 1, tids 1, nodes 3, load attempts 1 | `FlushReleases` broken |
 | `RC_mut_flush_needs_tid` | flush_needs_tid: flush does nothing on a thread with no tid, so a thread that never pinned never adopts what an exit parked. | threads 3, tids 3, nodes 2 | `OrphansAdopted` broken |
-| `RC_mut_batch_needs_tid` | batch_needs_tid: flush and exit on a thread with no tid leave its own batch alone, so what a thread retired without pinning is never submitted. | threads 3, tids 3, nodes 3, RF 2 | `NoLoss` broken |
+| `RC_mut_flush_skips_batch` | flush_skips_batch: flush on a thread with no tid ignores its own batch while nothing is parked, so a thread that flushes and lives on never frees what it retired without pinning. | threads 1, tids 1, nodes 2, RF 2 | `RetiredFreed` broken |
+| `RC_mut_exit_skips_batch` | exit_skips_batch: the exit of a thread with no tid does nothing, so what a thread retired without pinning and never flushed is never submitted. | nodes 2, RF 2 | `NoLoss` broken |
 | `RC_mut_load_traverses` | load_traverses: a protected load that sees the epoch move traverses the slot list instead of only raising the reservation, releasing what the section loaded first. | nodes 5, cache 0 | `NoUseAfterFree` broken |
 | `RC_mut_no_era_check` | no_era_check: a protected load does not compare the global epoch. | nodes 7, EF 1 | `NoUseAfterFree` broken |
 | `RC_mut_no_help` | no_help: an epoch advance helps no slow path first. | nodes 1, pin attempts 1, epochs 8, steps counted yes | `LoopBounds` broken |
@@ -420,6 +428,8 @@ step counts. RF, EF, cache and epochs abbreviate `RetireFreq`, `EpochFreq`, `Max
 | `RC_wit_park` | an exit parks a batch on its tid. | nodes 3 | `NoParkW` broken |
 | `RC_wit_adopt` | a flush adopts a parked batch. | nodes 3 | `NoAdoptW` broken |
 | `RC_wit_flush_claim` | a flush on a thread with no tid claims one. | threads 3, tids 3, nodes 2 | `NoFlushClaimW` broken |
+| `RC_wit_flush_batch_claim` | a flush on a thread with no tid claims one for its own batch. | nodes 2, RF 2 | `NoFlushClaimW` broken |
+| `RC_wit_exit_claim` | an exit on a thread with no tid claims one. | nodes 2, RF 2 | `NoExitClaimW` broken |
 | `RC_wit_recycle` | a thread takes a released tid over. | threads 3, cells 3, nodes 11, RF 3 | `NoRecycleW` broken |
 | `RC_wit_dtor_held_retired` | a drop holds a node another thread retired. | cells 2, nodes 4 | `NoDtorHeldRetiredW` broken |
 | `RC_wit_cache_free` | a traversal frees the full cache first. | threads 1, tids 1, nodes 8, EF 1, cache 0, load attempts 1 | `NoCacheFreeW` broken |
@@ -520,13 +530,14 @@ The defects this branch fixed, each put back by a mutation:
   could stay parked for good. Fix: such a flush claims a tid while some tid holds orphans,
   then adopts. Found by reading the code after the model was built, not by the model: its `Flush`
   returned at the same point, and `NoLoss` counts a parked batch as kept. See the next section.
-- **A batch left behind by a thread with no tid** (`RC_mut_batch_needs_tid`, 4,735 states): on a
-  thread that had never pinned, flush still returned at once while nothing was parked, with values
-  in its own batch, and the exit did nothing, so what such a thread retired was never submitted
-  and never freed. Fix: such a flush, and such an exit, claim a tid and submit the batch. Found by
-  reading the code while fixing the defect above; the model had the same returns, and `NoLoss`
-  sees this one once a configuration has a thread retire without pinning and exit. See "Values
-  retired by a thread that never pinned".
+- **A batch left behind by a thread with no tid** (`RC_mut_exit_skips_batch`, 296 states;
+  `RC_mut_flush_skips_batch`, a lasso, 22 states): on a thread that had never pinned,
+  flush still returned at once while nothing was parked, with values in its own batch, and the
+  exit did nothing, so what such a thread retired was never submitted and never freed. Fix: such
+  a flush, and such an exit, claim a tid and submit the batch. Found by reading the code while
+  fixing the defect above; the model had the same returns, and `NoLoss` sees the exit half once a
+  configuration has a thread retire without pinning and exit. See "Values retired by a thread
+  that never pinned".
 
 Four more mutations take a mechanism out to show the properties depend on it: `load_traverses` (a
 load that traverses the list instead of raising the reservation releases what the section loaded
@@ -665,14 +676,23 @@ What changed in the model (each new or changed line carries the same explanation
   the thread claims a tid (`call AllocTid(); goto EX1`) and comes back to `EX1`, which then runs
   the exit of a thread that has a tid.
 - `ExitCtl`, the step bound of an exit, also counts that claim and the second pass of `EX1`.
-- `MutBatchNeedsTid`, the mutation `batch_needs_tid`, puts back both returns as the fix above left
-  them: flush with no tid returns while nothing is parked, whatever its batch holds, and the exit
-  of a thread with no tid does nothing.
+- Two mutations put back the two returns as the fix above left them, one at a time:
+  `flush_skips_batch` (`MutFlushSkipsBatch`: flush with no tid returns while nothing is parked,
+  whatever its batch holds) and `exit_skips_batch` (`MutExitSkipsBatch`: the exit of a thread with
+  no tid does nothing).
+- `NoExitClaimW`, a witness: no exit ever claims a tid. With `NoFlushClaimW` it shows that a
+  configuration reaches the claim it is meant to check.
 
-The property is `NoLoss`, unchanged: when every thread has exited, every retired value is freed or
-in a batch parked on a tid. A value left in the batch of a thread that has exited is neither, so
-`NoLoss` sees it. It missed this defect only because no configuration had a thread retire without
-pinning and then exit; it needs no extension.
+Two properties, one per half. The exit half: `NoLoss`, unchanged: when every thread has exited,
+every retired value is freed or in a batch parked on a tid. A value left in the batch of a thread
+that has exited is neither, so `NoLoss` sees it; it missed this defect only because no
+configuration had a thread retire without pinning and then exit. The flush half: `NoLoss` cannot
+see it, because it looks only at the end, once every thread has exited, and the exit alone then
+submits the batch; what the flush half adds is that the values are freed while the thread still
+lives. So the new `RetiredFreed` (`MC_Reclaim.tla`), `<>[](\A n \in Nodes : nst[n] # "retired")`:
+"eventually, and from then on always, no value is in the state retired", every retired value
+freed. It is a liveness property, checked on a thread that retires, flushes and then lives on
+without exiting.
 
 The configurations, and what each one catches:
 
@@ -681,36 +701,57 @@ The configurations, and what each one catches:
   exits; thread 3 pins, unpins and exits, so until it exits a one-value batch cannot be placed and
   is kept or parked. TLC tries every interleaving and checks the safety invariants on each,
   `NoLoss` among them, with the flush of thread 1 and the exit of thread 2 each claiming a tid.
-  Steps are not counted: with the step counts on, the scenario reached 19,998,315 distinct states,
-  still growing, when a 600-second limit stopped TLC, so it does not check `WaitFree`.
-- `RC_mut_batch_needs_tid` (must be broken). The same scenario with both old returns put back. In
-  the counterexample TLC finds, threads 1 and 2 each retire a value, thread 1's flush and both
-  exits return at once, every thread ends, and the two values are still in the batches of threads 1
-  and 2, neither freed nor parked: `NoLoss` broken.
+  Steps are not counted here: with the step counts on, this scenario reached 19,998,315 distinct
+  states, still growing, when a 600-second limit stopped TLC. The two configurations below count
+  them, one claim at a time.
+- `RC_wf_unpinned_exit` (must pass, steps counted). Thread 1 retires one value and exits; thread 2
+  pins, unpins and exits. Thread 1's exit finds no tid and a value in its batch, claims a tid and
+  runs the normal exit (and parks the value while thread 2 holds its reservation). TLC checks the
+  safety invariants on every interleaving, `NoLoss` and `WaitFree` among them: the exit, its claim
+  included, stays within its step bound.
+- `RC_wf_unpinned_flush` (must pass, steps counted). Thread 1 retires one value, flushes and
+  exits; thread 2 pins, unpins and exits. Nothing is parked before thread 1's flush, so its claim
+  is made for its own batch. The same invariants, `WaitFree` holding the flush and its claim to
+  the flush's bound.
+- `RC_wit_exit_claim` and `RC_wit_flush_batch_claim` (must be broken). Witnesses on those two
+  scenarios: "no exit claims a tid" and "no flush claims a tid". TLC breaking them shows that each
+  scenario reaches its claim, so the two passes above cover it rather than passing because it
+  never ran.
+- `RC_mut_exit_skips_batch` (must be broken). The scenario of `RC_wf_unpinned_exit` with only the
+  exit's old return put back (the flush half stays, but thread 1 never flushes). In the
+  counterexample TLC finds, thread 1's exit returns at once, both threads end, and the value is
+  still in thread 1's batch, neither freed nor parked: `NoLoss` broken.
+- `RC_live_unpinned_flush` (must pass) and `RC_mut_flush_skips_batch` (must be broken). One thread
+  retires one value, flushes, then pins and unpins forever without exiting, so only its flush can
+  submit the value. TLC checks `RetiredFreed` on every fair schedule: with the fix the flush claims
+  a tid and frees the value; with only the flush's old return put back (the exit half stays, but
+  the thread never exits), TLC finds the lasso in which the flush returns at once and the value
+  stays in the batch forever.
 
-What these checks do not cover: TLC checks this one scenario exhaustively, not every program. The
-mutation puts both returns back at once, so its counterexample shows that the scenario strands a
-batch without the fix, not which of the two returns each schedule needs; the integration tests
-check the two halves apart. No configuration counts the steps of an exit that claims a tid. The
-nightly sentinel registration is not modelled (the model's exit always runs).
+What these checks do not cover: TLC checks these scenarios (one or two threads beside the three of
+`RC_unpinned_retire`, one value retired per thread that never pins) exhaustively, not every
+program. The nightly sentinel registration is not modelled (the model's exit always runs).
 
 ### TLC results
 
-The run recorded in `reclaim/tlc-run.txt` (6 workers for a passing configuration, one for a
-violation, beside other work, other TLC runs among it, on a 36-core machine): 75 of 75
-configurations match `EXPECTED.txt`, in 2489 s of wall time. The largest passing ones are
-`RC_wf_mix` (8,363,530 distinct states, 237 s), `RC_unpinned_retire` (8,173,791 distinct states,
-273 s), `RC_hand_over` (5,601,019 distinct states, 167 s), `RC_find_help_torn_request` (3,371,877
-distinct states, 80 s), `RC_two_loads` (2,790,043 distinct states, 150 s), `RC_flush_orphan`
-(2,197,419 distinct states, 216 s); the longest runs that break a property, on one worker, are
-`RC_mut_tid_released_early` (1,544,254 distinct states, 236 s) and `RC_mut_help_no_seqno_check`
-(2,351,551 distinct states, 236 s). The other configurations of the two flush and exit fixes:
-`RC_live_orphan` (17,403 distinct states, 7 s), `RC_mut_flush_needs_tid` (14,404, 19 s),
-`RC_wit_flush_claim` (33,471, 8 s), `RC_mut_batch_needs_tid` (4,735, 3 s). TLC checks a temporal
-property on the part of the state space found so far, at intervals during the search, so where it
-stops on a broken one, and the state count it reports, can differ between runs
-(`RC_mut_ttas_locks`: 4,681, 4,432 and 5,679 distinct states in the last three full runs, 3,282,
-4,205 and 4,039 in three runs of it alone).
+The run recorded in `reclaim/tlc-run.txt` (8 workers for a passing configuration, one for a
+violation, on a 36-core machine whose load average stayed between 50 and 70 from other work,
+other TLC runs among it): 81 of 81 configurations match `EXPECTED.txt`, in 4369 s of wall time.
+The largest passing ones are `RC_wf_mix` (8,363,530 distinct states, 416 s), `RC_unpinned_retire`
+(8,173,791 distinct states, 622 s), `RC_hand_over` (5,601,019 distinct states, 311 s),
+`RC_find_help_torn_request` (3,371,877 distinct states, 165 s), `RC_two_loads` (2,790,043
+distinct states, 156 s), `RC_flush_orphan` (2,197,419 distinct states, 234 s); the longest runs
+that break a property, on one worker, are `RC_mut_tid_released_early` (1,544,254 distinct states,
+517 s) and `RC_mut_help_no_seqno_check` (2,351,551 distinct states, 517 s). The other
+configurations of the two flush and exit fixes: `RC_live_orphan` (17,403 distinct states, 13 s),
+`RC_mut_flush_needs_tid` (14,404, 32 s), `RC_wit_flush_claim` (33,471, 9 s), `RC_wf_unpinned_exit`
+(17,676, 7 s), `RC_wf_unpinned_flush` (48,056, 10 s), `RC_live_unpinned_flush` (37, 3 s),
+`RC_mut_exit_skips_batch` (296, 3 s), `RC_mut_flush_skips_batch` (22, 2 s), `RC_wit_exit_claim`
+(22, 3 s), `RC_wit_flush_batch_claim` (22, 2 s). TLC checks a temporal property on the part of the
+state space found so far, at intervals during the search, so where it stops on a broken one, and
+the state count it reports, can differ between runs (`RC_mut_ttas_locks`: 4,681, 4,432, 5,679 and
+937 distinct states in the last four full runs, 3,282, 4,205 and 4,039 in three runs of it
+alone).
 
 ## What the map models check
 

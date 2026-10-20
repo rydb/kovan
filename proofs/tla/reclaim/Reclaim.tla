@@ -102,11 +102,14 @@ MutFlushKeep == Mutation = "flush_keeps_reservation"
 \* flush_needs_tid puts back the flush of kovan 0.1.22: on a thread that has no tid (it never
 \* pinned), flush() returns at its first line, so it never adopts what exited threads parked.
 MutFlushNeedsTid == Mutation = "flush_needs_tid"
-\* batch_needs_tid puts back the early returns as the orphan fix left them: on a thread with no
-\* tid, flush() still returns when nothing is parked, even with values in its own batch, and the
-\* exit does nothing at all. A thread that retired without ever pinning then keeps its batch
-\* forever: never submitted, never freed.
-MutBatchNeedsTid == Mutation = "batch_needs_tid"
+\* Two mutations put back, one at a time, the two early returns as the orphan fix left them, for a
+\* thread that retired values without ever pinning (it has no tid, its batch holds them).
+\* flush_skips_batch: flush() on a thread with no tid still returns while nothing is parked, even
+\* with values in its own batch, so a flush does not submit them; they wait for the exit.
+MutFlushSkipsBatch == Mutation = "flush_skips_batch"
+\* exit_skips_batch: the exit of a thread with no tid does nothing, so the values in its batch
+\* are never submitted and never freed.
+MutExitSkipsBatch == Mutation = "exit_skips_batch"
 \* Mechanisms taken out, to show the properties depend on them.
 MutLoadTraverses == Mutation = "load_traverses"
 MutNoEraCheck == Mutation = "no_era_check"
@@ -1072,10 +1075,10 @@ FL1: \* The start of flush(), one step: it reads the thread's own handle (its ti
     \* Under the mutation flush_needs_tid (kovan 0.1.22) case (1) looks at nothing else: a thread
     \* with no tid always returns here, so a thread that never pins never adopts, and a batch
     \* parked while no thread with a tid flushes afterwards stays parked for good.
-    \* Under the mutation batch_needs_tid case (1) ignores the own batch: what a thread retired
-    \* without pinning is not submitted here (and, see EX1, not at its exit either).
+    \* Under the mutation flush_skips_batch case (1) ignores the own batch: what a thread retired
+    \* without pinning is not submitted here, only at its exit (EX1).
     if (tid[self] = NoTid
-        /\ (MutFlushNeedsTid \/ (orphaned = 0 /\ (bfst[self] = NULL \/ MutBatchNeedsTid))))
+        /\ (MutFlushNeedsTid \/ (orphaned = 0 /\ (bfst[self] = NULL \/ MutFlushSkipsBatch))))
        \/ inr[self] then
         return;
     else
@@ -1151,9 +1154,9 @@ variables xsv = 0, xown = NoSkip, xf = NULL, xl = NULL, xx = NULL, xcap = <<>>, 
 begin
 EX1: \* in_reclaim, the pin count raised, own
     \* A thread with no tid and an empty batch has nothing to leave: its exit does nothing.
-    \* (batch_needs_tid: the exit did nothing on any thread with no tid, so a batch it retired
+    \* (exit_skips_batch: the exit did nothing on any thread with no tid, so a batch it retired
     \* without pinning stayed in its handle forever, never submitted, never freed.)
-    if tid[self] = NoTid /\ (bfst[self] = NULL \/ MutBatchNeedsTid) then
+    if tid[self] = NoTid /\ (bfst[self] = NULL \/ MutExitSkipsBatch) then
         return;
     \* New: a thread with no tid whose batch holds a value (it retired without ever pinning)
     \* claims a tid (alloc_tid, the claim a first pin makes) and comes back to EX1, which now
@@ -1677,7 +1680,7 @@ TidClaim3(self) == /\ pc[self] = "TidClaim3"
 TidFresh(self) == /\ pc[self] = "TidFresh"
                   /\ ah' = [ah EXCEPT ![self] = ntid]
                   /\ Assert(ntid < MaxTid, 
-                            "Failure of assertion at line 262, column 5.")
+                            "Failure of assertion at line 265, column 5.")
                   /\ pc' = [pc EXCEPT ![self] = "TidFresh2"]
                   /\ UNCHANGED << ep, slow, ntid, rel, orw, orphaned, lkT, lkO, 
                                   fst, sep, res, nst, nnx, nbl, nro, nbe, cell, 
@@ -5318,7 +5321,7 @@ LoadU(self) == LU1(self)
 
 WR1(self) == /\ pc[self] = "WR1"
              /\ Assert(nalloc < MaxNodes, 
-                       "Failure of assertion at line 203, column 5 of macro called at line 1031, column 5.")
+                       "Failure of assertion at line 206, column 5 of macro called at line 1034, column 5.")
              /\ /\ cbe' = [cbe EXCEPT ![self] = IF cbe[self] = 0 THEN ep ELSE cbe[self]]
                 /\ errs' = (errs \cup (IF (IF cbe[self] = 0 THEN ep ELSE cbe[self]) < adv[self]
                                        THEN {"stale_birth"} ELSE {}))
@@ -5369,7 +5372,7 @@ Write(self) == WR1(self)
 
 RN1(self) == /\ pc[self] = "RN1"
              /\ Assert(nalloc < MaxNodes, 
-                       "Failure of assertion at line 203, column 5 of macro called at line 1048, column 5.")
+                       "Failure of assertion at line 206, column 5 of macro called at line 1051, column 5.")
              /\ /\ cbe' = [cbe EXCEPT ![self] = IF cbe[self] = 0 THEN ep ELSE cbe[self]]
                 /\ errs' = (errs \cup (IF (IF cbe[self] = 0 THEN ep ELSE cbe[self]) < adv[self]
                                        THEN {"stale_birth"} ELSE {}))
@@ -5415,7 +5418,7 @@ RetireNew(self) == RN1(self)
 
 FL1(self) == /\ pc[self] = "FL1"
              /\ IF (tid[self] = NoTid
-                    /\ (MutFlushNeedsTid \/ (orphaned = 0 /\ (bfst[self] = NULL \/ MutBatchNeedsTid))))
+                    /\ (MutFlushNeedsTid \/ (orphaned = 0 /\ (bfst[self] = NULL \/ MutFlushSkipsBatch))))
                    \/ inr[self]
                    THEN /\ pc' = [pc EXCEPT ![self] = Head(stack[self]).pc]
                         /\ fsv' = [fsv EXCEPT ![self] = Head(stack[self]).fsv]
@@ -5812,7 +5815,7 @@ Flush(self) == FL1(self) \/ FL2(self) \/ FL3(self) \/ FL4(self)
                   \/ FlushClear2(self) \/ FlushClear3(self) \/ FL9(self)
 
 EX1(self) == /\ pc[self] = "EX1"
-             /\ IF tid[self] = NoTid /\ (bfst[self] = NULL \/ MutBatchNeedsTid)
+             /\ IF tid[self] = NoTid /\ (bfst[self] = NULL \/ MutExitSkipsBatch)
                    THEN /\ pc' = [pc EXCEPT ![self] = Head(stack[self]).pc]
                         /\ xsv' = [xsv EXCEPT ![self] = Head(stack[self]).xsv]
                         /\ xown' = [xown EXCEPT ![self] = Head(stack[self]).xown]
@@ -6938,12 +6941,20 @@ NoMergeW == \A t \in Threads : ~(pc[t] = "RE3" /\ rok[t] = FALSE)
 NoParkW == orphaned = 0
 NoAdoptW == \A t \in Threads : ~(pc[t] = "OrphanMerge" /\ ac[t] # NULL)
 \* "No flush ever claims a tid." A call of AllocTid that returns into flush (to FL2 or FL3) is
-\* made only by the new branch of FL1, on a thread with no tid while batches are parked. TLC
-\* breaking this shows that the configuration reaches that branch, so the properties checked on
-\* the same scenario (RC_flush_orphan) do cover it.
+\* made only by the new branch of FL1, on a thread with no tid while batches are parked or its
+\* own batch holds a value. TLC breaking this shows that the configuration reaches that branch,
+\* so the properties checked on the same scenario do cover it (RC_wit_flush_claim for the
+\* scenario of RC_flush_orphan, RC_wit_flush_batch_claim for that of RC_wf_unpinned_flush).
 NoFlushClaimW ==
     \A t \in Threads : \A i \in DOMAIN stack[t] :
         ~(stack[t][i].procedure = "AllocTid" /\ stack[t][i].pc \in {"FL2", "FL3"})
+\* "No exit ever claims a tid." A call of AllocTid that returns into the exit (to EX1) is made only
+\* by the new branch of EX1, on a thread with no tid whose batch holds a value. TLC breaking this
+\* shows that the configuration reaches that branch, so the properties checked on the same
+\* scenario (RC_wf_unpinned_exit) do cover it.
+NoExitClaimW ==
+    \A t \in Threads : \A i \in DOMAIN stack[t] :
+        ~(stack[t][i].procedure = "AllocTid" /\ stack[t][i].pc = "EX1")
 NoRecycleW == \A t \in Threads : ~(pc[t] = "TidClaim3" /\ MinOf(aseen[t]) \in rel)
 NoCacheFreeW == \A t \in Threads : ~(pc[t] = "TC2" /\ tdo[t])
 NoReentrantTransitionW == \A t \in Threads : ~(lvl[t] > 0 /\ pc[t] = "PNC")
