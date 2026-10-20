@@ -52,6 +52,7 @@ State 1: <Initial predicate>
 /\ fst = (0 :> (0 :> [lo |-> -1, hi |-> 0] @@ 2 :> [lo |-> -1, hi |-> 0]))
 /\ fsv = <<0>>
 /\ nst = <<"live", "free", "free">>
+/\ nn = <<0>>
 /\ radj = <<0>>
 /\ dwas = <<FALSE>>
 /\ lcnt = <<0>>
@@ -66,6 +67,7 @@ State 1: <Initial predicate>
 /\ pt = <<0>>
 /\ sre = <<0>>
 /\ rf = <<0>>
+/\ plk = 0
 /\ ri = <<0>>
 /\ rl = <<0>>
 /\ rn = <<0>>
@@ -90,6 +92,8 @@ State 1: <Initial predicate>
 /\ ecnt = <<0>>
 /\ wc = <<0>>
 /\ wf = <<<<>>>>
+/\ wn = <<0>>
+/\ pool = {}
 /\ rel = {}
 /\ res = (0 :> [lo |-> 0, hi |-> 0])
 /\ xf = <<0>>
@@ -129,20 +133,23 @@ State 1: <Initial predicate>
 /\ afr = <<0>>
 /\ tlc = <<0>>
 /\ orw = (0 :> 0)
+/\ ninc = <<0, 0, 0>>
 /\ held = <<{}>>
 /\ xown = <<-2>>
 /\ nbe = <<1, 0, 0>>
 /\ nbl = <<0, 0, 0>>
 /\ tnx = <<0>>
 /\ rmin = <<0>>
+/\ fci = <<0>>
 /\ errs = {}
+/\ lpi = <<0>>
 /\ xcap = <<<<>>>>
 /\ stack = <<<<>>>>
 /\ blst = <<0>>
 /\ rprv = <<0>>
 /\ trf = <<0>>
 
-State 2: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
+State 2: <StepW line 7324, col 13 to line 7324, col 56 of module Reclaim>
 /\ tcache = <<0>>
 /\ ac = <<0>>
 /\ cbe = <<0>>
@@ -194,6 +201,7 @@ State 2: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ fst = (0 :> (0 :> [lo |-> -1, hi |-> 0] @@ 2 :> [lo |-> -1, hi |-> 0]))
 /\ fsv = <<0>>
 /\ nst = <<"live", "free", "free">>
+/\ nn = <<0>>
 /\ radj = <<0>>
 /\ dwas = <<FALSE>>
 /\ lcnt = <<0>>
@@ -208,6 +216,7 @@ State 2: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ pt = <<0>>
 /\ sre = <<0>>
 /\ rf = <<0>>
+/\ plk = 0
 /\ ri = <<0>>
 /\ rl = <<0>>
 /\ rn = <<0>>
@@ -232,6 +241,8 @@ State 2: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ ecnt = <<0>>
 /\ wc = <<0>>
 /\ wf = <<<<>>>>
+/\ wn = <<0>>
+/\ pool = {}
 /\ rel = {}
 /\ res = (0 :> [lo |-> 0, hi |-> 0])
 /\ xf = <<0>>
@@ -271,20 +282,23 @@ State 2: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ afr = <<0>>
 /\ tlc = <<0>>
 /\ orw = (0 :> 0)
+/\ ninc = <<0, 0, 0>>
 /\ held = <<{}>>
 /\ xown = <<-2>>
 /\ nbe = <<1, 0, 0>>
 /\ nbl = <<0, 0, 0>>
 /\ tnx = <<0>>
 /\ rmin = <<0>>
+/\ fci = <<0>>
 /\ errs = {}
+/\ lpi = <<0>>
 /\ xcap = <<<<>>>>
 /\ stack = <<<<[pc |-> "TH2", procedure |-> "Pin", pce |-> 0, pa |-> 0]>>>>
 /\ blst = <<0>>
 /\ rprv = <<0>>
 /\ trf = <<0>>
 
-State 3: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
+State 3: <StepW line 7324, col 13 to line 7324, col 56 of module Reclaim>
 /\ tcache = <<0>>
 /\ ac = <<0>>
 /\ cbe = <<0>>
@@ -336,6 +350,7 @@ State 3: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ fst = (0 :> (0 :> [lo |-> -1, hi |-> 0] @@ 2 :> [lo |-> -1, hi |-> 0]))
 /\ fsv = <<0>>
 /\ nst = <<"live", "free", "free">>
+/\ nn = <<0>>
 /\ radj = <<0>>
 /\ dwas = <<FALSE>>
 /\ lcnt = <<0>>
@@ -350,6 +365,7 @@ State 3: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ pt = <<0>>
 /\ sre = <<0>>
 /\ rf = <<0>>
+/\ plk = 0
 /\ ri = <<0>>
 /\ rl = <<0>>
 /\ rn = <<0>>
@@ -374,6 +390,8 @@ State 3: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ ecnt = <<0>>
 /\ wc = <<0>>
 /\ wf = <<<<>>>>
+/\ wn = <<0>>
+/\ pool = {}
 /\ rel = {}
 /\ res = (0 :> [lo |-> 0, hi |-> 0])
 /\ xf = <<0>>
@@ -413,13 +431,16 @@ State 3: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ afr = <<0>>
 /\ tlc = <<0>>
 /\ orw = (0 :> 0)
+/\ ninc = <<0, 0, 0>>
 /\ held = <<{}>>
 /\ xown = <<-2>>
 /\ nbe = <<1, 0, 0>>
 /\ nbl = <<0, 0, 0>>
 /\ tnx = <<0>>
 /\ rmin = <<0>>
+/\ fci = <<0>>
 /\ errs = {}
+/\ lpi = <<0>>
 /\ xcap = <<<<>>>>
 /\ stack = << << [pc |-> "PNU", procedure |-> "AllocTid", ah |-> 0, aseen |-> {}],
       [pc |-> "TH2", procedure |-> "Pin", pce |-> 0, pa |-> 0] >> >>
@@ -427,7 +448,7 @@ State 3: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ rprv = <<0>>
 /\ trf = <<0>>
 
-State 4: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
+State 4: <StepW line 7324, col 13 to line 7324, col 56 of module Reclaim>
 /\ tcache = <<0>>
 /\ ac = <<0>>
 /\ cbe = <<0>>
@@ -479,6 +500,7 @@ State 4: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ fst = (0 :> (0 :> [lo |-> -1, hi |-> 0] @@ 2 :> [lo |-> -1, hi |-> 0]))
 /\ fsv = <<0>>
 /\ nst = <<"live", "free", "free">>
+/\ nn = <<0>>
 /\ radj = <<0>>
 /\ dwas = <<FALSE>>
 /\ lcnt = <<0>>
@@ -493,6 +515,7 @@ State 4: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ pt = <<0>>
 /\ sre = <<0>>
 /\ rf = <<0>>
+/\ plk = 0
 /\ ri = <<0>>
 /\ rl = <<0>>
 /\ rn = <<0>>
@@ -517,6 +540,8 @@ State 4: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ ecnt = <<0>>
 /\ wc = <<0>>
 /\ wf = <<<<>>>>
+/\ wn = <<0>>
+/\ pool = {}
 /\ rel = {}
 /\ res = (0 :> [lo |-> 0, hi |-> 0])
 /\ xf = <<0>>
@@ -556,13 +581,16 @@ State 4: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ afr = <<0>>
 /\ tlc = <<0>>
 /\ orw = (0 :> 0)
+/\ ninc = <<0, 0, 0>>
 /\ held = <<{}>>
 /\ xown = <<-2>>
 /\ nbe = <<1, 0, 0>>
 /\ nbl = <<0, 0, 0>>
 /\ tnx = <<0>>
 /\ rmin = <<0>>
+/\ fci = <<0>>
 /\ errs = {}
+/\ lpi = <<0>>
 /\ xcap = <<<<>>>>
 /\ stack = << << [pc |-> "PNU", procedure |-> "AllocTid", ah |-> 0, aseen |-> {}],
       [pc |-> "TH2", procedure |-> "Pin", pce |-> 0, pa |-> 0] >> >>
@@ -570,7 +598,7 @@ State 4: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ rprv = <<0>>
 /\ trf = <<0>>
 
-State 5: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
+State 5: <StepW line 7324, col 13 to line 7324, col 56 of module Reclaim>
 /\ tcache = <<0>>
 /\ ac = <<0>>
 /\ cbe = <<0>>
@@ -622,6 +650,7 @@ State 5: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ fst = (0 :> (0 :> [lo |-> -1, hi |-> 0] @@ 2 :> [lo |-> -1, hi |-> 0]))
 /\ fsv = <<0>>
 /\ nst = <<"live", "free", "free">>
+/\ nn = <<0>>
 /\ radj = <<0>>
 /\ dwas = <<FALSE>>
 /\ lcnt = <<0>>
@@ -636,6 +665,7 @@ State 5: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ pt = <<0>>
 /\ sre = <<0>>
 /\ rf = <<0>>
+/\ plk = 0
 /\ ri = <<0>>
 /\ rl = <<0>>
 /\ rn = <<0>>
@@ -660,6 +690,8 @@ State 5: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ ecnt = <<0>>
 /\ wc = <<0>>
 /\ wf = <<<<>>>>
+/\ wn = <<0>>
+/\ pool = {}
 /\ rel = {}
 /\ res = (0 :> [lo |-> 0, hi |-> 0])
 /\ xf = <<0>>
@@ -699,13 +731,16 @@ State 5: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ afr = <<0>>
 /\ tlc = <<0>>
 /\ orw = (0 :> 0)
+/\ ninc = <<0, 0, 0>>
 /\ held = <<{}>>
 /\ xown = <<-2>>
 /\ nbe = <<1, 0, 0>>
 /\ nbl = <<0, 0, 0>>
 /\ tnx = <<0>>
 /\ rmin = <<0>>
+/\ fci = <<0>>
 /\ errs = {}
+/\ lpi = <<0>>
 /\ xcap = <<<<>>>>
 /\ stack = << << [pc |-> "PNU", procedure |-> "AllocTid", ah |-> 0, aseen |-> {}],
       [pc |-> "TH2", procedure |-> "Pin", pce |-> 0, pa |-> 0] >> >>
@@ -713,7 +748,7 @@ State 5: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ rprv = <<0>>
 /\ trf = <<0>>
 
-State 6: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
+State 6: <StepW line 7324, col 13 to line 7324, col 56 of module Reclaim>
 /\ tcache = <<0>>
 /\ ac = <<0>>
 /\ cbe = <<0>>
@@ -765,6 +800,7 @@ State 6: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ fst = (0 :> (0 :> [lo |-> -1, hi |-> 0] @@ 2 :> [lo |-> -1, hi |-> 0]))
 /\ fsv = <<0>>
 /\ nst = <<"live", "free", "free">>
+/\ nn = <<0>>
 /\ radj = <<0>>
 /\ dwas = <<FALSE>>
 /\ lcnt = <<0>>
@@ -779,6 +815,7 @@ State 6: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ pt = <<0>>
 /\ sre = <<0>>
 /\ rf = <<0>>
+/\ plk = 0
 /\ ri = <<0>>
 /\ rl = <<0>>
 /\ rn = <<0>>
@@ -803,6 +840,8 @@ State 6: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ ecnt = <<0>>
 /\ wc = <<0>>
 /\ wf = <<<<>>>>
+/\ wn = <<0>>
+/\ pool = {}
 /\ rel = {}
 /\ res = (0 :> [lo |-> 0, hi |-> 0])
 /\ xf = <<0>>
@@ -842,13 +881,16 @@ State 6: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ afr = <<0>>
 /\ tlc = <<0>>
 /\ orw = (0 :> 0)
+/\ ninc = <<0, 0, 0>>
 /\ held = <<{}>>
 /\ xown = <<-2>>
 /\ nbe = <<1, 0, 0>>
 /\ nbl = <<0, 0, 0>>
 /\ tnx = <<0>>
 /\ rmin = <<0>>
+/\ fci = <<0>>
 /\ errs = {}
+/\ lpi = <<0>>
 /\ xcap = <<<<>>>>
 /\ stack = << << [pc |-> "PNU", procedure |-> "AllocTid", ah |-> 0, aseen |-> {}],
       [pc |-> "TH2", procedure |-> "Pin", pce |-> 0, pa |-> 0] >> >>
@@ -856,7 +898,7 @@ State 6: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ rprv = <<0>>
 /\ trf = <<0>>
 
-State 7: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
+State 7: <StepW line 7324, col 13 to line 7324, col 56 of module Reclaim>
 /\ tcache = <<0>>
 /\ ac = <<0>>
 /\ cbe = <<0>>
@@ -908,6 +950,7 @@ State 7: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ fst = (0 :> (0 :> [lo |-> -1, hi |-> 0] @@ 2 :> [lo |-> -1, hi |-> 0]))
 /\ fsv = <<0>>
 /\ nst = <<"live", "free", "free">>
+/\ nn = <<0>>
 /\ radj = <<0>>
 /\ dwas = <<FALSE>>
 /\ lcnt = <<0>>
@@ -922,6 +965,7 @@ State 7: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ pt = <<0>>
 /\ sre = <<0>>
 /\ rf = <<0>>
+/\ plk = 0
 /\ ri = <<0>>
 /\ rl = <<0>>
 /\ rn = <<0>>
@@ -946,6 +990,8 @@ State 7: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ ecnt = <<0>>
 /\ wc = <<0>>
 /\ wf = <<<<>>>>
+/\ wn = <<0>>
+/\ pool = {}
 /\ rel = {}
 /\ res = (0 :> [lo |-> 0, hi |-> 0])
 /\ xf = <<0>>
@@ -985,20 +1031,23 @@ State 7: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ afr = <<0>>
 /\ tlc = <<0>>
 /\ orw = (0 :> 0)
+/\ ninc = <<0, 0, 0>>
 /\ held = <<{}>>
 /\ xown = <<-2>>
 /\ nbe = <<1, 0, 0>>
 /\ nbl = <<0, 0, 0>>
 /\ tnx = <<0>>
 /\ rmin = <<0>>
+/\ fci = <<0>>
 /\ errs = {}
+/\ lpi = <<0>>
 /\ xcap = <<<<>>>>
 /\ stack = <<<<[pc |-> "TH2", procedure |-> "Pin", pce |-> 0, pa |-> 0]>>>>
 /\ blst = <<0>>
 /\ rprv = <<0>>
 /\ trf = <<0>>
 
-State 8: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
+State 8: <StepW line 7324, col 13 to line 7324, col 56 of module Reclaim>
 /\ tcache = <<0>>
 /\ ac = <<0>>
 /\ cbe = <<0>>
@@ -1050,6 +1099,7 @@ State 8: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ fst = (0 :> (0 :> [lo |-> -1, hi |-> 0] @@ 2 :> [lo |-> -1, hi |-> 0]))
 /\ fsv = <<0>>
 /\ nst = <<"live", "free", "free">>
+/\ nn = <<0>>
 /\ radj = <<0>>
 /\ dwas = <<FALSE>>
 /\ lcnt = <<0>>
@@ -1064,6 +1114,7 @@ State 8: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ pt = <<0>>
 /\ sre = <<0>>
 /\ rf = <<0>>
+/\ plk = 0
 /\ ri = <<0>>
 /\ rl = <<0>>
 /\ rn = <<0>>
@@ -1088,6 +1139,8 @@ State 8: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ ecnt = <<0>>
 /\ wc = <<0>>
 /\ wf = <<<<>>>>
+/\ wn = <<0>>
+/\ pool = {}
 /\ rel = {}
 /\ res = (0 :> [lo |-> 0, hi |-> 0])
 /\ xf = <<0>>
@@ -1127,13 +1180,16 @@ State 8: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ afr = <<0>>
 /\ tlc = <<0>>
 /\ orw = (0 :> 0)
+/\ ninc = <<0, 0, 0>>
 /\ held = <<{}>>
 /\ xown = <<-2>>
 /\ nbe = <<1, 0, 0>>
 /\ nbl = <<0, 0, 0>>
 /\ tnx = <<0>>
 /\ rmin = <<0>>
+/\ fci = <<0>>
 /\ errs = {}
+/\ lpi = <<0>>
 /\ xcap = <<<<>>>>
 /\ stack = << << [ pc |-> "PNC",
         procedure |-> "DoUpdate",
@@ -1146,7 +1202,7 @@ State 8: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ rprv = <<0>>
 /\ trf = <<0>>
 
-State 9: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
+State 9: <StepW line 7324, col 13 to line 7324, col 56 of module Reclaim>
 /\ tcache = <<0>>
 /\ ac = <<0>>
 /\ cbe = <<0>>
@@ -1198,6 +1254,7 @@ State 9: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ fst = (0 :> (0 :> [lo |-> -1, hi |-> 0] @@ 2 :> [lo |-> -1, hi |-> 0]))
 /\ fsv = <<0>>
 /\ nst = <<"live", "free", "free">>
+/\ nn = <<0>>
 /\ radj = <<0>>
 /\ dwas = <<FALSE>>
 /\ lcnt = <<0>>
@@ -1212,6 +1269,7 @@ State 9: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ pt = <<0>>
 /\ sre = <<0>>
 /\ rf = <<0>>
+/\ plk = 0
 /\ ri = <<0>>
 /\ rl = <<0>>
 /\ rn = <<0>>
@@ -1236,6 +1294,8 @@ State 9: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ ecnt = <<0>>
 /\ wc = <<0>>
 /\ wf = <<<<>>>>
+/\ wn = <<0>>
+/\ pool = {}
 /\ rel = {}
 /\ res = (0 :> [lo |-> 0, hi |-> 0])
 /\ xf = <<0>>
@@ -1275,13 +1335,16 @@ State 9: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ afr = <<0>>
 /\ tlc = <<0>>
 /\ orw = (0 :> 0)
+/\ ninc = <<0, 0, 0>>
 /\ held = <<{}>>
 /\ xown = <<-2>>
 /\ nbe = <<1, 0, 0>>
 /\ nbl = <<0, 0, 0>>
 /\ tnx = <<0>>
 /\ rmin = <<0>>
+/\ fci = <<0>>
 /\ errs = {}
+/\ lpi = <<0>>
 /\ xcap = <<<<>>>>
 /\ stack = << << [ pc |-> "PNC",
         procedure |-> "DoUpdate",
@@ -1294,7 +1357,7 @@ State 9: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ rprv = <<0>>
 /\ trf = <<0>>
 
-State 10: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
+State 10: <StepW line 7324, col 13 to line 7324, col 56 of module Reclaim>
 /\ tcache = <<0>>
 /\ ac = <<0>>
 /\ cbe = <<0>>
@@ -1346,6 +1409,7 @@ State 10: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ fst = (0 :> (0 :> [lo |-> 0, hi |-> 0] @@ 2 :> [lo |-> -1, hi |-> 0]))
 /\ fsv = <<0>>
 /\ nst = <<"live", "free", "free">>
+/\ nn = <<0>>
 /\ radj = <<0>>
 /\ dwas = <<FALSE>>
 /\ lcnt = <<0>>
@@ -1360,6 +1424,7 @@ State 10: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ pt = <<0>>
 /\ sre = <<0>>
 /\ rf = <<0>>
+/\ plk = 0
 /\ ri = <<0>>
 /\ rl = <<0>>
 /\ rn = <<0>>
@@ -1384,6 +1449,8 @@ State 10: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ ecnt = <<0>>
 /\ wc = <<0>>
 /\ wf = <<<<>>>>
+/\ wn = <<0>>
+/\ pool = {}
 /\ rel = {}
 /\ res = (0 :> [lo |-> 0, hi |-> 0])
 /\ xf = <<0>>
@@ -1423,13 +1490,16 @@ State 10: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ afr = <<0>>
 /\ tlc = <<0>>
 /\ orw = (0 :> 0)
+/\ ninc = <<0, 0, 0>>
 /\ held = <<{}>>
 /\ xown = <<-2>>
 /\ nbe = <<1, 0, 0>>
 /\ nbl = <<0, 0, 0>>
 /\ tnx = <<0>>
 /\ rmin = <<0>>
+/\ fci = <<0>>
 /\ errs = {}
+/\ lpi = <<0>>
 /\ xcap = <<<<>>>>
 /\ stack = << << [ pc |-> "PNC",
         procedure |-> "DoUpdate",
@@ -1442,7 +1512,7 @@ State 10: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ rprv = <<0>>
 /\ trf = <<0>>
 
-State 11: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
+State 11: <StepW line 7324, col 13 to line 7324, col 56 of module Reclaim>
 /\ tcache = <<0>>
 /\ ac = <<0>>
 /\ cbe = <<0>>
@@ -1494,6 +1564,7 @@ State 11: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ fst = (0 :> (0 :> [lo |-> 0, hi |-> 0] @@ 2 :> [lo |-> -1, hi |-> 0]))
 /\ fsv = <<0>>
 /\ nst = <<"live", "free", "free">>
+/\ nn = <<0>>
 /\ radj = <<0>>
 /\ dwas = <<FALSE>>
 /\ lcnt = <<0>>
@@ -1508,6 +1579,7 @@ State 11: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ pt = <<0>>
 /\ sre = <<0>>
 /\ rf = <<0>>
+/\ plk = 0
 /\ ri = <<0>>
 /\ rl = <<0>>
 /\ rn = <<0>>
@@ -1532,6 +1604,8 @@ State 11: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ ecnt = <<0>>
 /\ wc = <<0>>
 /\ wf = <<<<>>>>
+/\ wn = <<0>>
+/\ pool = {}
 /\ rel = {}
 /\ res = (0 :> [lo |-> 0, hi |-> 0])
 /\ xf = <<0>>
@@ -1571,13 +1645,16 @@ State 11: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ afr = <<0>>
 /\ tlc = <<0>>
 /\ orw = (0 :> 0)
+/\ ninc = <<0, 0, 0>>
 /\ held = <<{}>>
 /\ xown = <<-2>>
 /\ nbe = <<1, 0, 0>>
 /\ nbl = <<0, 0, 0>>
 /\ tnx = <<0>>
 /\ rmin = <<0>>
+/\ fci = <<0>>
 /\ errs = {}
+/\ lpi = <<0>>
 /\ xcap = <<<<>>>>
 /\ stack = << << [ pc |-> "PNC",
         procedure |-> "DoUpdate",
@@ -1590,7 +1667,7 @@ State 11: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ rprv = <<0>>
 /\ trf = <<0>>
 
-State 12: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
+State 12: <StepW line 7324, col 13 to line 7324, col 56 of module Reclaim>
 /\ tcache = <<0>>
 /\ ac = <<0>>
 /\ cbe = <<1>>
@@ -1642,6 +1719,7 @@ State 12: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ fst = (0 :> (0 :> [lo |-> 0, hi |-> 0] @@ 2 :> [lo |-> -1, hi |-> 0]))
 /\ fsv = <<0>>
 /\ nst = <<"live", "free", "free">>
+/\ nn = <<0>>
 /\ radj = <<0>>
 /\ dwas = <<FALSE>>
 /\ lcnt = <<0>>
@@ -1656,6 +1734,7 @@ State 12: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ pt = <<0>>
 /\ sre = <<0>>
 /\ rf = <<0>>
+/\ plk = 0
 /\ ri = <<0>>
 /\ rl = <<0>>
 /\ rn = <<0>>
@@ -1680,6 +1759,8 @@ State 12: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ ecnt = <<0>>
 /\ wc = <<0>>
 /\ wf = <<<<>>>>
+/\ wn = <<0>>
+/\ pool = {}
 /\ rel = {}
 /\ res = (0 :> [lo |-> 0, hi |-> 0])
 /\ xf = <<0>>
@@ -1719,20 +1800,23 @@ State 12: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ afr = <<0>>
 /\ tlc = <<0>>
 /\ orw = (0 :> 0)
+/\ ninc = <<0, 0, 0>>
 /\ held = <<{}>>
 /\ xown = <<-2>>
 /\ nbe = <<1, 0, 0>>
 /\ nbl = <<0, 0, 0>>
 /\ tnx = <<0>>
 /\ rmin = <<0>>
+/\ fci = <<0>>
 /\ errs = {}
+/\ lpi = <<0>>
 /\ xcap = <<<<>>>>
 /\ stack = <<<<[pc |-> "TH2", procedure |-> "Pin", pce |-> 0, pa |-> 0]>>>>
 /\ blst = <<0>>
 /\ rprv = <<0>>
 /\ trf = <<0>>
 
-State 13: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
+State 13: <StepW line 7324, col 13 to line 7324, col 56 of module Reclaim>
 /\ tcache = <<0>>
 /\ ac = <<0>>
 /\ cbe = <<1>>
@@ -1784,6 +1868,7 @@ State 13: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ fst = (0 :> (0 :> [lo |-> 0, hi |-> 0] @@ 2 :> [lo |-> -1, hi |-> 0]))
 /\ fsv = <<0>>
 /\ nst = <<"live", "free", "free">>
+/\ nn = <<0>>
 /\ radj = <<0>>
 /\ dwas = <<FALSE>>
 /\ lcnt = <<0>>
@@ -1798,6 +1883,7 @@ State 13: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ pt = <<0>>
 /\ sre = <<0>>
 /\ rf = <<0>>
+/\ plk = 0
 /\ ri = <<0>>
 /\ rl = <<0>>
 /\ rn = <<0>>
@@ -1822,6 +1908,8 @@ State 13: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ ecnt = <<0>>
 /\ wc = <<0>>
 /\ wf = <<<<>>>>
+/\ wn = <<0>>
+/\ pool = {}
 /\ rel = {}
 /\ res = (0 :> [lo |-> 0, hi |-> 0])
 /\ xf = <<0>>
@@ -1861,20 +1949,23 @@ State 13: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ afr = <<0>>
 /\ tlc = <<0>>
 /\ orw = (0 :> 0)
+/\ ninc = <<0, 0, 0>>
 /\ held = <<{}>>
 /\ xown = <<-2>>
 /\ nbe = <<1, 0, 0>>
 /\ nbl = <<0, 0, 0>>
 /\ tnx = <<0>>
 /\ rmin = <<0>>
+/\ fci = <<0>>
 /\ errs = {}
+/\ lpi = <<0>>
 /\ xcap = <<<<>>>>
 /\ stack = <<<<>>>>
 /\ blst = <<0>>
 /\ rprv = <<0>>
 /\ trf = <<0>>
 
-State 14: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
+State 14: <StepW line 7324, col 13 to line 7324, col 56 of module Reclaim>
 /\ tcache = <<0>>
 /\ ac = <<0>>
 /\ cbe = <<1>>
@@ -1926,6 +2017,7 @@ State 14: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ fst = (0 :> (0 :> [lo |-> 0, hi |-> 0] @@ 2 :> [lo |-> -1, hi |-> 0]))
 /\ fsv = <<0>>
 /\ nst = <<"live", "free", "free">>
+/\ nn = <<0>>
 /\ radj = <<0>>
 /\ dwas = <<FALSE>>
 /\ lcnt = <<0>>
@@ -1940,6 +2032,7 @@ State 14: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ pt = <<0>>
 /\ sre = <<0>>
 /\ rf = <<0>>
+/\ plk = 0
 /\ ri = <<0>>
 /\ rl = <<0>>
 /\ rn = <<0>>
@@ -1964,6 +2057,8 @@ State 14: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ ecnt = <<0>>
 /\ wc = <<0>>
 /\ wf = <<<<>>>>
+/\ wn = <<0>>
+/\ pool = {}
 /\ rel = {}
 /\ res = (0 :> [lo |-> 0, hi |-> 0])
 /\ xf = <<0>>
@@ -2003,20 +2098,23 @@ State 14: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ afr = <<0>>
 /\ tlc = <<0>>
 /\ orw = (0 :> 0)
+/\ ninc = <<0, 0, 0>>
 /\ held = <<{}>>
 /\ xown = <<-2>>
 /\ nbe = <<1, 0, 0>>
 /\ nbl = <<0, 0, 0>>
 /\ tnx = <<0>>
 /\ rmin = <<0>>
+/\ fci = <<0>>
 /\ errs = {}
+/\ lpi = <<0>>
 /\ xcap = <<<<>>>>
-/\ stack = <<<<[pc |-> "TH2", procedure |-> "RetireNew"]>>>>
+/\ stack = <<<<[pc |-> "TH2", procedure |-> "RetireNew", nn |-> 0]>>>>
 /\ blst = <<0>>
 /\ rprv = <<0>>
 /\ trf = <<0>>
 
-State 15: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
+State 15: <StepW line 7324, col 13 to line 7324, col 56 of module Reclaim>
 /\ tcache = <<0>>
 /\ ac = <<0>>
 /\ cbe = <<1>>
@@ -2068,6 +2166,7 @@ State 15: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ fst = (0 :> (0 :> [lo |-> 0, hi |-> 0] @@ 2 :> [lo |-> -1, hi |-> 0]))
 /\ fsv = <<0>>
 /\ nst = <<"live", "live", "free">>
+/\ nn = <<0>>
 /\ radj = <<0>>
 /\ dwas = <<FALSE>>
 /\ lcnt = <<0>>
@@ -2082,6 +2181,7 @@ State 15: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ pt = <<0>>
 /\ sre = <<0>>
 /\ rf = <<0>>
+/\ plk = 0
 /\ ri = <<0>>
 /\ rl = <<0>>
 /\ rn = <<2>>
@@ -2106,6 +2206,8 @@ State 15: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ ecnt = <<0>>
 /\ wc = <<0>>
 /\ wf = <<<<>>>>
+/\ wn = <<0>>
+/\ pool = {}
 /\ rel = {}
 /\ res = (0 :> [lo |-> 0, hi |-> 0])
 /\ xf = <<0>>
@@ -2145,13 +2247,16 @@ State 15: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ afr = <<0>>
 /\ tlc = <<0>>
 /\ orw = (0 :> 0)
+/\ ninc = <<0, 0, 0>>
 /\ held = <<{}>>
 /\ xown = <<-2>>
 /\ nbe = <<1, 1, 0>>
 /\ nbl = <<0, 0, 0>>
 /\ tnx = <<0>>
 /\ rmin = <<0>>
+/\ fci = <<0>>
 /\ errs = {}
+/\ lpi = <<0>>
 /\ xcap = <<<<>>>>
 /\ stack = << << [ pc |-> "TH2",
         procedure |-> "Retire",
@@ -2164,7 +2269,7 @@ State 15: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ rprv = <<0>>
 /\ trf = <<0>>
 
-State 16: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
+State 16: <StepW line 7324, col 13 to line 7324, col 56 of module Reclaim>
 /\ tcache = <<0>>
 /\ ac = <<0>>
 /\ cbe = <<1>>
@@ -2216,6 +2321,7 @@ State 16: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ fst = (0 :> (0 :> [lo |-> 0, hi |-> 0] @@ 2 :> [lo |-> -1, hi |-> 0]))
 /\ fsv = <<0>>
 /\ nst = <<"live", "retired", "free">>
+/\ nn = <<0>>
 /\ radj = <<0>>
 /\ dwas = <<FALSE>>
 /\ lcnt = <<0>>
@@ -2230,6 +2336,7 @@ State 16: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ pt = <<0>>
 /\ sre = <<0>>
 /\ rf = <<0>>
+/\ plk = 0
 /\ ri = <<0>>
 /\ rl = <<0>>
 /\ rn = <<2>>
@@ -2254,6 +2361,8 @@ State 16: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ ecnt = <<1>>
 /\ wc = <<0>>
 /\ wf = <<<<>>>>
+/\ wn = <<0>>
+/\ pool = {}
 /\ rel = {}
 /\ res = (0 :> [lo |-> 0, hi |-> 0])
 /\ xf = <<0>>
@@ -2293,13 +2402,16 @@ State 16: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ afr = <<0>>
 /\ tlc = <<0>>
 /\ orw = (0 :> 0)
+/\ ninc = <<0, 0, 0>>
 /\ held = <<{}>>
 /\ xown = <<-2>>
 /\ nbe = <<1, 1, 0>>
 /\ nbl = <<0, 0, 0>>
 /\ tnx = <<0>>
 /\ rmin = <<0>>
+/\ fci = <<0>>
 /\ errs = {}
+/\ lpi = <<0>>
 /\ xcap = <<<<>>>>
 /\ stack = << << [ pc |-> "TH2",
         procedure |-> "Retire",
@@ -2312,7 +2424,7 @@ State 16: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ rprv = <<0>>
 /\ trf = <<0>>
 
-State 17: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
+State 17: <StepW line 7324, col 13 to line 7324, col 56 of module Reclaim>
 /\ tcache = <<0>>
 /\ ac = <<0>>
 /\ cbe = <<1>>
@@ -2364,6 +2476,7 @@ State 17: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ fst = (0 :> (0 :> [lo |-> 0, hi |-> 0] @@ 2 :> [lo |-> -1, hi |-> 0]))
 /\ fsv = <<0>>
 /\ nst = <<"live", "retired", "free">>
+/\ nn = <<0>>
 /\ radj = <<0>>
 /\ dwas = <<FALSE>>
 /\ lcnt = <<0>>
@@ -2378,6 +2491,7 @@ State 17: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ pt = <<0>>
 /\ sre = <<0>>
 /\ rf = <<2>>
+/\ plk = 0
 /\ ri = <<0>>
 /\ rl = <<0>>
 /\ rn = <<2>>
@@ -2402,6 +2516,8 @@ State 17: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ ecnt = <<1>>
 /\ wc = <<0>>
 /\ wf = <<<<>>>>
+/\ wn = <<0>>
+/\ pool = {}
 /\ rel = {}
 /\ res = (0 :> [lo |-> 0, hi |-> 0])
 /\ xf = <<0>>
@@ -2441,13 +2557,16 @@ State 17: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ afr = <<0>>
 /\ tlc = <<0>>
 /\ orw = (0 :> 0)
+/\ ninc = <<0, 0, 0>>
 /\ held = <<{}>>
 /\ xown = <<-2>>
 /\ nbe = <<1, 1, 0>>
 /\ nbl = <<0, -2, 0>>
 /\ tnx = <<0>>
 /\ rmin = <<0>>
+/\ fci = <<0>>
 /\ errs = {}
+/\ lpi = <<0>>
 /\ xcap = <<<<>>>>
 /\ stack = << << [ pc |-> "RE3",
         procedure |-> "TryRetire",
@@ -2474,7 +2593,7 @@ State 17: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ rprv = <<0>>
 /\ trf = <<0>>
 
-State 18: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
+State 18: <StepW line 7324, col 13 to line 7324, col 56 of module Reclaim>
 /\ tcache = <<0>>
 /\ ac = <<0>>
 /\ cbe = <<1>>
@@ -2526,6 +2645,7 @@ State 18: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ fst = (0 :> (0 :> [lo |-> 0, hi |-> 0] @@ 2 :> [lo |-> -1, hi |-> 0]))
 /\ fsv = <<0>>
 /\ nst = <<"live", "retired", "free">>
+/\ nn = <<0>>
 /\ radj = <<-1000>>
 /\ dwas = <<FALSE>>
 /\ lcnt = <<0>>
@@ -2540,6 +2660,7 @@ State 18: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ pt = <<0>>
 /\ sre = <<0>>
 /\ rf = <<2>>
+/\ plk = 0
 /\ ri = <<0>>
 /\ rl = <<2>>
 /\ rn = <<2>>
@@ -2564,6 +2685,8 @@ State 18: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ ecnt = <<1>>
 /\ wc = <<0>>
 /\ wf = <<<<>>>>
+/\ wn = <<0>>
+/\ pool = {}
 /\ rel = {}
 /\ res = (0 :> [lo |-> 0, hi |-> 0])
 /\ xf = <<0>>
@@ -2603,13 +2726,16 @@ State 18: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ afr = <<0>>
 /\ tlc = <<0>>
 /\ orw = (0 :> 0)
+/\ ninc = <<0, 0, 0>>
 /\ held = <<{}>>
 /\ xown = <<-2>>
 /\ nbe = <<1, 1, 0>>
 /\ nbl = <<0, -2, 0>>
 /\ tnx = <<0>>
 /\ rmin = <<1>>
+/\ fci = <<0>>
 /\ errs = {}
+/\ lpi = <<0>>
 /\ xcap = <<<<>>>>
 /\ stack = << << [ pc |-> "RE3",
         procedure |-> "TryRetire",
@@ -2636,7 +2762,7 @@ State 18: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ rprv = <<0>>
 /\ trf = <<0>>
 
-State 19: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
+State 19: <StepW line 7324, col 13 to line 7324, col 56 of module Reclaim>
 /\ tcache = <<0>>
 /\ ac = <<0>>
 /\ cbe = <<1>>
@@ -2688,6 +2814,7 @@ State 19: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ fst = (0 :> (0 :> [lo |-> 0, hi |-> 0] @@ 2 :> [lo |-> -1, hi |-> 0]))
 /\ fsv = <<0>>
 /\ nst = <<"live", "retired", "free">>
+/\ nn = <<0>>
 /\ radj = <<-1000>>
 /\ dwas = <<FALSE>>
 /\ lcnt = <<0>>
@@ -2702,6 +2829,7 @@ State 19: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ pt = <<0>>
 /\ sre = <<0>>
 /\ rf = <<2>>
+/\ plk = 0
 /\ ri = <<0>>
 /\ rl = <<2>>
 /\ rn = <<2>>
@@ -2726,6 +2854,8 @@ State 19: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ ecnt = <<1>>
 /\ wc = <<0>>
 /\ wf = <<<<>>>>
+/\ wn = <<0>>
+/\ pool = {}
 /\ rel = {}
 /\ res = (0 :> [lo |-> 0, hi |-> 0])
 /\ xf = <<0>>
@@ -2765,13 +2895,16 @@ State 19: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ afr = <<0>>
 /\ tlc = <<0>>
 /\ orw = (0 :> 0)
+/\ ninc = <<0, 0, 0>>
 /\ held = <<{}>>
 /\ xown = <<-2>>
 /\ nbe = <<1, 1, 0>>
 /\ nbl = <<0, -2, 0>>
 /\ tnx = <<0>>
 /\ rmin = <<1>>
+/\ fci = <<0>>
 /\ errs = {}
+/\ lpi = <<0>>
 /\ xcap = <<<<>>>>
 /\ stack = << << [ pc |-> "RE3",
         procedure |-> "TryRetire",
@@ -2798,7 +2931,7 @@ State 19: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ rprv = <<0>>
 /\ trf = <<0>>
 
-State 20: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
+State 20: <StepW line 7324, col 13 to line 7324, col 56 of module Reclaim>
 /\ tcache = <<0>>
 /\ ac = <<0>>
 /\ cbe = <<1>>
@@ -2850,6 +2983,7 @@ State 20: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ fst = (0 :> (0 :> [lo |-> 0, hi |-> 0] @@ 2 :> [lo |-> -1, hi |-> 0]))
 /\ fsv = <<0>>
 /\ nst = <<"live", "retired", "free">>
+/\ nn = <<0>>
 /\ radj = <<-1000>>
 /\ dwas = <<FALSE>>
 /\ lcnt = <<0>>
@@ -2864,6 +2998,7 @@ State 20: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ pt = <<0>>
 /\ sre = <<0>>
 /\ rf = <<2>>
+/\ plk = 0
 /\ ri = <<0>>
 /\ rl = <<2>>
 /\ rn = <<2>>
@@ -2888,6 +3023,8 @@ State 20: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ ecnt = <<1>>
 /\ wc = <<0>>
 /\ wf = <<<<>>>>
+/\ wn = <<0>>
+/\ pool = {}
 /\ rel = {}
 /\ res = (0 :> [lo |-> 0, hi |-> 0])
 /\ xf = <<0>>
@@ -2927,13 +3064,16 @@ State 20: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ afr = <<0>>
 /\ tlc = <<0>>
 /\ orw = (0 :> 0)
+/\ ninc = <<0, 0, 0>>
 /\ held = <<{}>>
 /\ xown = <<-2>>
 /\ nbe = <<1, 1, 0>>
 /\ nbl = <<0, -2, 0>>
 /\ tnx = <<0>>
 /\ rmin = <<1>>
+/\ fci = <<0>>
 /\ errs = {}
+/\ lpi = <<0>>
 /\ xcap = <<<<>>>>
 /\ stack = << << [ pc |-> "RE3",
         procedure |-> "TryRetire",
@@ -2960,7 +3100,7 @@ State 20: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ rprv = <<0>>
 /\ trf = <<0>>
 
-State 21: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
+State 21: <StepW line 7324, col 13 to line 7324, col 56 of module Reclaim>
 /\ tcache = <<0>>
 /\ ac = <<0>>
 /\ cbe = <<1>>
@@ -3012,6 +3152,7 @@ State 21: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ fst = (0 :> (0 :> [lo |-> 0, hi |-> 0] @@ 2 :> [lo |-> -1, hi |-> 0]))
 /\ fsv = <<0>>
 /\ nst = <<"live", "retired", "free">>
+/\ nn = <<0>>
 /\ radj = <<-1000>>
 /\ dwas = <<FALSE>>
 /\ lcnt = <<0>>
@@ -3026,6 +3167,7 @@ State 21: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ pt = <<0>>
 /\ sre = <<0>>
 /\ rf = <<2>>
+/\ plk = 0
 /\ ri = <<0>>
 /\ rl = <<2>>
 /\ rn = <<2>>
@@ -3050,6 +3192,8 @@ State 21: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ ecnt = <<1>>
 /\ wc = <<0>>
 /\ wf = <<<<>>>>
+/\ wn = <<0>>
+/\ pool = {}
 /\ rel = {}
 /\ res = (0 :> [lo |-> 0, hi |-> 0])
 /\ xf = <<0>>
@@ -3089,13 +3233,16 @@ State 21: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ afr = <<0>>
 /\ tlc = <<0>>
 /\ orw = (0 :> 0)
+/\ ninc = <<0, 0, 0>>
 /\ held = <<{}>>
 /\ xown = <<-2>>
 /\ nbe = <<1, 1, 0>>
 /\ nbl = <<0, -2, 0>>
 /\ tnx = <<0>>
 /\ rmin = <<1>>
+/\ fci = <<0>>
 /\ errs = {}
+/\ lpi = <<0>>
 /\ xcap = <<<<>>>>
 /\ stack = << << [ pc |-> "RE3",
         procedure |-> "TryRetire",
@@ -3122,7 +3269,7 @@ State 21: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ rprv = <<0>>
 /\ trf = <<0>>
 
-State 22: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
+State 22: <StepW line 7324, col 13 to line 7324, col 56 of module Reclaim>
 /\ tcache = <<0>>
 /\ ac = <<0>>
 /\ cbe = <<1>>
@@ -3174,6 +3321,7 @@ State 22: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ fst = (0 :> (0 :> [lo |-> 0, hi |-> 0] @@ 2 :> [lo |-> -1, hi |-> 0]))
 /\ fsv = <<0>>
 /\ nst = <<"live", "retired", "free">>
+/\ nn = <<0>>
 /\ radj = <<0>>
 /\ dwas = <<FALSE>>
 /\ lcnt = <<0>>
@@ -3188,6 +3336,7 @@ State 22: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ pt = <<0>>
 /\ sre = <<0>>
 /\ rf = <<0>>
+/\ plk = 0
 /\ ri = <<0>>
 /\ rl = <<0>>
 /\ rn = <<2>>
@@ -3212,6 +3361,8 @@ State 22: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ ecnt = <<1>>
 /\ wc = <<0>>
 /\ wf = <<<<>>>>
+/\ wn = <<0>>
+/\ pool = {}
 /\ rel = {}
 /\ res = (0 :> [lo |-> 0, hi |-> 0])
 /\ xf = <<0>>
@@ -3251,13 +3402,16 @@ State 22: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ afr = <<0>>
 /\ tlc = <<0>>
 /\ orw = (0 :> 0)
+/\ ninc = <<0, 0, 0>>
 /\ held = <<{}>>
 /\ xown = <<-2>>
 /\ nbe = <<1, 1, 0>>
 /\ nbl = <<0, -2, 0>>
 /\ tnx = <<0>>
 /\ rmin = <<0>>
+/\ fci = <<0>>
 /\ errs = {}
+/\ lpi = <<0>>
 /\ xcap = <<<<>>>>
 /\ stack = << << [ pc |-> "TH2",
         procedure |-> "Retire",
@@ -3270,7 +3424,7 @@ State 22: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ rprv = <<0>>
 /\ trf = <<0>>
 
-State 23: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
+State 23: <StepW line 7324, col 13 to line 7324, col 56 of module Reclaim>
 /\ tcache = <<0>>
 /\ ac = <<0>>
 /\ cbe = <<1>>
@@ -3322,6 +3476,7 @@ State 23: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ fst = (0 :> (0 :> [lo |-> 0, hi |-> 0] @@ 2 :> [lo |-> -1, hi |-> 0]))
 /\ fsv = <<0>>
 /\ nst = <<"live", "retired", "free">>
+/\ nn = <<0>>
 /\ radj = <<0>>
 /\ dwas = <<FALSE>>
 /\ lcnt = <<0>>
@@ -3336,6 +3491,7 @@ State 23: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ pt = <<0>>
 /\ sre = <<0>>
 /\ rf = <<0>>
+/\ plk = 0
 /\ ri = <<0>>
 /\ rl = <<0>>
 /\ rn = <<2>>
@@ -3360,6 +3516,8 @@ State 23: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ ecnt = <<1>>
 /\ wc = <<0>>
 /\ wf = <<<<>>>>
+/\ wn = <<0>>
+/\ pool = {}
 /\ rel = {}
 /\ res = (0 :> [lo |-> 0, hi |-> 0])
 /\ xf = <<0>>
@@ -3399,13 +3557,16 @@ State 23: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ afr = <<0>>
 /\ tlc = <<0>>
 /\ orw = (0 :> 0)
+/\ ninc = <<0, 0, 0>>
 /\ held = <<{}>>
 /\ xown = <<-2>>
 /\ nbe = <<1, 1, 0>>
 /\ nbl = <<0, -2, 0>>
 /\ tnx = <<0>>
 /\ rmin = <<0>>
+/\ fci = <<0>>
 /\ errs = {}
+/\ lpi = <<0>>
 /\ xcap = <<<<>>>>
 /\ stack = << << [ pc |-> "TH2",
         procedure |-> "Retire",
@@ -3418,7 +3579,7 @@ State 23: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ rprv = <<0>>
 /\ trf = <<0>>
 
-State 24: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
+State 24: <StepW line 7324, col 13 to line 7324, col 56 of module Reclaim>
 /\ tcache = <<0>>
 /\ ac = <<0>>
 /\ cbe = <<1>>
@@ -3470,6 +3631,7 @@ State 24: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ fst = (0 :> (0 :> [lo |-> 0, hi |-> 0] @@ 2 :> [lo |-> -1, hi |-> 0]))
 /\ fsv = <<0>>
 /\ nst = <<"live", "retired", "free">>
+/\ nn = <<0>>
 /\ radj = <<0>>
 /\ dwas = <<FALSE>>
 /\ lcnt = <<0>>
@@ -3484,6 +3646,7 @@ State 24: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ pt = <<0>>
 /\ sre = <<0>>
 /\ rf = <<0>>
+/\ plk = 0
 /\ ri = <<0>>
 /\ rl = <<0>>
 /\ rn = <<2>>
@@ -3508,6 +3671,8 @@ State 24: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ ecnt = <<1>>
 /\ wc = <<0>>
 /\ wf = <<<<>>>>
+/\ wn = <<0>>
+/\ pool = {}
 /\ rel = {}
 /\ res = (0 :> [lo |-> 0, hi |-> 0])
 /\ xf = <<0>>
@@ -3547,13 +3712,16 @@ State 24: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ afr = <<0>>
 /\ tlc = <<0>>
 /\ orw = (0 :> 0)
+/\ ninc = <<0, 0, 0>>
 /\ held = <<{}>>
 /\ xown = <<-2>>
 /\ nbe = <<1, 1, 0>>
 /\ nbl = <<0, -2, 0>>
 /\ tnx = <<0>>
 /\ rmin = <<0>>
+/\ fci = <<0>>
 /\ errs = {}
+/\ lpi = <<0>>
 /\ xcap = <<<<>>>>
 /\ stack = << << [ pc |-> "TH2",
         procedure |-> "Retire",
@@ -3566,7 +3734,7 @@ State 24: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ rprv = <<0>>
 /\ trf = <<0>>
 
-State 25: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
+State 25: <StepW line 7324, col 13 to line 7324, col 56 of module Reclaim>
 /\ tcache = <<0>>
 /\ ac = <<0>>
 /\ cbe = <<1>>
@@ -3618,6 +3786,7 @@ State 25: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ fst = (0 :> (0 :> [lo |-> 0, hi |-> 0] @@ 2 :> [lo |-> -1, hi |-> 0]))
 /\ fsv = <<0>>
 /\ nst = <<"live", "retired", "free">>
+/\ nn = <<0>>
 /\ radj = <<0>>
 /\ dwas = <<FALSE>>
 /\ lcnt = <<0>>
@@ -3632,6 +3801,7 @@ State 25: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ pt = <<0>>
 /\ sre = <<0>>
 /\ rf = <<0>>
+/\ plk = 0
 /\ ri = <<0>>
 /\ rl = <<0>>
 /\ rn = <<2>>
@@ -3656,6 +3826,8 @@ State 25: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ ecnt = <<1>>
 /\ wc = <<0>>
 /\ wf = <<<<>>>>
+/\ wn = <<0>>
+/\ pool = {}
 /\ rel = {}
 /\ res = (0 :> [lo |-> 0, hi |-> 0])
 /\ xf = <<0>>
@@ -3695,13 +3867,16 @@ State 25: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ afr = <<0>>
 /\ tlc = <<0>>
 /\ orw = (0 :> 0)
+/\ ninc = <<0, 0, 0>>
 /\ held = <<{}>>
 /\ xown = <<-2>>
 /\ nbe = <<1, 1, 0>>
 /\ nbl = <<0, -2, 0>>
 /\ tnx = <<0>>
 /\ rmin = <<0>>
+/\ fci = <<0>>
 /\ errs = {}
+/\ lpi = <<0>>
 /\ xcap = <<<<>>>>
 /\ stack = << << [pc |-> "RE6", procedure |-> "HelpRead", hm |-> 0, hmx |-> 0, hx |-> 0],
       [ pc |-> "TH2",
@@ -3715,7 +3890,7 @@ State 25: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ rprv = <<0>>
 /\ trf = <<0>>
 
-State 26: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
+State 26: <StepW line 7324, col 13 to line 7324, col 56 of module Reclaim>
 /\ tcache = <<0>>
 /\ ac = <<0>>
 /\ cbe = <<1>>
@@ -3767,6 +3942,7 @@ State 26: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ fst = (0 :> (0 :> [lo |-> 0, hi |-> 0] @@ 2 :> [lo |-> -1, hi |-> 0]))
 /\ fsv = <<0>>
 /\ nst = <<"live", "retired", "free">>
+/\ nn = <<0>>
 /\ radj = <<0>>
 /\ dwas = <<FALSE>>
 /\ lcnt = <<0>>
@@ -3781,6 +3957,7 @@ State 26: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ pt = <<0>>
 /\ sre = <<0>>
 /\ rf = <<0>>
+/\ plk = 0
 /\ ri = <<0>>
 /\ rl = <<0>>
 /\ rn = <<2>>
@@ -3805,6 +3982,8 @@ State 26: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ ecnt = <<1>>
 /\ wc = <<0>>
 /\ wf = <<<<>>>>
+/\ wn = <<0>>
+/\ pool = {}
 /\ rel = {}
 /\ res = (0 :> [lo |-> 0, hi |-> 0])
 /\ xf = <<0>>
@@ -3844,13 +4023,16 @@ State 26: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ afr = <<0>>
 /\ tlc = <<0>>
 /\ orw = (0 :> 0)
+/\ ninc = <<0, 0, 0>>
 /\ held = <<{}>>
 /\ xown = <<-2>>
 /\ nbe = <<1, 1, 0>>
 /\ nbl = <<0, -2, 0>>
 /\ tnx = <<0>>
 /\ rmin = <<0>>
+/\ fci = <<0>>
 /\ errs = {}
+/\ lpi = <<0>>
 /\ xcap = <<<<>>>>
 /\ stack = << << [ pc |-> "TH2",
         procedure |-> "Retire",
@@ -3863,7 +4045,7 @@ State 26: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ rprv = <<0>>
 /\ trf = <<0>>
 
-State 27: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
+State 27: <StepW line 7324, col 13 to line 7324, col 56 of module Reclaim>
 /\ tcache = <<0>>
 /\ ac = <<0>>
 /\ cbe = <<1>>
@@ -3915,6 +4097,7 @@ State 27: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ fst = (0 :> (0 :> [lo |-> 0, hi |-> 0] @@ 2 :> [lo |-> -1, hi |-> 0]))
 /\ fsv = <<0>>
 /\ nst = <<"live", "retired", "free">>
+/\ nn = <<0>>
 /\ radj = <<0>>
 /\ dwas = <<FALSE>>
 /\ lcnt = <<0>>
@@ -3929,6 +4112,7 @@ State 27: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ pt = <<0>>
 /\ sre = <<0>>
 /\ rf = <<0>>
+/\ plk = 0
 /\ ri = <<0>>
 /\ rl = <<0>>
 /\ rn = <<0>>
@@ -3953,6 +4137,8 @@ State 27: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ ecnt = <<0>>
 /\ wc = <<0>>
 /\ wf = <<<<>>>>
+/\ wn = <<0>>
+/\ pool = {}
 /\ rel = {}
 /\ res = (0 :> [lo |-> 0, hi |-> 0])
 /\ xf = <<0>>
@@ -3992,20 +4178,23 @@ State 27: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ afr = <<0>>
 /\ tlc = <<0>>
 /\ orw = (0 :> 0)
+/\ ninc = <<0, 0, 0>>
 /\ held = <<{}>>
 /\ xown = <<-2>>
 /\ nbe = <<1, 1, 0>>
 /\ nbl = <<0, -2, 0>>
 /\ tnx = <<0>>
 /\ rmin = <<0>>
+/\ fci = <<0>>
 /\ errs = {}
+/\ lpi = <<0>>
 /\ xcap = <<<<>>>>
 /\ stack = <<<<>>>>
 /\ blst = <<2>>
 /\ rprv = <<0>>
 /\ trf = <<0>>
 
-State 28: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
+State 28: <StepW line 7324, col 13 to line 7324, col 56 of module Reclaim>
 /\ tcache = <<0>>
 /\ ac = <<0>>
 /\ cbe = <<1>>
@@ -4057,6 +4246,7 @@ State 28: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ fst = (0 :> (0 :> [lo |-> 0, hi |-> 0] @@ 2 :> [lo |-> -1, hi |-> 0]))
 /\ fsv = <<0>>
 /\ nst = <<"live", "retired", "free">>
+/\ nn = <<0>>
 /\ radj = <<0>>
 /\ dwas = <<FALSE>>
 /\ lcnt = <<0>>
@@ -4071,6 +4261,7 @@ State 28: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ pt = <<0>>
 /\ sre = <<0>>
 /\ rf = <<0>>
+/\ plk = 0
 /\ ri = <<0>>
 /\ rl = <<0>>
 /\ rn = <<0>>
@@ -4095,6 +4286,8 @@ State 28: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ ecnt = <<0>>
 /\ wc = <<0>>
 /\ wf = <<<<>>>>
+/\ wn = <<0>>
+/\ pool = {}
 /\ rel = {}
 /\ res = (0 :> [lo |-> 0, hi |-> 0])
 /\ xf = <<0>>
@@ -4134,20 +4327,23 @@ State 28: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ afr = <<0>>
 /\ tlc = <<0>>
 /\ orw = (0 :> 0)
+/\ ninc = <<0, 0, 0>>
 /\ held = <<{}>>
 /\ xown = <<-2>>
 /\ nbe = <<1, 1, 0>>
 /\ nbl = <<0, -2, 0>>
 /\ tnx = <<0>>
 /\ rmin = <<0>>
+/\ fci = <<0>>
 /\ errs = {}
+/\ lpi = <<0>>
 /\ xcap = <<<<>>>>
-/\ stack = <<<<[pc |-> "TH2", procedure |-> "RetireNew"]>>>>
+/\ stack = <<<<[pc |-> "TH2", procedure |-> "RetireNew", nn |-> 0]>>>>
 /\ blst = <<2>>
 /\ rprv = <<0>>
 /\ trf = <<0>>
 
-State 29: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
+State 29: <StepW line 7324, col 13 to line 7324, col 56 of module Reclaim>
 /\ tcache = <<0>>
 /\ ac = <<0>>
 /\ cbe = <<1>>
@@ -4199,6 +4395,7 @@ State 29: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ fst = (0 :> (0 :> [lo |-> 0, hi |-> 0] @@ 2 :> [lo |-> -1, hi |-> 0]))
 /\ fsv = <<0>>
 /\ nst = <<"live", "retired", "live">>
+/\ nn = <<0>>
 /\ radj = <<0>>
 /\ dwas = <<FALSE>>
 /\ lcnt = <<0>>
@@ -4213,6 +4410,7 @@ State 29: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ pt = <<0>>
 /\ sre = <<0>>
 /\ rf = <<0>>
+/\ plk = 0
 /\ ri = <<0>>
 /\ rl = <<0>>
 /\ rn = <<3>>
@@ -4237,6 +4435,8 @@ State 29: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ ecnt = <<0>>
 /\ wc = <<0>>
 /\ wf = <<<<>>>>
+/\ wn = <<0>>
+/\ pool = {}
 /\ rel = {}
 /\ res = (0 :> [lo |-> 0, hi |-> 0])
 /\ xf = <<0>>
@@ -4276,13 +4476,16 @@ State 29: <StepW line 6790, col 13 to line 6790, col 56 of module Reclaim>
 /\ afr = <<0>>
 /\ tlc = <<0>>
 /\ orw = (0 :> 0)
+/\ ninc = <<0, 0, 0>>
 /\ held = <<{}>>
 /\ xown = <<-2>>
 /\ nbe = <<1, 1, 1>>
 /\ nbl = <<0, -2, 0>>
 /\ tnx = <<0>>
 /\ rmin = <<0>>
+/\ fci = <<0>>
 /\ errs = {"stale_birth"}
+/\ lpi = <<0>>
 /\ xcap = <<<<>>>>
 /\ stack = << << [ pc |-> "TH2",
         procedure |-> "Retire",
