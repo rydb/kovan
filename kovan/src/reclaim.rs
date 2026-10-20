@@ -92,10 +92,12 @@ pub(crate) const MAX_CACHE: usize = 12;
 /// lowered to that minimum in place. `dealloc` owns the whole allocation, the
 /// embedded `RetiredNode` included, so a pool that keeps its own free-list
 /// link in the header, or anything else that writes the header between
-/// `dealloc` and the next publication, leaves `birth_epoch` holding an
-/// arbitrary value. kovan can then free a batch while a reader still holds
-/// one of its nodes: the reclamation model's `RC_mut_stale_link_birth`
-/// configuration finds exactly that use after free.
+/// `dealloc` and the next publication, can leave `birth_epoch` holding an
+/// arbitrary value. If that value is later than the epoch the node is
+/// published at, kovan can free a batch while a reader still holds one of its
+/// nodes: the reclamation model's `RC_mut_stale_link_birth` configuration
+/// finds exactly that use after free, with a pool link written over the
+/// `birth_epoch` word.
 ///
 /// `RetiredNode::new()` stamps the epoch of a fresh allocation from the
 /// thread's cached epoch. It is read before the node is stored, so it is
@@ -311,7 +313,7 @@ pub(crate) unsafe fn free_batch_list(mut list: *mut RetiredNode) {
         // batch_link on refs-node is RNODE(batch_front)
         let batch_link = unsafe { (*refs_node).batch_link.load(Ordering::Relaxed) };
         let front = rnode_unmask(batch_link);
-        // next is reused for free-list chain — save before freeing
+        // next is reused for free-list chain: save before freeing
         list = unsafe { (*refs_node).next.load(Ordering::Relaxed) };
 
         // Walk the batch_next chain: front -> ... -> refs_node (batch_next = null)
