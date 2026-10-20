@@ -7,7 +7,8 @@
 //! - Helping: help_read/help_thread for wait-free progress
 
 use crate::atomic::AtomicUsize;
-use crate::retired::{INVPTR, REFC_PROTECT, RetiredNode, rnode_mark};
+use crate::reclaim::Reclaimable;
+use crate::retired::{DestructorFn, INVPTR, REFC_PROTECT, RetiredNode, rnode_mark};
 use crate::slot::{self, ASMRState, EPOCH_FREQ, EPOCH_UNCONDITIONAL, RETIRE_FREQ};
 use alloc::boxed::Box;
 use core::cell::Cell;
@@ -1086,36 +1087,27 @@ impl Handle {
         self.cached_birth_epoch.set(slot::advance_epoch());
     }
 
-    /// Retire a node into the thread-local batch (matches ASMR retire).
+    /// Retire a node into the thread-local batch (matches ASMR retire),
+    /// storing `destructor` on it: the reclamation walk that frees the
+    /// node's batch calls it once, and nothing reads or writes the node
+    /// once it has been entered (see `reclaim::free_batch_list`).
     ///
     /// # Safety
     ///
-    /// - `ptr` must point to a valid, heap-allocated object (e.g. from `Box::into_raw`).
-    /// - `ptr` must have a `RetiredNode` at offset 0 (i.e. `#[repr(C)]` with
-    ///   `RetiredNode` as the first field).
-    /// - `ptr` must not be retired more than once.
-    /// - The caller must not access `*ptr` after this call (except through
-    ///   the reclamation system).
-    /// - The destructor may run on **any** thread (see `retire`'s docs); the
-    ///   caller is responsible for that being sound for `T`.
-    unsafe fn retire<T>(&self, ptr: *mut T)
-    where
-        T: 'static,
-    {
-        let node_ptr = ptr as *mut RetiredNode;
-
-        // Set per-node destructor
+    /// - `node_ptr` must point to a valid, heap-allocated object with a
+    ///   `RetiredNode` at offset 0 (a `#[repr(C)]` type with `RetiredNode` as
+    ///   its first field).
+    /// - `destructor` must be sound to call once on `node_ptr`, on any thread,
+    ///   when the node is no longer reachable.
+    /// - `node_ptr` must not be retired more than once.
+    /// - The caller must not access `*node_ptr` after this call (except
+    ///   through the reclamation system).
+    unsafe fn retire_with(&self, node_ptr: *mut RetiredNode, destructor: DestructorFn) {
         // SAFETY: Use raw pointer writes to avoid creating &mut, which would
         // conflict with concurrent readers still holding a guard-protected reference
         // to the outer struct.
-        unsafe fn destructor<T>(ptr: *mut RetiredNode) {
-            let typed_ptr = ptr as *mut T;
-            unsafe {
-                drop(Box::from_raw(typed_ptr));
-            }
-        }
         unsafe {
-            (*node_ptr).set_destructor(Some(destructor::<T>));
+            (*node_ptr).set_destructor(Some(destructor));
         }
 
         // birth_epoch is already set at allocation time (RetiredNode::new)
@@ -2020,10 +2012,97 @@ pub fn pin() -> Guard {
 /// unconditionally sound.
 #[inline]
 pub unsafe fn retire<T: 'static>(ptr: *mut T) {
+    // SAFETY: Caller upholds the safety contract.
+    unsafe { retire_with(ptr as *mut RetiredNode, drop_boxed::<T>) }
+}
+
+/// Retire a node whose deallocation is its [`Reclaimable::dealloc`].
+///
+/// Identical to [`retire`] in every respect (same batching, same wait-free
+/// bounds, same cross-thread destructor, same handling of a thread that is
+/// exiting) except for the destructor it installs: when the node's batch is
+/// reclaimed, kovan calls `<T as Reclaimable>::dealloc(ptr)` instead of
+/// dropping a `Box<T>`. With the default `dealloc` the two are the same. An
+/// override can recycle the node into a free list, so a structure that
+/// publishes one node per update allocates nothing in the steady state.
+///
+/// If the call is made while the process is tearing down and no thread
+/// handle is left to take the node, it is leaked exactly as `retire` leaks
+/// it, and `dealloc` is never called for it.
+///
+/// # Safety
+///
+/// Everything [`retire`] requires, and in addition:
+///
+/// - `T` must be `#[repr(C)]` with a `RetiredNode` as its first field, as
+///   [`Reclaimable`] requires.
+/// - `T::dealloc` must be sound to call once on `ptr` from any thread, and
+///   must not panic (a panic is caught and discarded under `std` and the
+///   node is leaked; without `std` it unwinds out of kovan's reclamation
+///   code and leaks the rest of the batch).
+/// - After kovan calls `T::dealloc(ptr)` it never reads or writes `*ptr`
+///   again, so `dealloc` owns the whole allocation (the embedded
+///   `RetiredNode` included) from its first instruction and may hand it to
+///   another thread at once. See [`Reclaimable`] for the recycling contract
+///   and for what to do before a recycled node is published again.
+///
+/// # Examples
+///
+/// ```
+/// use kovan::{Atomic, Shared, pin, retire_reclaimable, Reclaimable, RetiredNode};
+/// use std::sync::atomic::Ordering;
+///
+/// #[repr(C)]
+/// struct Node {
+///     retired: RetiredNode,
+///     value: u64,
+/// }
+///
+/// // SAFETY: `RetiredNode` is the first field of a `#[repr(C)]` struct.
+/// unsafe impl Reclaimable for Node {
+///     fn retired_node(&self) -> &RetiredNode {
+///         &self.retired
+///     }
+///     fn retired_node_mut(&mut self) -> &mut RetiredNode {
+///         &mut self.retired
+///     }
+/// }
+///
+/// let new = |value| Box::into_raw(Box::new(Node { retired: RetiredNode::new(), value }));
+/// let slot = Atomic::new(new(1));
+/// let guard = pin();
+/// let old = slot.swap(unsafe { Shared::from_raw(new(2)) }, Ordering::AcqRel, &guard);
+/// // SAFETY: `old` is unlinked from `slot` and retired exactly once.
+/// unsafe { retire_reclaimable(old.as_raw()) };
+/// # drop(guard);
+/// # let guard = pin();
+/// # let last = slot.swap(unsafe { Shared::from_raw(std::ptr::null_mut()) }, Ordering::AcqRel, &guard);
+/// # unsafe { retire_reclaimable(last.as_raw()) };
+/// ```
+#[inline]
+pub unsafe fn retire_reclaimable<T: Reclaimable + 'static>(ptr: *mut T) {
+    // SAFETY: Caller upholds the safety contract.
+    unsafe { retire_with(ptr as *mut RetiredNode, dealloc_reclaimable::<T>) }
+}
+
+/// Type-erased destructor installed by [`retire`]: frees the `Box<T>`.
+unsafe fn drop_boxed<T>(ptr: *mut RetiredNode) {
+    unsafe { drop(Box::from_raw(ptr as *mut T)) }
+}
+
+/// Type-erased destructor installed by [`retire_reclaimable`].
+unsafe fn dealloc_reclaimable<T: Reclaimable>(ptr: *mut RetiredNode) {
+    unsafe { <T as Reclaimable>::dealloc(ptr as *mut T) }
+}
+
+/// The one retire path both public entry points share: the nightly
+/// thread-local handle, the stable one, and the exiting thread's handle.
+#[inline]
+unsafe fn retire_with(node_ptr: *mut RetiredNode, destructor: DestructorFn) {
     #[cfg(feature = "nightly")]
     {
         // SAFETY: Caller upholds the safety contract.
-        unsafe { HANDLE.retire(ptr) }
+        unsafe { HANDLE.retire_with(node_ptr, destructor) }
     }
     #[cfg(not(feature = "nightly"))]
     {
@@ -2032,10 +2111,10 @@ pub unsafe fn retire<T: 'static>(ptr: *mut T) {
         // exiting handle (a destructor the exit runs), else leak the pointer:
         // process memory is reclaimed by the OS on exit.
         if HANDLE
-            .try_with(|handle| unsafe { handle.retire(ptr) })
+            .try_with(|handle| unsafe { handle.retire_with(node_ptr, destructor) })
             .is_err()
         {
-            on_exiting_handle(|handle| unsafe { handle.retire(ptr) });
+            on_exiting_handle(|handle| unsafe { handle.retire_with(node_ptr, destructor) });
         }
     }
 }
