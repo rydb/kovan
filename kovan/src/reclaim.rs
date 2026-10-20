@@ -87,24 +87,21 @@ pub(crate) const MAX_CACHE: usize = 12;
 /// This is a write to a node you own: no other thread can reach it until you
 /// publish it.
 ///
-/// Memory safety does not depend on the write. Retiring a node overwrites
-/// every header field but one (the batch links, the destructor, and the list
-/// link, which is reset before the node becomes reachable). The exception is
-/// `birth_epoch`, which retirement reads from the node: a batch takes the
-/// minimum over its nodes, and the node that heads a batch is lowered to that
-/// minimum in place. A stale `birth_epoch` is never later than the epoch the
-/// node is published at (epochs only grow), so it can only make kovan defer a
-/// batch, never release one early.
+/// The write is required. Retiring a node reads its `birth_epoch`: a batch
+/// takes the minimum over its nodes, and the node that heads a batch is
+/// lowered to that minimum in place. `dealloc` owns the whole allocation, the
+/// embedded `RetiredNode` included, so a pool that keeps its own free-list
+/// link in the header, or anything else that writes the header between
+/// `dealloc` and the next publication, leaves `birth_epoch` holding an
+/// arbitrary value. kovan can then free a batch while a reader still holds
+/// one of its nodes: the reclamation model's `RC_mut_stale_link_birth`
+/// configuration finds exactly that use after free.
 ///
-/// Deferral is what the write is for. A node that keeps the epoch of its
-/// first incarnation, or a lowered one, drags the minimum down for every
-/// batch it joins: more reservations are assigned a node of the batch and
-/// hold it until they next transition, retired nodes come back to the pool
-/// late, and the pool has to grow to cover the delay. `RetiredNode::new()`
-/// stamps the epoch of a fresh allocation. It is read before the node is
-/// stored, so it is never later than the epoch a reader publishes before it
-/// loads the node, the invariant kovan's protection rests on. A reader of an
-/// earlier incarnation cannot be confused by the new one: that incarnation's
+/// `RetiredNode::new()` stamps the epoch of a fresh allocation from the
+/// thread's cached epoch. It is read before the node is stored, so it is
+/// never later than the epoch a reader publishes before it loads the node,
+/// the invariant kovan's protection rests on. A reader of an earlier
+/// incarnation cannot be confused by the new one: that incarnation's
 /// `dealloc` ran only after the reader's guard dropped.
 ///
 /// ```
