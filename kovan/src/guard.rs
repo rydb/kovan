@@ -1102,6 +1102,7 @@ impl Handle {
     /// - `node_ptr` must not be retired more than once.
     /// - The caller must not access `*node_ptr` after this call (except
     ///   through the reclamation system).
+    #[inline]
     unsafe fn retire_with(&self, node_ptr: *mut RetiredNode, destructor: DestructorFn) {
         // SAFETY: Use raw pointer writes to avoid creating &mut, which would
         // conflict with concurrent readers still holding a guard-protected reference
