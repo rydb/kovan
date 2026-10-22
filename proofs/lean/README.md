@@ -144,6 +144,24 @@ resize no remove asked for. The theorems are about any run between two erasures.
 | `failed_copies_le` | all failed copies together are at most the number of threads that made one, times twice (the count at the start plus the inserts) plus twice the inserts |
 | `one_thread_failed_copies_lt` | when one thread makes all the failed copies, they add up to less than twice the first one plus twice the inserts |
 
+`Kovan/Recycle.lean`, a model of recycling retired nodes (`kovan/src/reclaim.rs`
+`Reclaimable` and `retire_reclaimable`, `RetiredNode::new` in `kovan/src/retired.rs`, the protected
+load and the batch placement in `kovan/src/guard.rs`): a node is published, retired or pooled; a
+take publishes a pooled node with a fresh birth no later than the epoch; a reader pins, raises and
+loads only at the current epoch; a retire records its batch's smallest birth and lowers the head's
+birth to it; a free returns a node to the pool once every reader holding it is one its batch skips
+(a reservation older than the smallest birth). The mutation is a take that keeps whatever birth
+the pool left in the header.
+
+| theorem | what it says |
+|---------|--------------|
+| `minOf_le` | the smallest of a list is at most each member |
+| `fresh_good`, `tick_good`, `take_good`, `pin_good`, `raise_good`, `load_good`, `unpin_good`, `retire_good`, `free_good`, `step_good`, `run_good` | the starting state is good, and every operation but the mutation keeps it good: published nodes are born no later than the epoch, a holder is pinned and covered (its reservation is no older than its node's birth, or its batch's smallest birth), and no reader holds a pooled node |
+| `no_use_after_free` | in every run without the mutation, no reader holds a node that is back in the pool |
+| `batch_covers_its_holders` | in every such run, no batch skips a reader that holds one of its nodes |
+| `before_free`, `stale_take_frees_a_held_node` | a run with the mutation (a stale birth of 5, a reader loading at epoch 0) frees the node into the pool while the reader still holds it: the sequential shape of the TLA+ counterexample `RC_mut_stale_link_birth` |
+| `staleRun_not_fresh` | that run is not a run without the mutation, so the fresh header is what rules it out |
+
 Both files explain every definition and every proof step in plain words, with a small example
 for each statement. Every theorem rests only on Lean's own axioms (`propext`, `Quot.sound`,
 `Classical.choice`), or on none: `check.sh axioms` checks it for every theorem of the library.

@@ -96,6 +96,10 @@ Lean: install elan once (`proofs/lean/README.md` says how). The recipes run
   inserts after it, and all failed copies together to at most `W * (2 * (n + I) + 2 * I)` for
   `W` threads making them, `n` entries at the start and `I` inserts; a concrete run shows two
   threads failing at the same count.
+- `lean/Kovan/Recycle.lean`: recycling retired nodes, for every sequence of takes, pins, raises,
+  loads, retires and frees: with the header re-initialised on every take, no batch skips a reader
+  that holds one of its nodes and no reader ever holds a node back in the pool; with the take that
+  keeps a stale birth, a concrete run frees a node a reader holds.
 - `lean/Kovan/FlushExit.lean`: the flush and the exit of a thread that never pinned, for one
   thread and every sequence of retires, flushes, pins and its exit: exactly when each returns at
   once, claims a tid or runs; every value the thread retired or adopted is submitted or parked
