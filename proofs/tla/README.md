@@ -734,24 +734,15 @@ program. The nightly sentinel registration is not modelled (the model's exit alw
 
 ### TLC results
 
-The run recorded in `reclaim/tlc-run.txt` (8 workers for a passing configuration, one for a
-violation, on a 36-core machine whose load average stayed between 50 and 70 from other work,
-other TLC runs among it): 81 of 81 configurations match `EXPECTED.txt`, in 4369 s of wall time.
-The largest passing ones are `RC_wf_mix` (8,363,530 distinct states, 416 s), `RC_unpinned_retire`
-(8,173,791 distinct states, 622 s), `RC_hand_over` (5,601,019 distinct states, 311 s),
-`RC_find_help_torn_request` (3,371,877 distinct states, 165 s), `RC_two_loads` (2,790,043
-distinct states, 156 s), `RC_flush_orphan` (2,197,419 distinct states, 234 s); the longest runs
-that break a property, on one worker, are `RC_mut_tid_released_early` (1,544,254 distinct states,
-517 s) and `RC_mut_help_no_seqno_check` (2,351,551 distinct states, 517 s). The other
-configurations of the two flush and exit fixes: `RC_live_orphan` (17,403 distinct states, 13 s),
-`RC_mut_flush_needs_tid` (14,404, 32 s), `RC_wit_flush_claim` (33,471, 9 s), `RC_wf_unpinned_exit`
-(17,676, 7 s), `RC_wf_unpinned_flush` (48,056, 10 s), `RC_live_unpinned_flush` (37, 3 s),
-`RC_mut_exit_skips_batch` (296, 3 s), `RC_mut_flush_skips_batch` (22, 2 s), `RC_wit_exit_claim`
-(22, 3 s), `RC_wit_flush_batch_claim` (22, 2 s). TLC checks a temporal property on the part of the
+The run recorded in `reclaim/tlc-run.txt` (6 workers for a passing configuration, one for a
+violation, beside other work on a 36-core machine): 81 of 81 configurations match `EXPECTED.txt`,
+in 2511 s of TLC time. The largest passing ones are `RC_wf_mix` (8,363,530 distinct states,
+275 s), `RC_unpinned_retire` (8,173,791, 276 s), `RC_hand_over` (5,601,019, 302 s) and
+`RC_find_help_torn_request` (3,371,877, 74 s); the longest runs that break a property, on one
+worker, are `RC_mut_help_no_seqno_check` (2,351,551 distinct states, 297 s) and
+`RC_mut_tid_released_early` (1,544,254, 260 s). TLC checks a temporal property on the part of the
 state space found so far, at intervals during the search, so where it stops on a broken one, and
-the state count it reports, can differ between runs (`RC_mut_ttas_locks`: 4,681, 4,432, 5,679 and
-937 distinct states in the last four full runs, 3,282, 4,205 and 4,039 in three runs of it
-alone).
+the state count it reports, can differ between runs (`RC_mut_ttas_locks`, for one).
 
 ## What the map models check
 
