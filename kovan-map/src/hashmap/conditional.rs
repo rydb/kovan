@@ -11,7 +11,7 @@
 //! that unwinds leaves the word as it was.
 //!
 //! A lock-free retry (decide, CAS, decide again on the node that won) would run the closure
-//! more than once, which an `FnOnce` cannot be. Modelled in `tla/chained/ChainedMap.tla`
+//! more than once, which an `FnOnce` cannot be. Modelled in `proofs/tla/chained/ChainedMap.tla`
 //! (actions H0 to H9); deciding on a node without holding it (Mutation "unheld_check") writes
 //! over a value the closure never saw.
 

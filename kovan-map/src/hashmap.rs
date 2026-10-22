@@ -36,8 +36,8 @@
 //!   whose CAS landed is final; a write that meets a frozen link waits for
 //!   the new table and writes there.
 //!
-//! The protocol is modelled in `tla/chained/ChainedMap.tla` and checked by TLC
-//! with every rule 0.1.20 had put back one at a time (`tla/README.md`).
+//! The protocol is modelled in `proofs/tla/chained/ChainedMap.tla` and checked by TLC
+//! with every rule 0.1.20 had put back one at a time (`proofs/tla/README.md`).
 
 extern crate alloc;
 

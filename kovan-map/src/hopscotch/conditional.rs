@@ -8,7 +8,7 @@
 //! displacement that loses a race or a resize, and both make a writer release its guard and try
 //! again, which a closure that already ran cannot. With the slot reserved first, the entry the
 //! closure makes lands without the guard ever being released; a closure that makes none, or
-//! unwinds, gives the slot back. Modelled in `tla/hopscotch/HopscotchMap.tla` (actions CS to
+//! unwinds, gives the slot back. Modelled in `proofs/tla/hopscotch/HopscotchMap.tla` (actions CS to
 //! CA, and IS, IFr and IL for a compute's reservation); deciding on a value read outside the
 //! guard (Mutation "unguarded_check") writes over a value the closure never saw.
 

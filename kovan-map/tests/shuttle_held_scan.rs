@@ -16,7 +16,7 @@
 //! and its use) is narrow: a variant whose lookups read unprotected passed this search at the
 //! default count. The exclusion itself is pinned by the unit test that stops a scan under the
 //! guard (`a_held_scan_holds_off_every_writer_that_could_retire_an_entry_it_read`) and by
-//! `tla/hopscotch` (`HeldUse`, `HS_mut_held_scan`).
+//! `proofs/tla/hopscotch` (`HeldUse`, `HS_mut_held_scan`).
 //!
 //! The scenario has a binary of its own: an exact count of the values dropped needs every kovan
 //! thread of the process to have ended, and the tests of one binary run side by side.

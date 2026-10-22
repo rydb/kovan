@@ -9,7 +9,7 @@
 //! meets each live node once, a replace puts the new node right after the old one (which the
 //! pass either met live, or passes deleted), and a pass never goes back. A key removed and
 //! inserted again during the walk can be yielded once for each of its lives. Modelled in
-//! `tla/chained/ChainedMap.tla` (actions T0 to T9).
+//! `proofs/tla/chained/ChainedMap.tla` (actions T0 to T9).
 
 extern crate alloc;
 

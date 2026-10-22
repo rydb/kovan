@@ -1,7 +1,7 @@
 name: TLA+
 
 # Models are never hand-listed here: `tla.sh` hands a verified tla2tools.jar
-# to `tla/run_tlc.sh all`, which checks every family under tla/ against its
+# to `proofs/tla/run_tlc.sh all`, which checks every family under proofs/tla/ against its
 # EXPECTED.txt, so a new model needs no change to this workflow.
 
 on:

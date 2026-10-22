@@ -9,8 +9,9 @@
 //! a frozen link waits for the new table and writes there. No write lands in a table after its
 //! copy read the link, so no landed write is lost and none is retried: an insert that landed
 //! never meets its own copy and never reports it as another caller's entry, and a remove never
-//! removes a copy of what it already removed. Modelled in `tla/chained/ChainedMap.tla` (actions
-//! Z0 to Z6), where 0.1.20's read-then-revalidate protocol (Mutation "revalidate") breaks both.
+//! removes a copy of what it already removed. Modelled in `proofs/tla/chained/ChainedMap.tla`
+//! (actions Z0 to Z6), where 0.1.20's read-then-revalidate protocol (Mutation "revalidate")
+//! breaks both.
 
 use super::node::{FROZEN, Node, is_frozen, is_held, is_marked, ptr, with, word};
 use super::table::TableRef;

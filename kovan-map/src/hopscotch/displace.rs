@@ -95,9 +95,9 @@ where
     /// slot (a word read before a remove emptied it, say), finds it only after every later
     /// lookup sees the bit too, so the link is the insert's linearization point for every
     /// reader. A link that loses the slot takes the bit back and answers `false`. Modelled in
-    /// `tla/hopscotch/HopscotchMap.tla` (IFr, IL); linking first and publishing the bit at the
-    /// guard's release (Mutation "link_then_publish") lets a lookup see an insert that a later
-    /// lookup does not.
+    /// `proofs/tla/hopscotch/HopscotchMap.tla` (IFr, IL); linking first and publishing the bit at
+    /// the guard's release (Mutation "link_then_publish") lets a lookup see an insert that a
+    /// later lookup does not.
     fn link_in(
         table: &Table<K, V>,
         home: &mut HomeGuard<'_>,

@@ -257,6 +257,17 @@ automatically, so adding a suite needs no CI change. That script also fails the
 build if any test binary registers **zero** tests, since a binary that runs
 nothing still exits 0 and would otherwise read as a pass.
 
+## Proofs
+
+The memory reclamation protocol and both maps are modelled in TLA+ at the grain of their atomic
+steps and model-checked with TLC, and arithmetic properties of the code, such as the bound on
+the work of the hopscotch map's failed shrinks, are proved in Lean 4. CI runs both, and
+`just proofs` runs both locally. [`proofs/README.md`](proofs/README.md) says what each checks
+and how to run it.
+
+Every check, test, benchmark and proof the repository runs has a recipe in the `justfile` at
+the root: `just` lists them, and `just ci` runs what CI runs, one job after another.
+
 ## License
 
 Licensed under Apache License 2.0.

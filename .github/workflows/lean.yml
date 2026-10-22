@@ -1,0 +1,31 @@
+name: Lean
+
+# Proofs are never hand-listed here: `lean.sh` installs a verified elan and
+# runs `proofs/lean/check.sh build`, which builds every module the library
+# imports with the Lean release proofs/lean/lean-toolchain pins, failing on
+# any warning. The second step fails if `sorry` or `admit` appears in any
+# Lean source, so a proof with a hole cannot pass. The third walks every
+# theorem of the library and fails if one rests on an axiom other than Lean's
+# own three (propext, Quot.sound, Classical.choice).
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  lean:
+    name: Lean proofs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build the Lean proofs
+        run: .github/workflows/lean.sh
+
+      - name: Fail on an unfinished proof
+        run: bash proofs/lean/check.sh sorry
+
+      - name: Fail on a theorem resting on a non-standard axiom
+        run: PATH="$HOME/.elan/bin:$PATH" bash proofs/lean/check.sh axioms

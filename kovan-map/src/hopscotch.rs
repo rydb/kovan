@@ -55,11 +55,17 @@ fn overfull(count: usize, capacity: usize) -> bool {
     4 * count > 3 * capacity
 }
 
-/// Whether `count` entries underfill a table of `capacity`: less than a quarter full, and the
-/// table larger than the least one.
+/// The count below which a remove asks to halve a table of `capacity` buckets: the table is then
+/// less than a quarter full (`4 * count < capacity`, so a quarter rounded up), and larger than the
+/// least one. Zero for the least table, which never shrinks. A new table's
+/// [`Table::shrink_at`] starts here.
 #[inline(always)]
-fn underfull(count: usize, capacity: usize) -> bool {
-    4 * count < capacity && capacity > MIN_CAPACITY
+fn shrink_at(capacity: usize) -> usize {
+    if capacity > MIN_CAPACITY {
+        capacity.div_ceil(4)
+    } else {
+        0
+    }
 }
 
 /// Minimum capacity to prevent excessive shrinking
@@ -257,8 +263,9 @@ where
     }
 
     /// Unlink the entry in the slot `offset` past the home `home` holds, and count it out before
-    /// the guard is released: the capacity to shrink the table to when it is less than a quarter
-    /// full. The caller retires the entry once it released the guard.
+    /// the guard is released: the capacity to shrink the table to when the count it leaves is
+    /// below the table's [`shrink_at`](Table::shrink_at). The caller retires the entry once it
+    /// released the guard.
     #[inline(always)]
     fn unlink_held(
         &self,
@@ -281,7 +288,10 @@ where
         // guard, this one included), so the count is at least one here.
         let prev = self.count.fetch_sub(1, Ordering::Relaxed);
         debug_assert!(prev > 0, "an unlinked entry was never counted");
-        underfull(prev - 1, table.capacity).then_some(table.capacity / 2)
+        // One load and one compare: the quarter-full test and a failed shrink's threshold are
+        // folded into the table's word. Read under this remove's home guard, which every write
+        // of the word holds too (see `Table::shrink_at`).
+        (prev - 1 < table.shrink_at.load(Ordering::Relaxed)).then_some(table.capacity / 2)
     }
 
     /// The one write path of `insert`, `insert_if_absent` and `get_or_insert`: link the key's
@@ -490,6 +500,11 @@ where
         }
 
         self.count.store(0, Ordering::Release);
+        // The entries whose homes kept a shrink from fitting are gone, so a
+        // failed shrink no longer says anything about the next population.
+        table
+            .shrink_at
+            .store(shrink_at(table.capacity), Ordering::Relaxed);
         Self::release_writers(table);
         self.resizing.store(false, Ordering::Release);
     }

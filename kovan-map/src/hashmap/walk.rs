@@ -9,7 +9,7 @@
 //! link (its successor may have been unlinked and retired since the node was), so a walk steps
 //! past a deleted node only after `still_links` found that the link it came through still
 //! names the node unmarked, or after its own snip replaced the deleted node by its successor.
-//! Modelled in `tla/chained/ChainedMap.tla` (actions F0 to F3, G0 to G3).
+//! Modelled in `proofs/tla/chained/ChainedMap.tla` (actions F0 to F3, G0 to G3).
 
 use super::node::{Node, is_frozen, is_marked, ptr, word};
 use super::table::TableRef;
@@ -195,7 +195,7 @@ where
 /// that successor was not retired then: stepping to it is safe. Checking against the run's first
 /// node rather than the node the walk stands on lets a walk pass any number of adjacent deleted
 /// nodes whose removers have not unlinked them yet, instead of starting over until they do
-/// (`tla/chained`, Mutation "validate_current").
+/// (`proofs/tla/chained`, Mutation "validate_current").
 #[inline]
 pub(super) fn still_links<K, V>(
     prev: &Atomic<Node<K, V>>,

@@ -9,7 +9,7 @@ extern crate alloc;
 #[cfg(test)]
 use super::pause;
 use super::{MIN_CAPACITY, NEIGHBORHOOD_SIZE};
-use crate::sync::AtomicU64;
+use crate::sync::{AtomicU64, AtomicUsize};
 use alloc::boxed::Box;
 use alloc::vec::Vec;
 use core::borrow::Borrow;
@@ -413,6 +413,23 @@ pub(super) struct Table<K, V> {
     pub(super) buckets: Box<[Bucket<K, V>]>,
     pub(super) capacity: usize,
     mask: usize,
+    /// A remove that leaves fewer entries than this asks to halve the table. It starts at
+    /// [`shrink_at`](super::shrink_at) of the capacity (a quarter, rounded up); a shrink of this
+    /// table whose copy does not fit lowers it to half the count it failed at, at least 1
+    /// (`resize.rs`), and a clear sets it back (`HopscotchMap::clear`). So a failed shrink is
+    /// asked for again only once half its entries have gone, and a sparse map that cannot shrink
+    /// does not copy the same table on every remove.
+    ///
+    /// It lives in the table, not the map: a replaced table keeps its home guards held, so only
+    /// the current table is ever unlinked from, and a new table starts with no failed shrink.
+    /// Set before the table can be reached, then written only while every home guard of the
+    /// table is held, and read by a remove under its own home guard: the guards order every read
+    /// after the write it needs, so `Relaxed` is enough. Modelled in
+    /// `proofs/tla/hopscotch/HopscotchMap.tla` (`tb.shk`, written by Fresh, ZK and ZX, read by
+    /// AsksShrink); the rule and its work bound are proved in
+    /// `proofs/lean/Kovan/HopscotchShrink.lean` for one thread and in
+    /// `proofs/lean/Kovan/HopscotchShrinkThreads.lean` across threads.
+    pub(super) shrink_at: AtomicUsize,
 }
 
 // SAFETY (kovan retirement rule): same reasoning as Entry - a retired
@@ -441,6 +458,7 @@ impl<K, V> Table<K, V> {
             buckets: buckets.into_boxed_slice(),
             capacity,
             mask: capacity - 1,
+            shrink_at: AtomicUsize::new(super::shrink_at(capacity)),
         }
     }
 

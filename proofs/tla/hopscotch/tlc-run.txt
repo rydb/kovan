@@ -1,0 +1,76 @@
+TLC run of every configuration in proofs/tla/hopscotch, 2026-10-22 18:16 UTC.
+Written by proofs/tla/run_tlc.sh, not by hand. Version 2.19 of 08 August 2024.
+Java -Xmx8g; -workers 8, or 1 worker where a violation is expected. Limit: 3600 s each.
+
+configuration                         generated   distinct    sec  result                     expected                   match
+HS_disp_get                                3850       1662      4  pass                       pass                       yes
+HS_disp_rem                                3007       1306      4  pass                       pass                       yes
+HS_disp_claim                             39152      12406      5  pass                       pass                       yes
+HS_disp_iter                               1898        828      3  pass                       pass                       yes
+HS_same_home                               2353       1042      4  pass                       pass                       yes
+HS_rem_ins                                 5523       2432      4  pass                       pass                       yes
+HS_claim_grow                              5435       2386      3  pass                       pass                       yes
+HS_rem_grow                                8389       3509      4  pass                       pass                       yes
+HS_iter_grow                               6665       2722      4  pass                       pass                       yes
+HS_iter_shrink                             9418       3768      3  pass                       pass                       yes
+HS_clear                                 115191      49487      8  pass                       pass                       yes
+HS_stale                                   2554       1110      3  pass                       pass                       yes
+HS_live                                    3007       1306      5  pass                       pass                       yes
+HS_mut_unguarded_remove                     592        299      3  violated:AbsIsContent      violated:AbsIsContent      yes
+HS_mut_unguarded_remove_moved              1093        514      3  violated:Linearizable      violated:Linearizable      yes
+HS_mut_move_clear_first                     797        363      4  violated:Linearizable      violated:Linearizable      yes
+HS_mut_no_stamp                            1109        511      3  violated:Linearizable      violated:Linearizable      yes
+HS_mut_resize_retry                         519        319      4  violated:Exactness         violated:Exactness         yes
+HS_mut_iter_index                          8187       3484      4  violated:WalkExact         violated:WalkExact         yes
+HS_mut_iter_no_recent                       747        338      2  violated:WalkExact         violated:WalkExact         yes
+HS_wit_move                                 368        170      3  violated:NoMove            violated:NoMove            yes
+HS_wit_stamp_rescan                         831        383      4  violated:NoStampRescan     violated:NoStampRescan     yes
+HS_wit_resize_waits                          47         33      4  violated:NoResizeWaitsForWriter violated:NoResizeWaitsForWriter yes
+HS_wit_held_home                           2676        907      3  violated:NoHeldHomeSkip    violated:NoHeldHomeSkip    yes
+HS_wit_walk_skip                            563        250      3  violated:NoWalkSkip        violated:NoWalkSkip        yes
+HS_big_disp                            14964014    4588001    179  pass                       pass                       yes
+HS_big_claims                            962029     314464     13  pass                       pass                       yes
+HS_mut_link_then_publish                   1301        606      1  violated:Linearizable      violated:Linearizable      yes
+HS_mut_link_then_publish_iter              1721        772      2  violated:WalkExact         violated:WalkExact         yes
+HS_live_reader                             3850       1662      5  pass                       pass                       yes
+HS_live_walker                             1898        828      4  pass                       pass                       yes
+HS_mut_held_scan                            588        290      3  violated:NoUseAfterFree    violated:NoUseAfterFree    yes
+HS_cond_rem                                2146        938      3  pass                       pass                       yes
+HS_cond_rpi                                5743       2502      3  pass                       pass                       yes
+HS_cond_cmp                                5979       2598      3  pass                       pass                       yes
+HS_cond_disp                              11060       4810      5  pass                       pass                       yes
+HS_cond_unwind                             7642       3300      4  pass                       pass                       yes
+HS_cond_grow                               8271       3495      5  pass                       pass                       yes
+HS_cond_clear                             29870      12484      4  pass                       pass                       yes
+HS_cond_iter                               3011       1304      4  pass                       pass                       yes
+HS_big_cond                             4645461    1444974     57  pass                       pass                       yes
+HS_live_cond                              11060       4810      5  pass                       pass                       yes
+HS_live_reader_cond                        1722        752      4  pass                       pass                       yes
+HS_mut_unguarded_check                      731        353      4  violated:CondExact         violated:CondExact         yes
+HS_wit_reserved_meet                        752        336      3  violated:NoReservedMeet    violated:NoReservedMeet    yes
+HS_wit_cond_resize                          216        123      3  violated:NoResizeWaitsForClosure violated:NoResizeWaitsForClosure yes
+HS_mut_held_scan_cond                       655        332      3  violated:NoUseAfterFree    violated:NoUseAfterFree    yes
+HS_shrink_fail                              378        252      3  pass                       pass                       yes
+HS_shrink_race                            19723       8458      5  pass                       pass                       yes
+HS_shrink_cond                             4162       1794      4  pass                       pass                       yes
+HS_shrink_clear                            3446       2243      4  pass                       pass                       yes
+HS_shrink_live                            19723       8458      7  pass                       pass                       yes
+HS_mut_no_shrink_bound                      160        108      3  violated:NoShrinkRetry     violated:NoShrinkRetry     yes
+HS_mut_clear_keeps_bound                   3159       2069      4  violated:ShrinkUnblocked   violated:ShrinkUnblocked   yes
+HS_wit_shrink_after_insert                 3021       1410      4  violated:NoGrowthBeforeShrink violated:NoGrowthBeforeShrink yes
+HS_wit_shrink_given_up                      106         72      3  violated:NoShrinkGivenUp   violated:NoShrinkGivenUp   yes
+HS_wit_shrink_published                     361        242      1  violated:NoRemoveShrinkPublished violated:NoRemoveShrinkPublished yes
+HS_shrink_churn                             291        194      1  pass                       pass                       yes
+HS_shrink_two                            117267      51414      3  pass                       pass                       yes
+HS_mut_no_shrink_bound_work                 538        360      1  violated:ShrinkWorkBound   violated:ShrinkWorkBound   yes
+HS_wit_shrink_stale_ask                  108359      47402      8  violated:NoStaleShrink     violated:NoStaleShrink     yes
+HS_mut_unguarded_remove_count              2080       1001      2  violated:CountExact        violated:CountExact        yes
+HS_mut_held_scan_leak                      1458        658      4  violated:NoLeak            violated:NoLeak            yes
+HS_mut_resize_retry_held                     89         61      3  violated:OldHeld           violated:OldHeld           yes
+HS_mut_unguarded_remove_moved_retired         1288        616      4  violated:RetiredUnreachable violated:RetiredUnreachable yes
+HS_mut_clear_keeps_bound_reset             1897       1229      2  violated:ShrinkReset       violated:ShrinkReset       yes
+HS_mut_insert_skips_lookup                  178         90      3  violated:NoDuplicate       violated:NoDuplicate       yes
+HS_mut_get_waits_for_guard                 2502       1112      4  violated:ReaderEnds        violated:ReaderEnds        yes
+HS_mut_insert_keeps_guard                  1089        466      5  violated:Termination       violated:Termination       yes
+
+results matching EXPECTED.txt: 69 of 69

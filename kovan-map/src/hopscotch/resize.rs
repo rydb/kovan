@@ -144,6 +144,7 @@ where
         };
 
         match published {
+            // The new table starts with no failed shrink (`Table::new` sets its `shrink_at`).
             Some(new_table) => {
                 self.table
                     .store(unsafe { Shared::from_raw(new_table) }, Ordering::Release);
@@ -152,8 +153,18 @@ where
                 // the new table.
                 unsafe { retire(old_table_ptr.as_raw()) };
             }
-            // The old table stays live, so its writers get their guards back.
-            None => Self::release_writers(old_table),
+            // The old table stays live, so its writers get their guards back. Its removes ask for
+            // the shrink again only once half the entries it failed at have gone (at least one
+            // remains), and never while the table is a quarter full or more: written while every
+            // home guard is still held, before they are given back.
+            None => {
+                let failed_at = (self.count.load(Ordering::Relaxed) / 2).max(1);
+                old_table.shrink_at.store(
+                    super::shrink_at(old_table.capacity).min(failed_at),
+                    Ordering::Relaxed,
+                );
+                Self::release_writers(old_table);
+            }
         }
 
         self.resizing.store(false, Ordering::Release);

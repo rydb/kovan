@@ -1,0 +1,7 @@
+# The Lean proofs of kovan: core Lean only, no other package. `lake build` checks every module
+# that Kovan.lean imports.
+name = "kovan"
+defaultTargets = ["Kovan"]
+
+[[lean_lib]]
+name = "Kovan"
