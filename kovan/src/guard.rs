@@ -1546,7 +1546,7 @@ impl Handle {
         // the thread exits, and only while that exit is still to run, as the
         // exit is what releases it.
         if self.tid.get().is_none()
-            && ((self.batch_first.get().is_null() && !self.global().orphans_parked())
+            && ((self.batch_first.get().is_null() && !crate::slot::orphans_parked())
                 || !exit_pending())
         {
             return;

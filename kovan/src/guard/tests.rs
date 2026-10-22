@@ -863,7 +863,7 @@ fn flush_without_a_tid_or_orphans_claims_none() {
         own_tid();
         let global = crate::slot::global();
         for _ in 0..=global.max_threads() {
-            if !global.orphans_parked() {
+            if !crate::slot::orphans_parked() {
                 break;
             }
             flush();
@@ -871,7 +871,10 @@ fn flush_without_a_tid_or_orphans_claims_none() {
     })
     .join()
     .unwrap();
-    assert!(!global.orphans_parked(), "a parked batch was not adopted");
+    assert!(
+        !crate::slot::orphans_parked(),
+        "a parked batch was not adopted"
+    );
 
     let handed_out = global.max_threads();
     let released: Vec<bool> = (0..handed_out).map(|t| global.tid_is_released(t)).collect();
