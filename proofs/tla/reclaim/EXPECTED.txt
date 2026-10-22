@@ -98,3 +98,7 @@ RC_wit_stale_reuse                 MC_Reclaim         violated:NoStaleReuseW
 RC_wit_stale_later                 MC_Reclaim         violated:NoStaleLaterW
 RC_wit_wf_reuse                    MC_Reclaim         violated:NoHeldReusedW
 RC_wit_wf_dtor_reuse               MC_Reclaim         violated:NoDtorReuseW
+RC_mut_cache_ahead                 MC_Reclaim         violated:CacheBelowPublished
+RC_mut_early_free                  MC_Reclaim         violated:ListsHoldNoFreed
+RC_mut_help_hands_pointer          MC_Reclaim         violated:WellFormed
+RC_mut_drain_published_term        MC_Reclaim         violated:Termination

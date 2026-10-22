@@ -253,8 +253,8 @@ where it holds and where it does not, and the docs now require the write.
 #### What the model adds
 
 - The constant `Recycle`. When it is TRUE, every node is retired with `retire_reclaimable` and
-  its `dealloc` recycles it. When it is FALSE, none of the steps below ever runs: the 69
-  configurations that existed before set it FALSE and keep their meaning (see "TLC results" for
+  its `dealloc` recycles it. When it is FALSE, none of the steps below ever runs: the 85
+  configurations that do not recycle set it FALSE and keep their meaning (see "TLC results" for
   the state counts).
 - The pool (`pool`): the nodes `dealloc` handed back that no one has taken yet. It is a set, so
   the next take may pick any of them, which covers every order a real free list could hand nodes
@@ -339,6 +339,18 @@ All use two threads unless said otherwise, and every node recycles.
   write keeps it from taking a node until its retire of the old value returns. One thread. That
   retire frees the old value's batch at once and calls its `dealloc` on the same thread, which
   waits for the same lock: the thread waits for itself.
+- `RC_mut_cache_ahead` (`CacheBelowPublished` must break), `RC_mut_early_free`
+  (`ListsHoldNoFreed` must break), `RC_mut_help_hands_pointer` (`WellFormed` must break) and
+  `RC_mut_drain_published_term` (`Termination` must break). These four give the properties no
+  mutation above broke on its own a mutation of their own, so every property the family checks
+  has one that breaks it: a raise that caches the epoch it read without storing it in the slot; a
+  traversal that frees a batch one decrement early, while a slot list still holds a node of it; a
+  helper that hands a pointer over in the result word; and the drain that waits on a published
+  reservation, with every thread scheduled fairly. Each checks the other safety properties beside
+  its own, listed after it, so the property breaks on its own: TLC stops at the first state that
+  breaks any of them, and it names the one that mutation is for. (Checked against these
+  properties alone, earlier mutations do break some of them, but only after a use after free
+  that breaks `NoUseAfterFree` first.)
 - `RC_wit_reuse`, `RC_wit_dtor_reuse`, `RC_wit_stale_reuse`, `RC_wit_stale_later` (each must
   break its witness). They show the passing configurations reach the cases they are for: a
   reader holding a node in its second or a later incarnation; a drop inside a walk taking a node
@@ -684,6 +696,10 @@ step counts, no recycling. RF, EF, cache and epochs abbreviate `RetireFreq`, `Ep
 | `RC_mut_read_after_dealloc` | read_after_dealloc: the reclamation walk reads a node's batch_next after its destructor handed the node to the pool. | nodes 4, recycle | `NoUseAfterFree` broken |
 | `RC_mut_stale_link_birth` | stale_reuse_link_birth: no `RetiredNode::new`, and the pool links its nodes through the word of `birth_epoch`, so a reused node goes out with a pointer for its birth epoch. | nodes 4, recycle | `NoUseAfterFree` broken |
 | `RC_mut_pool_lock_held` | pool_lock_held: a recycler holds its pool's lock from a write's take until the retire of the old value returns; that retire frees the value's batch at once, and the destructor, on the same thread, waits for the lock. | threads 1, tids 1, nodes 3, recycle | deadlock |
+| `RC_mut_cache_ahead` | cache_ahead, the programs of `RC_two_loads`: the reader's raise caches the epoch it read and leaves its slot's word as it was. | as `RC_two_loads` | `CacheBelowPublished` broken |
+| `RC_mut_early_free` | early_free, the programs of `RC_exit_tid`: three pinned threads, so a batch goes into two slot lists, freed one traversal early. | as `RC_exit_tid` | `ListsHoldNoFreed` broken |
+| `RC_mut_help_hands_pointer` | help_hands_pointer, the programs of `RC_find_help_torn_request`: the helper's result carries a pointer. | as `RC_find_help_torn_request` | `WellFormed` broken |
+| `RC_mut_drain_published_term` | drain_published as in `RC_mut_drain_published_live`, every thread scheduled fairly, checked against `Termination` with the safety properties beside it. | as `RC_mut_drain_published_live` | `Termination` broken |
 | `RC_wit_reuse` | a section holds a node in a later incarnation than its first. | nodes 4, recycle | `NoHeldReusedW` broken |
 | `RC_wit_dtor_reuse` | a drop, run inside a reclamation walk, takes a node from the pool. | cells 2, nodes 6, recycle | `NoDtorReuseW` broken |
 | `RC_wit_stale_reuse` | a recycled node is about to go out with a birth epoch older than the one `RetiredNode::new` would stamp. | nodes 4, recycle | `NoStaleReuseW` broken |

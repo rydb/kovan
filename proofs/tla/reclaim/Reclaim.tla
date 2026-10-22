@@ -164,6 +164,16 @@ MutReadAfterDealloc == Mutation = "read_after_dealloc"
 \* itself forever. reclaim.rs tells recyclers never to hold the pool's lock across a call into
 \* kovan.
 MutPoolLock == Mutation = "pool_lock_held"
+\* cache_ahead: a raise caches the epoch it read but never stores it in the thread's slot, so
+\* the thread trusts a reservation no other thread can see (CacheBelowPublished catches it).
+MutCacheAhead == Mutation = "cache_ahead"
+\* early_free: a traversal treats the next-to-last decrement of a batch's count as the last and
+\* frees the batch while one slot list still holds a node of it (ListsHoldNoFreed catches it).
+MutEarlyFree == Mutation = "early_free"
+\* help_hands_pointer: a helper's result carries a pointer instead of 0, the hand-over kovan
+\* never makes (the helpee's check of the result word records "handoff", which WellFormed
+\* catches).
+MutHandsPointer == Mutation = "help_hands_pointer"
 
 (* --algorithm Reclaim
 variables
@@ -493,7 +503,8 @@ TV2: \* batch_link.load (reclaim.rs)
     errs := errs \cup Bad({tf}) || trf := nbl[tf];
 TV3: \* refs fetch_sub; the count's last decrement pushes the batch on the free list
     errs := errs \cup Bad({trf});
-    if nro[trf] = 1 then
+    \* (early_free) the next-to-last decrement taken for the last one
+    if nro[trf] = 1 \/ (MutEarlyFree /\ nro[trf] = 2) then
         nro[trf] := 0 || nnx[trf] := tacc || tacc := trf || tf := tnx;
     else
         nro[trf] := nro[trf] - 1 || tf := tnx;
@@ -851,7 +862,8 @@ HT6: \* epoch(), compared with what do_update published
     end if;
 HT7: \* the result CAS from the request read to (0, curr_epoch); then detach_nodes
     if res[he] = [lo |-> INV, hi |-> hh] then
-        res[he] := [lo |-> 0, hi |-> hce];
+        \* (help_hands_pointer) a pointer handed over in the result's low word
+        res[he] := [lo |-> IF MutHandsPointer THEN 1 ELSE 0, hi |-> hce];
         call Detach(he, hsq);
     else
         goto HelperLeave;
@@ -1144,6 +1156,9 @@ LD3: \* attempts; a raise: store_lo(curr, SeqCst), fence, cached_epoch; the last
     elsif MutLoadTraverses then
         la := la - 1;
         call DoUpdate(le, 0, tid[self]);
+    elsif MutCacheAhead then
+        \* (cache_ahead) the epoch cached, the slot's word left as it was
+        la := la - 1 || cep[self] := le;
     else
         la := la - 1 || sep[tid[self]][0].lo := le || cep[self] := le;
     end if;
@@ -1898,7 +1913,7 @@ TidClaim3(self) == /\ pc[self] = "TidClaim3"
 TidFresh(self) == /\ pc[self] = "TidFresh"
                   /\ ah' = [ah EXCEPT ![self] = ntid]
                   /\ Assert(ntid < MaxTid, 
-                            "Failure of assertion at line 383, column 5.")
+                            "Failure of assertion at line 393, column 5.")
                   /\ pc' = [pc EXCEPT ![self] = "TidFresh2"]
                   /\ UNCHANGED << ep, slow, ntid, rel, orw, orphaned, lkT, lkO, 
                                   fst, sep, res, nst, nnx, nbl, nro, nbe, cell, 
@@ -2421,7 +2436,7 @@ TV2(self) == /\ pc[self] = "TV2"
 
 TV3(self) == /\ pc[self] = "TV3"
              /\ errs' = (errs \cup Bad({trf[self]}))
-             /\ IF nro[trf[self]] = 1
+             /\ IF nro[trf[self]] = 1 \/ (MutEarlyFree /\ nro[trf[self]] = 2)
                    THEN /\ /\ nnx' = [nnx EXCEPT ![trf[self]] = tacc[self]]
                            /\ nro' = [nro EXCEPT ![trf[self]] = 0]
                            /\ tacc' = [tacc EXCEPT ![self] = trf[self]]
@@ -4240,7 +4255,7 @@ HT6(self) == /\ pc[self] = "HT6"
 
 HT7(self) == /\ pc[self] = "HT7"
              /\ IF res[he[self]] = [lo |-> INV, hi |-> hh[self]]
-                   THEN /\ res' = [res EXCEPT ![he[self]] = [lo |-> 0, hi |-> hce[self]]]
+                   THEN /\ res' = [res EXCEPT ![he[self]] = [lo |-> IF MutHandsPointer THEN 1 ELSE 0, hi |-> hce[self]]]
                         /\ /\ sk' = [sk EXCEPT ![self] = he[self]]
                            /\ stack' = [stack EXCEPT ![self] = << [ procedure |->  "Detach",
                                                                     pc        |->  "HT10",
@@ -5618,9 +5633,13 @@ LD3(self) == /\ pc[self] = "LD3"
                                    /\ dlo' = [dlo EXCEPT ![self] = 0]
                                    /\ pc' = [pc EXCEPT ![self] = "DU1"]
                                    /\ UNCHANGED << sep, cep >>
-                              ELSE /\ /\ cep' = [cep EXCEPT ![self] = le[self]]
-                                      /\ la' = [la EXCEPT ![self] = la[self] - 1]
-                                      /\ sep' = [sep EXCEPT ![tid[self]][0].lo = le[self]]
+                              ELSE /\ IF MutCacheAhead
+                                         THEN /\ /\ cep' = [cep EXCEPT ![self] = le[self]]
+                                                 /\ la' = [la EXCEPT ![self] = la[self] - 1]
+                                              /\ sep' = sep
+                                         ELSE /\ /\ cep' = [cep EXCEPT ![self] = le[self]]
+                                                 /\ la' = [la EXCEPT ![self] = la[self] - 1]
+                                                 /\ sep' = [sep EXCEPT ![tid[self]][0].lo = le[self]]
                                    /\ pc' = [pc EXCEPT ![self] = "LD4"]
                                    /\ UNCHANGED << stack, ce, ix, dt, dlo >>
              /\ UNCHANGED << ep, slow, ntid, rel, orw, orphaned, lkT, lkO, fst, 
@@ -5752,7 +5771,7 @@ WR1(self) == /\ pc[self] = "WR1"
                                         held, rv, errs, stack, rn, ecnt, ef, 
                                         el, ewas, wc >>
                    ELSE /\ Assert(nalloc < MaxNodes, 
-                                  "Failure of assertion at line 298, column 5 of macro called at line 1187, column 9.")
+                                  "Failure of assertion at line 308, column 5 of macro called at line 1202, column 9.")
                         /\ /\ nalloc' = nalloc + 1
                            /\ nst' = [nst EXCEPT ![nalloc + 1] = "live"]
                         /\ /\ cbe' = [cbe EXCEPT ![self] = Stamp(self)]
@@ -5900,7 +5919,7 @@ RN1(self) == /\ pc[self] = "RN1"
                         /\ UNCHANGED << nnx, nbl, nro, nbe, nalloc, cbe, errs, 
                                         stack, rn, ecnt, ef, el, ewas >>
                    ELSE /\ Assert(nalloc < MaxNodes, 
-                                  "Failure of assertion at line 298, column 5 of macro called at line 1229, column 9.")
+                                  "Failure of assertion at line 308, column 5 of macro called at line 1244, column 9.")
                         /\ /\ nalloc' = nalloc + 1
                            /\ nst' = [nst EXCEPT ![nalloc + 1] = "live"]
                         /\ /\ cbe' = [cbe EXCEPT ![self] = Stamp(self)]
