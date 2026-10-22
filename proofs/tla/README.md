@@ -187,31 +187,31 @@ that does nothing without it).
 
 | label | function | code | step |
 |---|---|---|---|
-| `TidClaim` | `alloc_tid` | `slot.rs:583` | next_tid.load: the ids handed out |
-| `TidClaim2` | `alloc_tid` | `slot.rs:585` | a release word loaded |
-| `TidClaim3` | `alloc_tid` | `slot.rs:587-593` | fetch_and of the lowest bit seen |
-| `TidFresh` | `alloc_tid` | `slot.rs:600-610` | next_tid.load (the page ensured) |
-| `TidFresh2` | `alloc_tid` | `slot.rs:615-618` | the strong compare_exchange |
-| `TidRelease` | `release_tid` | `slot.rs:660` | one fetch_or |
-| `OrphanTake` | `park_orphans` | `slot.rs:691` | the orphan word swapped to null |
-| `OrphanPublish` | `park_orphans` | `slot.rs:694-695` | the tail linked, the joined chain stored |
-| `OrphanCount` | `park_orphans` | `slot.rs:697` | orphaned.fetch_add |
-| `OrphanAdopt` | `adopt_orphans` | `slot.rs:710` | orphans_parked: orphaned.load |
-| `OrphanAdopt2` | `adopt_orphans` | `slot.rs:713` | max_threads |
-| `OrphanAdopt3` | `adopt_orphans` | `slot.rs:715` | a tid's orphan word loaded |
-| `OrphanAdopt4` | `adopt_orphans` | `slot.rs:719` | swapped to null |
-| `OrphanAdopt5` | `adopt_orphans` | `slot.rs:721` | orphaned.fetch_sub |
-| `OrphanMerge` | `Handle::adopt_orphans` | `guard.rs:1239-1247` | each batch of the chain merged (merge_batch) |
+| `TidClaim` | `alloc_tid` | `slot.rs:594` | next_tid.load: the ids handed out |
+| `TidClaim2` | `alloc_tid` | `slot.rs:596` | a release word loaded |
+| `TidClaim3` | `alloc_tid` | `slot.rs:598-604` | fetch_and of the lowest bit seen |
+| `TidFresh` | `alloc_tid` | `slot.rs:611-621` | next_tid.load (the page ensured) |
+| `TidFresh2` | `alloc_tid` | `slot.rs:626-629` | the strong compare_exchange |
+| `TidRelease` | `release_tid` | `slot.rs:671` | one fetch_or |
+| `OrphanTake` | `park_orphans` | `slot.rs:702` | the orphan word swapped to null |
+| `OrphanPublish` | `park_orphans` | `slot.rs:705-706` | the tail linked, the joined chain stored |
+| `OrphanCount` | `park_orphans` | `slot.rs:708` | the `ORPHANED` count's fetch_add |
+| `OrphanAdopt` | `adopt_orphans` | `slot.rs:721` | orphans_parked: one load of `ORPHANED` |
+| `OrphanAdopt2` | `adopt_orphans` | `slot.rs:724` | max_threads |
+| `OrphanAdopt3` | `adopt_orphans` | `slot.rs:726` | a tid's orphan word loaded |
+| `OrphanAdopt4` | `adopt_orphans` | `slot.rs:730` | swapped to null |
+| `OrphanAdopt5` | `adopt_orphans` | `slot.rs:732` | the `ORPHANED` count's fetch_sub |
+| `OrphanMerge` | `Handle::adopt_orphans` | `guard.rs:1238-1246` | each batch of the chain merged (merge_batch) |
 | `TV1` | `traverse` | `reclaim.rs:81-100` | the end of the list; next swapped with INVPTR |
 | `TV2` | `traverse` | `reclaim.rs:108` | batch_link.load |
 | `TV3` | `traverse` | `reclaim.rs:109-114` | refs fetch_sub; the count's last decrement pushes the batch |
 | `DS1` | `free_batch_list` | `reclaim.rs:145-152` | the destructor called |
-| `DS2` | `retire::destructor` | `guard.rs:1113-1115` | the value's drop, then its memory freed |
+| `DS2` | `retire::destructor` | `guard.rs:1112-1114` | the value's drop, then its memory freed |
 | `FB1` | `free_batch_list` | `reclaim.rs:131-160` | one node: the batch words, batch_next, its destructor called |
-| `TC1` | `traverse_into_cache` | `guard.rs:1468-1472` | a full cache taken out of its cell and freed |
-| `TC2` | `traverse_into_cache` | `guard.rs:1473-1475` | in_reclaim restored; traverse_onto_cache |
-| `DF1` | `drain_free_list` | `guard.rs:1503-1517` | in_reclaim; the cache taken out of its cell and freed |
-| `DF2` | `drain_free_list` | `guard.rs:1509-1520` | again until the cell stays empty |
+| `TC1` | `traverse_into_cache` | `guard.rs:1467-1471` | a full cache taken out of its cell and freed |
+| `TC2` | `traverse_into_cache` | `guard.rs:1472-1474` | in_reclaim restored; traverse_onto_cache |
+| `DF1` | `drain_free_list` | `guard.rs:1502-1516` | in_reclaim; the cache taken out of its cell and freed |
+| `DF2` | `drain_free_list` | `guard.rs:1508-1519` | again until the cell stays empty |
 | `DU1` | `do_update` | `guard.rs:459` | first.load_lo |
 | `DU2` | `do_update` | `guard.rs:461-463` | exchange_lo(0); the list traversed |
 | `DU3` | `do_update` | `guard.rs:466` | epoch() after the traversal |
@@ -248,46 +248,46 @@ that does nothing without it).
 | `DN12` | `slow_path` | `guard.rs:741` | in_reclaim restored |
 | `HR1` | `help_read` | `guard.rs:794` | slow_counter |
 | `HR2` | `help_read` | `guard.rs:798` | max_threads |
-| `HR3` | `help_read` | `guard.rs:806-808` | each result.load_lo; help_thread |
-| `HT1` | `help_thread` | `guard.rs:842-844` | result.load(): lo; nothing to help unless pending |
-| `HT2` | `help_thread` | `guard.rs:842` | then hi |
-| `HT3` | `help_thread` | `guard.rs:847-861` | state words (0, no parent); seqno = epoch.load_hi |
-| `HT4` | `help_thread` | `guard.rs:862` | curr_epoch = epoch() |
-| `HelpPass` | `help_thread` | `guard.rs:870` | do_update of the helper slot hr_num + 1 |
-| `HT6` | `help_thread` | `guard.rs:874-876` | epoch() compared |
-| `HT7` | `help_thread` | `guard.rs:880-883` | the result CAS; detach_nodes |
-| `HT10` | `help_thread` | `guard.rs:884-885` | traverse_into_cache |
-| `HandOverEpoch` | `help_thread` | `guard.rs:896` | epoch.load(): lo |
-| `HandOverEpoch2` | `help_thread` | `guard.rs:896` | then hi |
-| `HandOverEpoch3` | `help_thread` | `guard.rs:897-904` | the strong CAS loop |
-| `HandOverList` | `help_thread` | `guard.rs:914` | first.compare_exchange_hi(seqno + 1, seqno + 2) |
-| `HT12` | `help_thread` | `guard.rs:930` | result.load_lo() |
-| `HT12b` | `help_thread` | `guard.rs:933-934` | result.load_hi(); the request the one read first? |
-| `HT12c` | `help_thread` | `guard.rs:934` | the era's seqno still the request's: another pass |
-| `HelperLeave` | `help_thread` | `guard.rs:940-942` | the helper slot's first.exchange_lo(INVPTR); traversed |
-| `HT20` | `help_thread` | `guard.rs:946-968` | the parent words (no parent); drain_free_list |
-| `TR1` | `try_retire` | `guard.rs:1280-1289` | max_threads, min_epoch, the fence |
-| `TS2` | `try_retire` | `guard.rs:1300` | first.load_lo (reservation slot) |
-| `TS3` | `try_retire` | `guard.rs:1306` | first.load_hi odd |
-| `TS4` | `try_retire` | `guard.rs:1310` | epoch.load_lo |
-| `TS5` | `try_retire` | `guard.rs:1316-1327` | epoch.load_hi odd; a node assigned |
-| `TG1` | `try_retire` | `guard.rs:1332` | first.load_lo (helper slot) |
-| `TG2` | `try_retire` | `guard.rs:1337-1349` | epoch.load_lo; a node assigned |
-| `TN2` | `try_retire` | `guard.rs:1362-1372` | slot info, next null; first.load_lo |
-| `TN3` | `try_retire` | `guard.rs:1378` | epoch re-checked |
-| `TN4` | `try_retire` | `guard.rs:1387` | exchange_lo(curr) |
-| `InsertRollback` | `try_retire` | `guard.rs:1400-1408` | compare_exchange_lo(curr, INVPTR); a node captured counts |
-| `TL1` | `try_retire` | `guard.rs:1415` | next CAS null -> prev |
-| `TL2` | `try_retire` | `guard.rs:1427-1428` | the list it displaced traversed and freed |
-| `TL3` | `try_retire` | `guard.rs:1434` | counted |
-| `TF1` | `try_retire` | `guard.rs:1439-1444` | refs fetch_add(adjs); zero frees the batch |
-| `TF2` | `try_retire` | `guard.rs:1447` | placed |
-| `RE1` | `enqueue_node` | `guard.rs:998-1035` | the node linked into the batch, the count (nightly: a thread with no tid registers its cleanup sentinel, not modelled) |
-| `RE2` | `enqueue_node` | `guard.rs:1037-1050` | in_reclaim; take_batch, try_retire |
-| `RE3` | `enqueue_node` | `guard.rs:1056-1058` | merge_batch; in_reclaim restored |
-| `RE4` | `enqueue_node` | `guard.rs:1068-1071` | alloc_counter; tid() |
-| `RE5` | `increment_era` | `guard.rs:1084-1085` | in_reclaim; help_read |
-| `RE6` | `increment_era` | `guard.rs:1086-1087` | advance_epoch; the birth stamp |
+| `HR3` | `help_read` | `guard.rs:805-807` | each result.load_lo; help_thread |
+| `HT1` | `help_thread` | `guard.rs:841-843` | result.load(): lo; nothing to help unless pending |
+| `HT2` | `help_thread` | `guard.rs:841` | then hi |
+| `HT3` | `help_thread` | `guard.rs:846-860` | state words (0, no parent); seqno = epoch.load_hi |
+| `HT4` | `help_thread` | `guard.rs:861` | curr_epoch = epoch() |
+| `HelpPass` | `help_thread` | `guard.rs:869` | do_update of the helper slot hr_num + 1 |
+| `HT6` | `help_thread` | `guard.rs:873-875` | epoch() compared |
+| `HT7` | `help_thread` | `guard.rs:879-882` | the result CAS; detach_nodes |
+| `HT10` | `help_thread` | `guard.rs:883-884` | traverse_into_cache |
+| `HandOverEpoch` | `help_thread` | `guard.rs:895` | epoch.load(): lo |
+| `HandOverEpoch2` | `help_thread` | `guard.rs:895` | then hi |
+| `HandOverEpoch3` | `help_thread` | `guard.rs:896-903` | the strong CAS loop |
+| `HandOverList` | `help_thread` | `guard.rs:913` | first.compare_exchange_hi(seqno + 1, seqno + 2) |
+| `HT12` | `help_thread` | `guard.rs:929` | result.load_lo() |
+| `HT12b` | `help_thread` | `guard.rs:932-933` | result.load_hi(); the request the one read first? |
+| `HT12c` | `help_thread` | `guard.rs:933` | the era's seqno still the request's: another pass |
+| `HelperLeave` | `help_thread` | `guard.rs:939-941` | the helper slot's first.exchange_lo(INVPTR); traversed |
+| `HT20` | `help_thread` | `guard.rs:945-967` | the parent words (no parent); drain_free_list |
+| `TR1` | `try_retire` | `guard.rs:1279-1288` | max_threads, min_epoch, the fence |
+| `TS2` | `try_retire` | `guard.rs:1299` | first.load_lo (reservation slot) |
+| `TS3` | `try_retire` | `guard.rs:1305` | first.load_hi odd |
+| `TS4` | `try_retire` | `guard.rs:1309` | epoch.load_lo |
+| `TS5` | `try_retire` | `guard.rs:1315-1326` | epoch.load_hi odd; a node assigned |
+| `TG1` | `try_retire` | `guard.rs:1331` | first.load_lo (helper slot) |
+| `TG2` | `try_retire` | `guard.rs:1336-1348` | epoch.load_lo; a node assigned |
+| `TN2` | `try_retire` | `guard.rs:1361-1371` | slot info, next null; first.load_lo |
+| `TN3` | `try_retire` | `guard.rs:1377` | epoch re-checked |
+| `TN4` | `try_retire` | `guard.rs:1386` | exchange_lo(curr) |
+| `InsertRollback` | `try_retire` | `guard.rs:1399-1407` | compare_exchange_lo(curr, INVPTR); a node captured counts |
+| `TL1` | `try_retire` | `guard.rs:1414` | next CAS null -> prev |
+| `TL2` | `try_retire` | `guard.rs:1426-1427` | the list it displaced traversed and freed |
+| `TL3` | `try_retire` | `guard.rs:1433` | counted |
+| `TF1` | `try_retire` | `guard.rs:1438-1443` | refs fetch_add(adjs); zero frees the batch |
+| `TF2` | `try_retire` | `guard.rs:1446` | placed |
+| `RE1` | `enqueue_node` | `guard.rs:997-1034` | the node linked into the batch, the count (nightly: a thread with no tid registers its cleanup sentinel, not modelled) |
+| `RE2` | `enqueue_node` | `guard.rs:1036-1049` | in_reclaim; take_batch, try_retire |
+| `RE3` | `enqueue_node` | `guard.rs:1055-1057` | merge_batch; in_reclaim restored |
+| `RE4` | `enqueue_node` | `guard.rs:1067-1070` | alloc_counter; tid() |
+| `RE5` | `increment_era` | `guard.rs:1083-1084` | in_reclaim; help_read |
+| `RE6` | `increment_era` | `guard.rs:1085-1086` | advance_epoch; the birth stamp |
 | `PN1` | `pin` | `guard.rs:526-534` | the count; epoch() vs drained_epoch |
 | `PNU` | `transition` | `guard.rs:554` | do_update |
 | `PNC` | `transition` | `guard.rs:557-567` | attempts; epoch() compared; slow_path |
@@ -303,33 +303,33 @@ that does nothing without it).
 | `LU1` | `Atomic::load_unprotected` | `atomic.rs:140` | data.load, no era check |
 | `WR1` | `Atomic::swap` | `atomic.rs:247` | the swap (after RetiredNode::new; then retire) |
 | `RN1` | `RetiredNode::new` | `retired.rs:118` | a node allocated, its birth stamped (then retire) |
-| `FL1` | `flush` | `guard.rs:1548-1572` | tid; with none, the own batch and orphans_parked (orphaned.load); in_reclaim, the pin count; with none, tid() claims one |
-| `FL2` | `flush` | `guard.rs:1594-1596` | the own list exchanged to 0 |
-| `FL3` | `flush` | `guard.rs:1603` | adopt_orphans |
-| `FL4` | `flush` | `guard.rs:1604-1606` | take_batch, try_retire |
-| `FL6` | `flush` | `guard.rs:1607-1613` | merge_batch; increment_era: help_read |
-| `FL7` | `flush` | `guard.rs:1613-1615` | increment_era: advance_epoch, the birth stamp; drain_free_list |
-| `FlushClear` | `flush` | `guard.rs:1630-1632` | the own list exchanged to 0 once more |
-| `FlushClear2` | `flush` | `guard.rs:1635` | drain_free_list |
-| `FlushClear3` | `flush` | `guard.rs:1637-1640` | epoch.store_lo(0); cached and drained epochs 0 |
-| `FL9` | `flush` | `guard.rs:1643-1644` | restored |
-| `EX1` | `cleanup` | `guard.rs:1656-1679` | with no tid and a batch, claim_tid; in_reclaim, the pin count, own |
-| `ExitSubmit` | `cleanup` | `guard.rs:1698` | submit_at_exit: take_batch, try_retire |
-| `ExitSubmit2` | `submit_at_exit` | `guard.rs:1792` | not placed: parked |
-| `ExitTake` | `cleanup` | `guard.rs:1707-1709` | the own list taken |
-| `ExitFree` | `cleanup` | `guard.rs:1713-1714` | drain_free_list |
-| `ExitRound` | `cleanup` | `guard.rs:1688` | EXIT_ROUNDS rounds |
-| `ExitParkRest` | `cleanup` | `guard.rs:1721-1722` | the last batch parked |
-| `EX6` | `deactivate_slots` | `slot.rs:646` | the reservation's epoch lo 0 |
-| `EX7` | `deactivate_slots` | `slot.rs:647-649` | its first exchanged to INVPTR |
-| `EX7b` | `deactivate_slots` | `slot.rs:646` | the helper slot's epoch lo 0 |
-| `EX7c` | `deactivate_slots` | `slot.rs:647-649` | its first exchanged to INVPTR |
-| `EX8` | `cleanup` | `guard.rs:1733-1739` | each captured list traversed |
-| `EX9` | `cleanup` | `guard.rs:1740` | the batches released |
-| `EX10` | `cleanup` | `guard.rs:1741-1751` | re-armed, parked |
-| `EX12` | `cleanup` | `guard.rs:1759-1760` | park_orphans |
-| `EX12b` | `cleanup` | `guard.rs:1769` | release_tid |
-| `EX13` | `cleanup` | `guard.rs:1771-1780` | restored, the tid unset |
+| `FL1` | `flush` | `guard.rs:1547-1571` | tid; with none, the own batch and orphans_parked (orphaned.load); in_reclaim, the pin count; with none, tid() claims one |
+| `FL2` | `flush` | `guard.rs:1593-1595` | the own list exchanged to 0 |
+| `FL3` | `flush` | `guard.rs:1602` | adopt_orphans |
+| `FL4` | `flush` | `guard.rs:1603-1605` | take_batch, try_retire |
+| `FL6` | `flush` | `guard.rs:1606-1612` | merge_batch; increment_era: help_read |
+| `FL7` | `flush` | `guard.rs:1612-1614` | increment_era: advance_epoch, the birth stamp; drain_free_list |
+| `FlushClear` | `flush` | `guard.rs:1629-1631` | the own list exchanged to 0 once more |
+| `FlushClear2` | `flush` | `guard.rs:1634` | drain_free_list |
+| `FlushClear3` | `flush` | `guard.rs:1636-1639` | epoch.store_lo(0); cached and drained epochs 0 |
+| `FL9` | `flush` | `guard.rs:1642-1643` | restored |
+| `EX1` | `cleanup` | `guard.rs:1655-1678` | with no tid and a batch, claim_tid; in_reclaim, the pin count, own |
+| `ExitSubmit` | `cleanup` | `guard.rs:1697` | submit_at_exit: take_batch, try_retire |
+| `ExitSubmit2` | `submit_at_exit` | `guard.rs:1791` | not placed: parked |
+| `ExitTake` | `cleanup` | `guard.rs:1706-1708` | the own list taken |
+| `ExitFree` | `cleanup` | `guard.rs:1712-1713` | drain_free_list |
+| `ExitRound` | `cleanup` | `guard.rs:1687` | EXIT_ROUNDS rounds |
+| `ExitParkRest` | `cleanup` | `guard.rs:1720-1721` | the last batch parked |
+| `EX6` | `deactivate_slots` | `slot.rs:657` | the reservation's epoch lo 0 |
+| `EX7` | `deactivate_slots` | `slot.rs:658-660` | its first exchanged to INVPTR |
+| `EX7b` | `deactivate_slots` | `slot.rs:657` | the helper slot's epoch lo 0 |
+| `EX7c` | `deactivate_slots` | `slot.rs:658-660` | its first exchanged to INVPTR |
+| `EX8` | `cleanup` | `guard.rs:1732-1738` | each captured list traversed |
+| `EX9` | `cleanup` | `guard.rs:1739` | the batches released |
+| `EX10` | `cleanup` | `guard.rs:1740-1750` | re-armed, parked |
+| `EX12` | `cleanup` | `guard.rs:1758-1759` | park_orphans |
+| `EX12b` | `cleanup` | `guard.rs:1768` | release_tid |
+| `EX13` | `cleanup` | `guard.rs:1770-1779` | restored, the tid unset |
 | `SK1` | (model) | | the spin lock's test (ttas_locks only) |
 | `SK2` | (model) | | its test-and-set (ttas_locks only) |
 | `SK3` | (model) | | the lock taken (ttas_locks only) |
