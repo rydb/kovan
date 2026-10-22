@@ -802,9 +802,8 @@ impl Handle {
         // open request.
         for i in 0..max_threads {
             let slots = global.thread_slots(i);
-            for j in 0..hr_num {
-                let result_ptr = slots.state[j].result.load_lo();
-                if result_ptr == INVPTR as u64 {
+            for (j, state) in slots.state.iter().take(hr_num).enumerate() {
+                if state.result.load_lo() == INVPTR as u64 {
                     self.help_thread(i, j, mytid);
                 }
             }
