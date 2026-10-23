@@ -153,26 +153,31 @@ const FULL: usize = 1;
 const TAKEN: usize = 2;
 
 /// The claim word naming cell `index` of segment `id`.
+#[inline]
 fn word(id: u64, index: u64) -> u64 {
     ((id & ID_MASK) << INDEX_BITS) | index
 }
 
 /// The segment id of a claim word.
+#[inline]
 fn id_of(w: u64) -> u64 {
     w >> INDEX_BITS
 }
 
 /// The index of a claim word.
+#[inline]
 fn index_of(w: u64) -> u64 {
     w & INDEX_MASK
 }
 
 /// The id after `id`.
+#[inline]
 fn next_id(id: u64) -> u64 {
     id.wrapping_add(1) & ID_MASK
 }
 
 /// `true` when segment id `a` is behind `b` (modulo `2^44`).
+#[inline]
 fn behind(a: u64, b: u64) -> bool {
     let d = b.wrapping_sub(a) & ID_MASK;
     d != 0 && d < 1 << 43
@@ -181,6 +186,7 @@ fn behind(a: u64, b: u64) -> bool {
 /// The queue position of a claim word: its segment's first position plus
 /// the claimed cells, capped at the segment's end (claims past the end only
 /// tell that the segment is full or drained).
+#[inline]
 fn position(w: u64) -> u64 {
     ((id_of(w) << SEGMENT_SHIFT) + index_of(w).min(SEGMENT_SIZE as u64)) & POS_MASK
 }
@@ -357,6 +363,7 @@ enum View {
 /// was claimed by pops, and no successor of the head segment could exist (a
 /// successor is linked only by a push that found the segment full, after the
 /// tail word's index passed `SEGMENT_SIZE` in that segment).
+#[inline]
 fn classify(hw: u64, tw: u64) -> View {
     let (sh, d) = (id_of(hw), index_of(hw));
     let (st, e) = (id_of(tw), index_of(tw));
