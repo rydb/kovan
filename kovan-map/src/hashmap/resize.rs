@@ -17,10 +17,9 @@ use super::node::{FROZEN, Node, is_frozen, is_held, is_marked, ptr, with, word};
 use super::table::TableRef;
 use super::{HashMap, MIN_CAPACITY};
 use crate::sync::spin_hint;
-use alloc::boxed::Box;
 use core::hash::{BuildHasher, Hash};
 use core::sync::atomic::Ordering;
-use kovan::{Atomic, Guard, Shared, pin, retire};
+use kovan::{Atomic, Guard, Shared, alloc_node, pin, retire_node};
 
 extern crate alloc;
 
@@ -142,7 +141,7 @@ where
                     // Relaxed: `new` is private to this thread until its publication releases it.
                     copy.next
                         .store(dst.load(Ordering::Relaxed, guard), Ordering::Relaxed);
-                    dst.store(word(Box::into_raw(Box::new(copy))), Ordering::Relaxed);
+                    dst.store(word(alloc_node(copy)), Ordering::Relaxed);
                     copied += 1;
                 }
             }
@@ -159,6 +158,6 @@ where
         // SAFETY: the old table is unreachable from the map now; kovan frees it (and the nodes
         // its frozen chains hold) once no guard that loaded it remains. TableProxy is
         // #[repr(C)] with its RetiredNode at offset 0.
-        unsafe { retire(old.take_proxy()) };
+        unsafe { retire_node(old.take_proxy()) };
     }
 }

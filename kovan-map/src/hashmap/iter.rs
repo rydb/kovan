@@ -20,7 +20,7 @@ use super::{HashMap, MIN_CAPACITY};
 use alloc::vec::Vec;
 use core::hash::{BuildHasher, Hash};
 use core::sync::atomic::Ordering;
-use kovan::{Atomic, pin};
+use kovan::{Atomic, drop_node, free_node, pin};
 
 // Construction only: none of `iter`/`keys`/`values` hashes or clones a value (the walk that
 // does lives in `Iterator for Iter` below), so this block needs only the struct's own `'static`
@@ -257,18 +257,13 @@ impl<K, V> Iterator for IntoIter<K, V> {
                 self.current = ptr(next);
                 if is_marked(next) {
                     // SAFETY: exclusive access; the table owns a deleted node still in a chain.
-                    unsafe { drop(alloc::boxed::Box::from_raw(node)) };
+                    unsafe { drop_node(node) };
                     continue;
                 }
                 // Move K and V out, then free the shell without running drop.
                 let k = unsafe { core::ptr::read(&(*node).key) };
                 let v = unsafe { core::ptr::read(&(*node).value) };
-                unsafe {
-                    alloc::alloc::dealloc(
-                        node as *mut u8,
-                        core::alloc::Layout::new::<Node<K, V>>(),
-                    );
-                }
+                unsafe { free_node(node) };
                 return Some((k, v));
             }
             if self.bucket_idx >= self.table.capacity() {

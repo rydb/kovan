@@ -45,12 +45,11 @@ extern crate alloc;
 extern crate std;
 
 use crate::sync::AtomicBool;
-use alloc::boxed::Box;
 use core::borrow::Borrow;
 use core::hash::{BuildHasher, Hash};
 use core::sync::atomic::Ordering;
 use foldhash::fast::FixedState;
-use kovan::{Atomic, Guard, pin, retire};
+use kovan::{Atomic, Guard, NodeBox, pin, retire_node};
 use node::{MARK, Node, with, word};
 use table::{TableHeader, TableRef};
 use walk::Found;
@@ -125,7 +124,7 @@ pub struct HashMap<K: 'static, V: 'static, S = FixedState> {
 /// key and value nor allocates again, and a losing call drops them exactly once.
 enum Pending<K, V> {
     Parts { key: K, value: V },
-    Built(Box<Node<K, V>>),
+    Built(NodeBox<Node<K, V>>),
 }
 
 impl<K, V> Pending<K, V> {
@@ -141,12 +140,12 @@ impl<K, V> Pending<K, V> {
     #[inline]
     fn into_node(self, hash: u64, next: *mut Node<K, V>) -> *mut Node<K, V> {
         let node = match self {
-            Self::Parts { key, value } => Box::new(Node::new(hash, key, value)),
+            Self::Parts { key, value } => NodeBox::new(Node::new(hash, key, value)),
             Self::Built(node) => node,
         };
         // Relaxed: the node is private until the CAS that links it releases it.
         node.next.store(word(next), Ordering::Relaxed);
-        Box::into_raw(node)
+        NodeBox::into_raw(node)
     }
 
     /// The node an attempt failed to link, back for the next attempt.
@@ -154,7 +153,7 @@ impl<K, V> Pending<K, V> {
     fn back(node: *mut Node<K, V>) -> Self {
         // SAFETY: the CAS that would have published `node` failed, so it is still the
         // allocation `into_node` gave this call.
-        Self::Built(unsafe { Box::from_raw(node) })
+        Self::Built(unsafe { NodeBox::from_raw(node) })
     }
 }
 
@@ -502,7 +501,7 @@ where
             // SAFETY: this CAS unlinked it, so no other thread retires it and no link names it
             // again; a walker that loaded it holds a guard that keeps it. Node is #[repr(C)]
             // with its RetiredNode at offset 0.
-            unsafe { retire(raw) };
+            unsafe { retire_node(raw) };
         } else {
             self.cleanup(hash, key, guard);
         }

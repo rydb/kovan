@@ -34,8 +34,8 @@
 
 use crate::atomic::Atomic;
 use crate::guard::{self, Guard};
+use crate::node::{alloc_node, drop_node, free_node, retire_node};
 use crate::retired::RetiredNode;
-use alloc::boxed::Box;
 use core::fmt;
 use core::marker::PhantomData as marker;
 use core::mem::ManuallyDrop;
@@ -70,9 +70,24 @@ impl<T> AtomNode<T> {
         }
     }
 
-    /// Allocate a new node on the heap, returning a raw pointer.
+    /// Allocate a new node, returning a raw pointer.
     fn boxed(val: T) -> *mut Self {
-        Box::into_raw(Box::new(Self::new(val)))
+        alloc_node(Self::new(val))
+    }
+
+    /// Moves the value out of a node no other thread can reach, and frees the
+    /// node.
+    ///
+    /// # Safety
+    ///
+    /// `ptr` came from [`AtomNode::boxed`], is reached by nobody else, and is
+    /// let go only this once.
+    unsafe fn into_val(ptr: *mut Self) -> T {
+        // SAFETY: the caller's contract: the value is initialised and ours.
+        let val = unsafe { core::ptr::read(&raw const (*ptr).val) };
+        // SAFETY: the value was moved out above; the header needs no drop.
+        unsafe { free_node(ptr) };
+        val
     }
 
     /// Get a pointer to the `val` field from a pointer to the node.
@@ -190,10 +205,10 @@ impl<T: Send + Sync + 'static> Drop for Removed<T> {
         }
 
         let val = unsafe { ManuallyDrop::take(&mut self.value) };
-        let wrapper = Box::into_raw(Box::new(DeferDrop {
+        let wrapper = alloc_node(DeferDrop {
             _retired: RetiredNode::new(),
             value: val,
-        }));
+        });
         // Override fresh birth_epoch with the original from the AtomNode.
         // A fresh epoch could be right after a reader's pinned epoch, causing
         // try_retire to skip protection and free while readers still
@@ -202,8 +217,8 @@ impl<T: Send + Sync + 'static> Drop for Removed<T> {
             (*(wrapper as *mut RetiredNode)).set_birth_epoch(self.birth_epoch);
         }
         // SAFETY: DeferDrop<U> is #[repr(C)] with RetiredNode at offset 0.
-        // Allocated via Box::into_raw above.
-        unsafe { guard::retire(wrapper) };
+        // Allocated via alloc_node above.
+        unsafe { retire_node(wrapper) };
     }
 }
 
@@ -309,8 +324,7 @@ impl<T: Send + Sync + 'static> Atom<T> {
         core::mem::forget(self);
         // SAFETY: We own self, no concurrent access after consume.
         // The pointer was allocated via AtomNode::boxed.
-        let node = unsafe { Box::from_raw(node_ptr) };
-        node.val
+        unsafe { AtomNode::into_val(node_ptr) }
     }
 
     // ---- Reading ----
@@ -418,7 +432,7 @@ impl<T: Send + Sync + 'static> Atom<T> {
         if !old_ptr.is_null() {
             // SAFETY: old_ptr was allocated via AtomNode::boxed and has
             // RetiredNode at offset 0. Not retired elsewhere.
-            unsafe { guard::retire(old_ptr) };
+            unsafe { retire_node(old_ptr) };
         }
     }
 
@@ -499,9 +513,9 @@ impl<T: Send + Sync + 'static> Atom<T> {
         let current_val_ptr = unsafe { AtomNode::val_ptr(current_shared.as_raw()) };
         if current_val_ptr != current.ptr {
             // Current has changed — CAS fails
-            // Reclaim the Box we just allocated
-            let rejected = unsafe { Box::from_raw(new_ptr) };
-            return Err(rejected.val);
+            // Reclaim the node we just allocated
+            // SAFETY: never published.
+            return Err(unsafe { AtomNode::into_val(new_ptr) });
         }
 
         // SAFETY: new_ptr is a valid heap allocation.
@@ -518,7 +532,7 @@ impl<T: Send + Sync + 'static> Atom<T> {
                 let old_ptr = old.as_raw();
                 if !old_ptr.is_null() {
                     // SAFETY: AtomNode has RetiredNode at offset 0. Not retired elsewhere.
-                    unsafe { guard::retire(old_ptr) };
+                    unsafe { retire_node(old_ptr) };
                 }
                 Ok(AtomGuard {
                     ptr: unsafe { AtomNode::val_ptr(new_ptr) },
@@ -528,8 +542,8 @@ impl<T: Send + Sync + 'static> Atom<T> {
             }
             Err(_) => {
                 // CAS failed — someone else changed it between our load and CAS
-                let rejected = unsafe { Box::from_raw(new_ptr) };
-                Err(rejected.val)
+                // SAFETY: the failed CAS never published it.
+                Err(unsafe { AtomNode::into_val(new_ptr) })
             }
         }
     }
@@ -579,15 +593,13 @@ impl<T: Send + Sync + 'static> Atom<T> {
                     let old_ptr = old.as_raw();
                     if !old_ptr.is_null() {
                         // SAFETY: AtomNode has RetiredNode at offset 0. Not retired elsewhere.
-                        unsafe { guard::retire(old_ptr) };
+                        unsafe { retire_node(old_ptr) };
                     }
                     return;
                 }
                 Err(_) => {
                     // CAS failed — reclaim the allocation we made and retry
-                    unsafe {
-                        drop(Box::from_raw(new_ptr));
-                    }
+                    unsafe { drop_node(new_ptr) };
                     // Loop and try again
                 }
             }
@@ -635,9 +647,7 @@ impl<T: Send + Sync + 'static> Drop for Atom<T> {
         if !ptr.is_null() {
             // SAFETY: We have exclusive access (dropping), and the pointer
             // was allocated via AtomNode::boxed.
-            unsafe {
-                drop(Box::from_raw(ptr));
-            }
+            unsafe { drop_node(ptr) };
         }
         // Flush nodes previously retired by store()/rcu() operations.
         crate::flush();
@@ -760,7 +770,7 @@ impl<T: Send + Sync + 'static> AtomOption<T> {
         let old_ptr = old.as_raw();
         if !old_ptr.is_null() {
             // SAFETY: AtomNode has RetiredNode at offset 0. Not retired elsewhere.
-            unsafe { guard::retire(old_ptr) };
+            unsafe { retire_node(old_ptr) };
         }
     }
 
@@ -773,7 +783,7 @@ impl<T: Send + Sync + 'static> AtomOption<T> {
         let old_ptr = old.as_raw();
         if !old_ptr.is_null() {
             // SAFETY: AtomNode has RetiredNode at offset 0. Not retired elsewhere.
-            unsafe { guard::retire(old_ptr) };
+            unsafe { retire_node(old_ptr) };
         }
     }
 
@@ -811,9 +821,7 @@ impl<T: Send + Sync + 'static> Drop for AtomOption<T> {
         // No pin() needed; load directly from the underlying atomic.
         let ptr = self.inner.load_raw();
         if !ptr.is_null() {
-            unsafe {
-                drop(Box::from_raw(ptr));
-            }
+            unsafe { drop_node(ptr) };
         }
         // Flush nodes previously retired by store() operations.
         crate::flush();
@@ -915,9 +923,8 @@ unsafe fn retire_node_dealloc_only<T: 'static>(ptr: *mut AtomNode<T>) {
     // Type-erased destructor that only deallocates the AtomNode's memory
     // without running T's destructor (T was already moved out via ptr::read).
     unsafe fn dealloc_destructor<T>(p: *mut RetiredNode) {
-        unsafe {
-            alloc::alloc::dealloc(p as *mut u8, alloc::alloc::Layout::new::<AtomNode<T>>());
-        }
+        // SAFETY: the node came from `AtomNode::boxed`; its value was moved out.
+        unsafe { free_node(p.cast::<AtomNode<T>>()) }
     }
 
     let node_ptr = ptr as *mut RetiredNode;

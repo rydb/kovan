@@ -12,9 +12,8 @@ extern crate alloc;
 use super::MIN_CAPACITY;
 use super::node::{Node, ptr};
 use crate::sync::AtomicIsize;
-use alloc::boxed::Box;
 use core::sync::atomic::Ordering;
-use kovan::{Atomic, CachePadded, RetiredNode, pin};
+use kovan::{Atomic, CachePadded, RetiredNode, alloc_node, drop_node, free_node, pin};
 
 // ---------------------------------------------------------------------------
 // Single-allocation table: [TableHeader][Atomic<Node>; capacity]
@@ -126,10 +125,10 @@ impl<K: 'static, V: 'static> TableRef<K, V> {
             // SAFETY: bucket `i` is within the allocation and not shared yet.
             unsafe { core::ptr::write(table.bucket_mut(i), Atomic::null()) };
         }
-        let proxy = Box::into_raw(Box::new(TableProxy {
+        let proxy = alloc_node(TableProxy {
             retired: RetiredNode::new(),
             table,
-        }));
+        });
         unsafe { (*header).proxy = proxy as usize };
         table
     }
@@ -155,10 +154,7 @@ impl<K: 'static, V: 'static> TableRef<K, V> {
         if proxy != 0 {
             unsafe {
                 (*self.header).proxy = 0;
-                alloc::alloc::dealloc(
-                    proxy as *mut u8,
-                    core::alloc::Layout::new::<TableProxy<K, V>>(),
-                );
+                free_node(proxy as *mut TableProxy<K, V>);
             }
         }
     }
@@ -192,7 +188,7 @@ impl<K: 'static, V: 'static> TableRef<K, V> {
                 // SAFETY: exclusive access; a node is in one chain, once.
                 unsafe {
                     let next = ptr((*current).next.load(Ordering::Relaxed, &guard).as_raw());
-                    drop(Box::from_raw(current));
+                    drop_node(current);
                     current = next;
                 }
             }

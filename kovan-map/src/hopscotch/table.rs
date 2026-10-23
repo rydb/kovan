@@ -14,7 +14,7 @@ use alloc::boxed::Box;
 use alloc::vec::Vec;
 use core::borrow::Borrow;
 use core::sync::atomic::Ordering;
-use kovan::{Atomic, RetiredNode, Shared, pin, retire};
+use kovan::{Atomic, NodeBox, RetiredNode, Shared, drop_node, pin, retire_node};
 
 // A bucket's control word describes the bucket as a home, in three fields:
 // - the hop bits (`HOP_MASK`): bit `i` set means slot `home + i` holds an entry of this home. An
@@ -179,9 +179,9 @@ impl<'g, K, V> Word<'g, K, V> {
     /// The word linking `entry`, whose ownership passes to the slot that takes the word (or
     /// back through [`Word::into_entry`] when none does).
     #[inline(always)]
-    pub(super) fn of(entry: Box<Entry<K, V>>) -> Self {
+    pub(super) fn of(entry: NodeBox<Entry<K, V>>) -> Self {
         let tag = tag(entry.hash);
-        let raw = Box::into_raw(entry);
+        let raw = NodeBox::into_raw(entry);
         // SAFETY: the address of a live allocation with its alignment bits holding the tag. No
         // word is dereferenced through `Shared`: `ptr` takes the tag off first.
         Self(unsafe { Shared::from_raw(raw.map_addr(|addr| addr | tag)) })
@@ -220,9 +220,9 @@ impl<'g, K, V> Word<'g, K, V> {
     ///
     /// No slot holds the word, and it came from [`Word::of`].
     #[inline(always)]
-    pub(super) unsafe fn into_entry(self) -> Box<Entry<K, V>> {
+    pub(super) unsafe fn into_entry(self) -> NodeBox<Entry<K, V>> {
         // SAFETY: the caller's contract: the allocation `Word::of` took, owned by no slot.
-        unsafe { Box::from_raw(self.ptr()) }
+        unsafe { NodeBox::from_raw(self.ptr()) }
     }
 }
 
@@ -300,8 +300,8 @@ impl<K, V> Entry<K, V> {
     /// A new entry of `key`, whose hash is `hash`, holding `value`: the one allocation a write
     /// that links an entry makes.
     #[inline]
-    pub(super) fn boxed(hash: u64, key: K, value: V) -> Box<Self> {
-        Box::new(Self {
+    pub(super) fn boxed(hash: u64, key: K, value: V) -> NodeBox<Self> {
+        NodeBox::new(Self {
             retired: RetiredNode::new(),
             hash,
             key,
@@ -670,7 +670,7 @@ impl<K, V> Table<K, V> {
         held: &HomeGuard<'_>,
         offset: usize,
         old: *mut Entry<K, V>,
-        entry: Box<Entry<K, V>>,
+        entry: NodeBox<Entry<K, V>>,
     ) where
         K: 'static,
         V: 'static,
@@ -681,7 +681,7 @@ impl<K, V> Table<K, V> {
             .store(Word::of(entry), Ordering::Release);
         // SAFETY: unlinked above under its home guard, so no other thread unlinks or retires
         // it; a reader that loaded it holds a guard that keeps it alive.
-        unsafe { retire(old) };
+        unsafe { retire_node(old) };
     }
 
     /// The scan of [`find`](Self::find) and [`find_held`](Self::find_held), reading a slot with
@@ -733,9 +733,7 @@ impl<K, V> Drop for Table<K, V> {
         while let Some((_, entry_ptr)) = walk.next(self, &guard) {
             if !entry_ptr.is_null() {
                 // SAFETY: the table owns the entries its slots hold (see above).
-                unsafe {
-                    drop(Box::from_raw(entry_ptr));
-                }
+                unsafe { drop_node(entry_ptr) };
             }
         }
     }

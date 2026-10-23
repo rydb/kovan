@@ -25,13 +25,12 @@ extern crate alloc;
 
 use crate::sync::spin_hint;
 use crate::sync::{AtomicBool, AtomicUsize};
-use alloc::boxed::Box;
 use core::borrow::Borrow;
 use core::hash::{BuildHasher, Hash};
 use core::sync::atomic::Ordering;
 use displace::{InsertResult, Pending};
 use foldhash::fast::FixedState;
-use kovan::{Atomic, CachePadded, pin, retire};
+use kovan::{Atomic, CachePadded, alloc_node, drop_node, pin, retire_node};
 use table::{HOP_MASK, HomeGuard, Table, Word, hop_bits};
 
 pub use iter::{HopscotchIntoIter, HopscotchIter, HopscotchKeys, HopscotchValues};
@@ -123,7 +122,7 @@ impl<K: 'static, V: 'static, S> HopscotchMap<K, V, S> {
     pub fn with_capacity_and_hasher(capacity: usize, hasher: S) -> Self {
         let table = Table::new(capacity);
         Self {
-            table: Atomic::new(Box::into_raw(Box::new(table))),
+            table: Atomic::new(alloc_node(table)),
             count: CachePadded::new(AtomicUsize::new(0)),
             resizing: AtomicBool::new(false),
             hasher,
@@ -489,7 +488,7 @@ where
                     &guard,
                 )
             {
-                unsafe { retire(word.ptr()) };
+                unsafe { retire_node(word.ptr()) };
             }
 
             if i < table.capacity {
@@ -539,7 +538,7 @@ impl<K, V, S> Drop for HopscotchMap<K, V, S> {
         let table_ptr = self.table.load(Ordering::Acquire, &guard);
 
         unsafe {
-            drop(Box::from_raw(table_ptr.as_raw()));
+            drop_node(table_ptr.as_raw());
         }
 
         // Flush nodes previously retired by concurrent operations (insert/remove/resize)

@@ -8,9 +8,9 @@ extern crate alloc;
 
 use super::table::{Entry, HomeGuard, Table, Word};
 use super::{HopscotchMap, MAX_PROBE_DISTANCE, NEIGHBORHOOD_SIZE};
-use alloc::boxed::Box;
 use core::hash::{BuildHasher, Hash};
 use core::sync::atomic::Ordering;
+use kovan::NodeBox;
 
 #[cfg(test)]
 use super::pause;
@@ -237,7 +237,7 @@ where
 /// the key and value nor allocates again.
 pub(super) enum Pending<K, V> {
     Parts { hash: u64, key: K, value: V },
-    Built(Box<Entry<K, V>>),
+    Built(NodeBox<Entry<K, V>>),
 }
 
 impl<K, V> Pending<K, V> {
@@ -256,7 +256,7 @@ impl<K, V> Pending<K, V> {
     }
 
     /// The entry, allocated the first time an attempt needs it.
-    fn into_entry(self) -> Box<Entry<K, V>> {
+    fn into_entry(self) -> NodeBox<Entry<K, V>> {
         match self {
             Self::Parts { hash, key, value } => Entry::boxed(hash, key, value),
             Self::Built(entry) => entry,

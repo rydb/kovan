@@ -17,7 +17,7 @@ use super::{Backoff, HashMap};
 use core::borrow::Borrow;
 use core::hash::{BuildHasher, Hash};
 use core::sync::atomic::Ordering;
-use kovan::{Atomic, Guard, retire};
+use kovan::{Atomic, Guard, retire_node};
 
 /// Where a writer's walk of a chain stopped.
 pub(super) enum Found<'g, K: 'static, V: 'static> {
@@ -111,7 +111,7 @@ where
                     // SAFETY: this CAS unlinked it, so no other thread retires it, and no link
                     // names it again; a walker that loaded it holds a guard that keeps it.
                     // Node is #[repr(C)] with its RetiredNode at offset 0.
-                    unsafe { retire(cur) };
+                    unsafe { retire_node(cur) };
                     cur = succ;
                     continue;
                 }

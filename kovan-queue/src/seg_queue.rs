@@ -107,7 +107,10 @@ use std::ptr;
 use std::sync::atomic::Ordering::{Relaxed, SeqCst};
 
 use crate::utils::CacheAligned;
-use kovan::{Atomic, Guard, Reclaimable, RetiredNode, Shared, pin, retire_reclaimable};
+use kovan::{
+    Atomic, Guard, Reclaimable, RetiredNode, Shared, alloc_node_uninit, free_node, pin,
+    retire_reclaimable,
+};
 
 // The segment pointers are `kovan::Atomic<T>`, already shuttle-instrumented
 // by this crate's `shuttle` feature cascading into `kovan/shuttle` (see this
@@ -262,10 +265,11 @@ unsafe impl Reclaimable for Header {
 /// `header` heads a `Segment<T>` made by [`Segment::alloc`] that no thread
 /// can reach any more and whose cells hold no value.
 unsafe fn free_segment<T>(header: *mut Header) {
-    // `MaybeUninit` has no drop glue: this only returns the memory, with the
-    // layout `Box::<Segment<T>>::new_uninit` allocated it with.
+    // A `Segment` has no drop glue of its own (its values sit in
+    // `MaybeUninit`s), and `free_node` drops nothing: this only returns the
+    // memory, to the allocation `alloc_node_uninit` made.
     // SAFETY: the caller's contract; `Header` is at offset 0 of the segment.
-    drop(unsafe { Box::from_raw(header.cast::<MaybeUninit<Segment<T>>>()) });
+    unsafe { free_node(header.cast::<Segment<T>>()) }
 }
 
 #[repr(C)]
@@ -281,11 +285,10 @@ struct Segment<T> {
 impl<T> Segment<T> {
     /// A segment with every cell empty.
     fn alloc(id: u64) -> *mut Segment<T> {
-        let mut seg = Box::<Segment<T>>::new_uninit();
-        let p = seg.as_mut_ptr();
-        // SAFETY: `p` is the box's own uninitialised allocation. Every field
-        // but the cells' values is written; a value is a `MaybeUninit`, valid
-        // uninitialised, so the whole segment is initialised afterwards.
+        let p = alloc_node_uninit::<Segment<T>>().cast::<Segment<T>>();
+        // SAFETY: `p` is a fresh, uninitialised allocation of a segment. Every
+        // field but the cells' values is written; a value is a `MaybeUninit`,
+        // valid uninitialised, so the whole segment is initialised afterwards.
         unsafe {
             (&raw mut (*p).header).write(Header {
                 retired: RetiredNode::new(),
@@ -297,8 +300,8 @@ impl<T> Segment<T> {
             for i in 0..SEGMENT_SIZE {
                 (&raw mut (*cells.add(i)).state).write(AtomicUsize::new(EMPTY));
             }
-            Box::into_raw(seg.assume_init())
         }
+        p
     }
 }
 

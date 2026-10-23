@@ -1,4 +1,4 @@
-use kovan::{Atomic, RetiredNode, Shared, pin, retire};
+use kovan::{Atomic, RetiredNode, Shared, alloc_node, pin, retire_node};
 use std::ptr;
 use std::sync::Arc;
 use std::sync::atomic::Ordering;
@@ -29,12 +29,13 @@ pub(crate) struct Node<T> {
 }
 
 impl<T> Node<T> {
+    #[inline]
     fn new(data: Option<T>) -> *mut Self {
-        Box::into_raw(Box::new(Self {
+        alloc_node(Self {
             retired: RetiredNode::new(),
             data,
             next: Atomic::null(),
-        }))
+        })
     }
 }
 
@@ -91,7 +92,7 @@ impl<T: 'static> Drop for Channel<T> {
 
         while !curr.is_null() {
             let next = unsafe { curr.deref().next.load(Ordering::Relaxed, &guard) };
-            unsafe { retire(curr.as_raw()) };
+            unsafe { retire_node(curr.as_raw()) };
             curr = next;
         }
 
@@ -258,7 +259,7 @@ impl<T: 'static> Receiver<T> {
                     Ok(_) => {
                         // We won. We can take the data.
                         // The old head is retired.
-                        unsafe { retire(head.as_raw()) };
+                        unsafe { retire_node(head.as_raw()) };
 
                         // We take the data from `next`.
                         // `next` is now the sentinel.
