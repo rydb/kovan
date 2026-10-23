@@ -1,16 +1,18 @@
 # TLA+ models of kovan
 
-Three models, each at the grain of its code's atomic steps, checked by TLC: kovan's memory
-reclamation (the `kovan` crate) and the two concurrent maps of `kovan-map`. Each carries the
-defects fixed so far as mutations, one at a time (the maps' 0.1.20 rules and the fixes merged into
-this branch, the reclamation's 0.1.21 rules and the later defects this branch fixed): TLC finds a
-counterexample for every one, and none for the code as built.
+Four models, each at the grain of its code's atomic steps, checked by TLC: kovan's memory
+reclamation (the `kovan` crate), the two concurrent maps of `kovan-map` and the segment queue of
+`kovan-queue`. Each carries the defects fixed so far as mutations, one at a time (the maps' 0.1.20
+rules and the fixes merged into this branch, the reclamation's 0.1.21 rules and the later defects
+this branch fixed, the segment queue's earlier pop): TLC finds a counterexample for every one, and
+none for the code as built.
 
 | where | what | run |
 |-------|------|-----|
 | `reclaim/` | `kovan`'s memory reclamation: the global epoch, each thread's reservation and helper slots, pin (the drained-epoch skip, the transition attempts, the helped slow path and the detach of its slot list), the protected load (the raise, the escalation to the unconditional reservation), the guard's drop, retire (batches, their placement in the eligible slots, the count, the merge of a batch that cannot be placed), the traversal and the free-list cache, destructors that pin, load and retire from inside a free, flush, a thread's exit (two rounds, the deactivation, the batches parked on its tid) and the tid's hand-over, and the recycling of retired nodes through a pool (`retire_reclaimable`: the destructor that hands a node to the pool, the take, the re-initialised header, each node's incarnations) | `just tla reclaim` (32 to 73 minutes in the recorded runs, by the machine's load) |
 | `chained/` | `kovan_map::HashMap`, the chained map: link words with a deleted mark, a frozen flag and a held flag, one CAS per write, the unlink-then-retire rule, the walk that steps past a deleted node only through a live link, the conditional writes that hold the key's link while their closure runs, the freezing migration (which waits for a hold) and clear, the bucket-snapshot walk | `just tla chained` (about 23 minutes) |
 | `hopscotch/` | `kovan_map::HopscotchMap`: home buckets with hop bits, writer guard and move stamp, the guarded insert (existence scan, the bit published before the link, displacement toward the home), the guarded remove, the conditional writes (closure under the home guard, a compute of an absent key reserving its slot first), the lookup that rescans on a moved stamp, the resize that holds every writer guard, the clear, the walk across a table swap, the shrink a remove asks for and its threshold (the table's shrink word) | `just tla hopscotch` (about 3 minutes in the recorded run) |
+| `segqueue/` | `kovan_queue::SegQueue`: the two claim words and segment pointers, the push's fetch-add claim and the cell's compare-and-swap, the link of a successor holding the linking push's value, the tail word's and pointer's advance, the pop's view of the two words, its fetch-add claim and swap (a cell still being written taken out of play), the `try_pop` claim by compare-and-swap and its `Busy` answer, the drained head segment's successor found, the head's walk that moves the tail pointer off a segment before retiring it, and kovan freeing a retired segment after its holders | `just tla segqueue` |
 
 `just tla-all` runs every family (each directory of `proofs/tla/` with an `EXPECTED.txt`), and
 `just tla <family> [configuration...]` one family, or only the configurations named; both run
@@ -1539,3 +1541,151 @@ passed before the reserved word reaches exactly the states it reached before, th
 the shrink threshold exactly those recorded before it was modelled, and the 57 that predate the
 work history (`work`) exactly those recorded before it was added (earlier versions of
 `hopscotch/tlc-run.txt`).
+
+## The segment queue (`segqueue/SegQueue.tla`)
+
+### What is transcribed from the code
+
+`kovan_queue::SegQueue` (`kovan-queue/src/seg_queue.rs`) at the grain of its atomic steps: the
+two claim words and the two segment pointers, the cells (state and value), each segment's
+successor link, and kovan's reclamation of the segments the head retires.
+
+- A push pins, loads the tail pointer, claims a cell with a fetch-add of the tail word, walks to
+  the claimed segment (and moves a lagging tail pointer on), writes its value and publishes it
+  with the compare-and-swap of the cell from `EMPTY` to `FULL`; a failed compare-and-swap (a pop
+  took the cell out of play) claims again. A claim past the end of a segment links the successor
+  with the value in its first cell (or meets the successor another push linked), moves the tail
+  word to the successor's second cell, then the tail pointer.
+- A pop reads the head word, then the tail word, and classifies the two (`classify`). On `Empty`
+  it answers `None`; otherwise it pins, loads the head pointer, and either claims a cell with a
+  fetch-add of the head word and swaps it to `TAKEN` (a `FULL` cell is its value, an `EMPTY` one
+  is taken out of play), or, on `Drained`, finds the successor (none: the queue is empty), moves
+  the head word to it and walks the head pointer forward, moving the tail pointer off each
+  segment first; the winner of the head pointer's compare-and-swap retires the segment.
+- `try_pop` reads the words the same way, pinned after a first look, and claims only the cell
+  the head word names, by a compare-and-swap of the head word, after reading the cell `FULL`; it
+  answers `Busy` for an `EMPTY` one.
+- kovan's reclamation is what the reclamation family proves of it: a retired segment is freed
+  once every operation that was in progress when it was retired has ended.
+
+What is left out or folded, and why it changes nothing:
+
+- Segment ids are counted without wrapping and a segment's successor has the next id (the code
+  allocates it so, and links one successor per segment). The code's ids wrap at `2^44` and its
+  positions at `2^49`; `proofs/lean/Kovan/SegQueue.lean` proves its `classify`, `behind`,
+  `position` and `len` give the answers counted without wrapping while the two words stay as
+  close as `Words` below keeps them.
+- Segments have `SEG` cells (2 in every configuration, 32 in the code): a segment fills, links
+  and drains within a few operations, so every move of the words and pointers is reached.
+- A pop's `PATIENCE` re-reads of an `EMPTY` cell are folded into its swap, which may come at any
+  moment after the claim, so every number of re-reads is covered.
+- A walk of pointers forward (`locate`, `catch_up_tail`) is one step, as the pointers only move
+  forward; the tail word's and the head word's compare-and-swap loops are one step each, the
+  step of the compare-and-swap that succeeds.
+- A step that touches only the thread's own state (a loop counter, a pin, an unpin, a check of
+  its own answer) is folded into the shared step next to it, which no other thread can tell
+  apart. `try_pop`'s read of a `FULL` cell and its claim by the head word's compare-and-swap are
+  one step: the cell stays `FULL` until its claimer takes it, and that claim moves the word.
+- `len` and `is_empty` are not operations of the model: `len` is two loads and the arithmetic
+  the Lean proof covers, and `is_empty` answers with the view and `drained` that `pop` uses.
+
+### Properties
+
+Every check is made at the step it is about and recorded in `errs`; each invariant says one kind
+of check never failed.
+
+- `NoUseAfterFree`: no step reads or writes a segment kovan freed.
+- `NoUnlinkedClaim`: a claimed cell's segment is always reachable from the pointer loaded before
+  the claim, so the code's `debug_assert!` path is never taken.
+- `NoBound`: no push met the configuration's bound on segments, so the configurations are
+  complete for their operations.
+- `EmptySound`: at the step that tells a pop or a `try_pop` the queue is empty, every push that
+  has returned has its cell claimed by a pop.
+- `BusyMeansClaimed`: `try_pop` answers `Busy` only for a cell a push claimed and has not written.
+- `UniqueTake`: no value is taken twice.
+- `RealTimeOrder`: a push writes its value behind every push that returned before it began (so
+  one producer's values sit in the order it pushed them).
+- `PopOrder`: a pop takes a value behind every value taken before it began (so each consumer
+  takes values in queue order).
+- `NoLoss`: when every thread is done, every value pushed was taken or still sits in its cell at
+  or past the head, where a later pop takes it.
+- `Words`: the head word is at most one segment ahead of the tail word, and only once the tail
+  word passed its segment's end. It is the hypothesis of the Lean theorem `classifyCode_word`;
+  no mutation here breaks it, because the head word moves to a segment only from a `Drained`
+  view, which already needs the tail word past the end.
+- `Termination` (under `FairSpec`, every thread's steps taken fairly): every operation ends. A
+  push that loses its cell to a pop claims the next one, and within a segment of `SEG` cells it
+  claims past the end and links the successor with its value, completing in that step, so a push
+  and a pop cannot keep taking each other's cells forever.
+
+### Mutations and witnesses
+
+Each mutation puts back one wrong rule and lists its property first, the others after it, so
+that TLC, which stops at the first state that breaks any of them, names the one the mutation is
+for. Every property but `Words` (see above) has one. One is checked against its property alone:
+the stale store of `SQ_mut_store_tail_advance` also moves the tail word back under a tail pointer
+that went ahead, which breaks `NoUnlinkedClaim` in a shorter trace than the one that breaks
+`RealTimeOrder`.
+
+| configuration | the wrong rule | expected |
+|---|---|---|
+| `SQ_mut_scan_pop` | the earlier design's pop: take the first `FULL` cell of the head segment, passing over one still being written | `PopOrder` broken |
+| `SQ_mut_no_poison` | a pop that finds its cell `EMPTY` moves on without taking it out of play, so the late push writes where no pop claims again | `NoLoss` broken |
+| `SQ_mut_retire_before_tail` | the head's walk retires a segment without first moving the tail pointer off it | `NoUseAfterFree` broken |
+| `SQ_mut_busy_without_view` | `try_pop` answers `Busy` without telling from the words that a push claimed the cell | `BusyMeansClaimed` broken |
+| `SQ_mut_tail_before_head` | a pop reads the tail word before the head word | `EmptySound` broken |
+| `SQ_mut_link_then_retry` | a push that linked the successor with its value goes on pushing the value | `UniqueTake` broken |
+| `SQ_mut_store_tail_advance` | `advance_tail_word` checks the word's segment, then stores the successor's word instead of a compare-and-swap; three producers | `RealTimeOrder` broken |
+| `SQ_mut_load_after_claim` | a push loads the tail pointer after its claim | `NoUnlinkedClaim` broken |
+| `SQ_mut_retry_same_cell` | a push whose cell was taken out of play retries its compare-and-swap on that cell, forever | `Termination` broken |
+
+The witnesses each claim a case never happens, so their counterexamples show the passing
+configurations reach it: a push links a successor (`SQ_wit_link`, `NoLinkW`), a pop takes an
+unwritten cell out of play (`SQ_wit_poison`, `NoPoisonW`), `try_pop` answers `Busy`
+(`SQ_wit_busy`, `NoBusyW`), kovan frees a retired segment (`SQ_wit_free`, `NoFreeW`), a pop
+answers that the queue is empty (`SQ_wit_empty`, `NoEmptyAnswerW`), the head word moves one
+segment ahead of the tail word (`SQ_wit_head_ahead`, `NoHeadAheadW`), and, with two segments
+only, a push meets the bound `NoBound` checks (`SQ_wit_bound`).
+
+### Configurations
+
+| configuration | threads | operations |
+|---|---|---|
+| `SQ_mpsc` | two producers, one consumer | two pushes each, four pops |
+| `SQ_mpmc` | one producer, two consumers | three pushes, two pops each |
+| `SQ_try` | two producers, one consumer | two pushes each, four `try_pop`s |
+| `SQ_push3` | three producers | two pushes each |
+| `SQ_live` | two producers, one consumer, `FairSpec` | one push each, two pops; checks `Termination` |
+
+Segments of two cells and room for five segments (six in `SQ_push3`) in every one.
+
+### Code map
+
+| label | function | code | step |
+|---|---|---|---|
+| `PU1` | `push` | `seg_queue.rs:475`, `seg_queue.rs:481` | the pin, then the tail pointer loaded |
+| `PU2` | `push` | `seg_queue.rs:481` | the tail pointer loaded again for a new claim |
+| `PU3` | `push` | `seg_queue.rs:482` | the tail word's fetch-add |
+| `PU4` | `push`, `locate` | `seg_queue.rs:485-492` | the walk to the claimed segment |
+| `PU4a` | `push`, `catch_up_tail` | `seg_queue.rs:493-496` | the lagging tail pointer moved on |
+| `PU4b` | `push` | `seg_queue.rs:502-514` | the value written, the cell's compare-and-swap |
+| `PU5` | `push`, `locate` | `seg_queue.rs:517-523` | segment full: the walk to it (or the word moved after a pointer a pop moved), its `next` loaded |
+| `PU6` | `push` | `seg_queue.rs:524-555` | the successor linked with the value in its first cell, or the one linked met |
+| `PU7` | `advance_tail_word` | `seg_queue.rs:590-602` | the tail word moved to the successor's second cell |
+| `PU8` | `advance_tail` | `seg_queue.rs:575-584` | the tail pointer's compare-and-swap, or `catch_up_tail`; a push that linked returns |
+| `PO1`, `PO2` | `pop`, `view` | `seg_queue.rs:710-713`, `seg_queue.rs:748` | the head word, then the tail word, classified |
+| `PO3` | `pop` | `seg_queue.rs:714-716` | the pin, the head pointer loaded |
+| `PO4` | `pop` | `seg_queue.rs:725` | the head word's fetch-add |
+| `PO5` | `pop`, `locate`, `take` | `seg_queue.rs:729-744` | the walk to the cell, the swap to `TAKEN` |
+| `PO6` | `pop` | `seg_queue.rs:719-723` | after `drained`: empty, or look again |
+| `DR1` | `drained` | `seg_queue.rs:639-649` | the walk to the head word's segment, its `next` loaded |
+| `DR2` | `drained` | `seg_queue.rs:650-661` | the head word moved to the successor's first cell |
+| `CH1`, `CH2` | `catch_up_head` | `seg_queue.rs:671-682` | the head pointer loaded, its id against the head word, its `next` loaded |
+| `CH3` | `catch_up_head` | `seg_queue.rs:683-688` | the tail pointer moved off the segment |
+| `CH4` | `catch_up_head` | `seg_queue.rs:689-700` | the head pointer's compare-and-swap; its winner retires the segment |
+| `TP1`, `TP2` | `try_pop`, `view` | `seg_queue.rs:771-773` | the first look at the two words |
+| `TP3`, `TP4`, `TP5` | `try_pop` | `seg_queue.rs:774-786` | the pin, the head pointer, the two words again |
+| `TP6` | `try_pop`, `locate` | `seg_queue.rs:788-804` | the cell read; `Busy`, or the head word's compare-and-swap |
+| `TP7` | `try_pop` | `seg_queue.rs:782-786` | after `drained` |
+| `TP8` | `try_pop`, `take` | `seg_queue.rs:805-807` | the swap to `TAKEN` |
+| `RC1` | kovan | `retire_reclaimable`, the guard's drop | a retired segment freed once its holders' operations ended |
