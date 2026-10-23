@@ -118,6 +118,11 @@
 //! when it exits, and its chunks are freed by whichever thread gives back each
 //! one's last block.
 //!
+//! Whether the cache is faster depends on the global allocator it replaces.
+//! Against glibc's, node churn takes a quarter to a half fewer instructions;
+//! against mimalloc, whose fast path is shorter than the cache's, it takes 3 to
+//! 11% more. Measure with the program's own allocator before turning it on.
+//!
 //! # Example
 //!
 //! ```rust

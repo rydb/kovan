@@ -173,7 +173,8 @@ cargo +nightly bench --bench comparison --features nightly
 kovan = { version = "0.1", features = ["nightly"] }
 
 # Node memory from a per-thread magazine cache over a slab layer instead of
-# an allocator call per node (every kovan crate has the same feature)
+# an allocator call per node (every kovan crate has the same feature); it beats
+# glibc's allocator but not mimalloc, so measure with yours (see the crate docs)
 kovan-map = { version = "0.1", features = ["recycle"] }
 ```
 
@@ -225,7 +226,7 @@ everywhere, instead of a second implementation to keep in step.
 
 There is **no `wasm` feature**. Everything is selected by
 `cfg(target_arch = "wasm32")`, so building for wasm gives you the right code
-automatically — there is no flag to forget, and no way to get a build that
+automatically: there is no flag to forget, and no way to get a build that
 compiles and then panics.
 
 | Crate | wasm32 | API difference on wasm |
@@ -239,7 +240,7 @@ compiles and then panics.
 
 ### Test coverage
 
-Each crate keeps its original `tests/*.rs` untouched — those stay the real
+Each crate keeps its original `tests/*.rs` untouched: those stay the real
 concurrency coverage and are native-only. Single-threaded adaptations live in
 `<crate>/tests/wasm/` and run on every target. Where a test's entire value was
 the race, it is **not** ported; each file's header records what was dropped and
