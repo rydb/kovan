@@ -101,9 +101,9 @@ for some interleaving shows as a deadlock, never as a pass.
 | `GB1`, `GB2` | `Depot::give_back` | `recycle.rs:336-346` | the full ring, or the blocks below and the magazine to the empty ring |
 | `AL1` | `Pair::pop`, `Pair::pop_slow` | `recycle.rs:394-430` | `loaded`, or a swap with a full `previous`, or the full ring |
 | `AL2`, `AL3` | `Pair::pop_slow` | `recycle.rs:408-430` | load the depot's full magazine; the drained one to the empty ring |
-| `AL2b`, `AL2c` | `Pair::refill` | `recycle.rs:436-453` | an empty magazine loaded, then a batch from the slab layer |
-| `FR1`-`FR4` | `Pair::push`, `Pair::push_slow` | `recycle.rs:457-500` | `loaded`, a swap, `previous` to the depot or its blocks below, an empty magazine |
-| `EX1`-`EX3` | `ThreadCache::drop` | `recycle.rs:548-560` | both magazines handed back |
+| `AL2b`, `AL2c` | `Pair::refill` | `recycle.rs:436-459` | an empty magazine loaded, then a batch from the slab layer |
+| `FR1`-`FR4` | `Pair::push`, `Pair::push_slow` | `recycle.rs:463-506` | `loaded`, a swap, `previous` to the depot or its blocks below, an empty magazine |
+| `EX1`-`EX3` | `ThreadCache::drop` | `recycle.rs:554-566` | both magazines handed back |
 
 ## TLC results
 
