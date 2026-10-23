@@ -100,6 +100,30 @@ one thread doing one operation at a time; the TLA+ model in `../tla/reclaim` che
 paths with several threads (`RC_unpinned_retire`, `RC_wf_unpinned_exit`,
 `RC_wf_unpinned_flush`, `RC_flush_orphan`, and the mutations that put the old returns back).
 
+### The segment queue's words
+
+`SegQueue` (`kovan-queue/src/seg_queue.rs`) keeps one claim word at each end: a segment id in
+the high 44 bits, an index in the low 20. Take a tail word naming cell 5 of segment 7. A push's
+fetch-add returns it and leaves cell 6 of segment 7 behind: the push owns queue position
+`7 * 32 + 5 = 229`, the next push 230. When the index passes 31, the push that finds the segment
+full links segment 8 with its value in cell 0 (position 256) and moves the word to cell 1 of
+segment 8 (position 257).
+
+1. The fetch-add never carries the index into the id: the index stays far below `2^20`.
+2. Positions follow the words: two claims of cells never share a position, a later word names a
+   later position, and none of the moves the code makes takes the position back. The code counts
+   ids modulo `2^44` and positions modulo `2^49`, and the two wraps agree.
+3. A pop reads the head word, then the tail word, and `classify` tells from the two whether the
+   queue is empty. An `Empty` answer means every cell pushes had claimed lies behind the head
+   word, so pops had claimed it: the queue was empty when the tail word was read. The answer is
+   the same on the code's wrapped ids as on ids counted without wrapping, while the head word is
+   at most one segment ahead of the tail word, which the TLA+ model checks of every state.
+4. `len()` subtracts the two positions modulo `2^49` and reads anything past half the space as 0:
+   that is the count of cells pushes claimed and pops did not, or 0 while pops ran ahead.
+
+`Kovan/SegQueue.lean` proves these for the code's own masks and shifts. How pushes and pops
+interleave is checked by the TLA+ model in `../tla/segqueue`.
+
 ## What is proved
 
 `Kovan/HopscotchShrink.lean`, a model of `kovan-map/src/hopscotch.rs` (`shrink_at`,
@@ -190,6 +214,26 @@ All of them use only Lean's standard axioms (`propext`, `Classical.choice`, `Quo
 none; `#print axioms` lists them.
 
 The file explains every definition and every proof step in plain words.
+
+`Kovan/SegQueue.lean`, a model of the claim words of `kovan-queue/src/seg_queue.rs`
+(`word`, `id_of`, `index_of`, `next_id`, `behind`, `position`, `classify`, `len`), written with
+the code's masks, shifts and ors on numbers, and the same functions with segment ids counted
+without wrapping (`pos`, `classify`).
+
+| theorem | what it says |
+|---------|--------------|
+| `word_eq`, `idOf_word`, `indexOf_word`, `word_lt` | a claim word is the id modulo `2^44` times `2^20` plus the index, its two halves read back exactly, and it fits 64 bits |
+| `word_add_one`, `fetch_add_keeps_id` | a fetch-add raises the index by one and keeps the id, for every index up to the segment's size plus 65,536 threads |
+| `position_word` | the code's position of a word is the position counted without wrapping, modulo `2^49` |
+| `pos_inj`, `pos_lt` | two claims of cells never share a position, and a word earlier in segment and index order names an earlier position |
+| `pos_fetch_add`, `pos_tail_advance`, `pos_head_advance` | a fetch-add, the tail word's move to the successor's second cell and the head word's move to its first cell never take the position back |
+| `behind_iff` | `behind` on wrapped ids says which id is the earlier one while they are fewer than `2^43` apart |
+| `classifyCode_word` | `classify` on the code's words answers as the one without wrapping while the head word is at most one segment ahead of the tail word |
+| `empty_sound` | an `Empty` answer: every cell pushes had claimed, the successor's first cell included, lies behind the head word |
+| `claimed_index_lt` | a `Claimed` answer names a cell of the segment |
+| `drained_full` | a `Drained` answer: the head word's index passed the segment's end |
+| `lenOf_exact`, `len_word` | `len()` is the distance from the head to the tail while the head is behind by less than `2^48` |
+| `lenOf_ahead`, `len_word_ahead` | `len()` is 0 while pops ran ahead of pushes by at most `2^48` |
 
 ## How to check it
 
