@@ -23,6 +23,14 @@ Every access to a chunk or to the inbox is checked against those already freed. 
 named by fresh ids, so an access to a freed one is never mistaken for one to a new chunk at the
 same address.
 
+What is left out: memory orderings. The model is sequentially consistent, as every model here,
+so it cannot tell a `Relaxed` load from an `Acquire` one. Miri checks the orderings in CI
+(`.github/workflows/miri.sh` runs the `recycle` tests and `tests/node.rs` under it), and found
+the one defect of this layer the model could not: a releaser's first load of the inbox word was
+`Relaxed`, so a releaser that found the inbox closed could count the chunk down without seeing
+the counts the owner wrote before its closing swap. That load is `Acquire` now, as the failed
+compare-and-swap after it (`release_remote`).
+
 ## Properties
 
 - `NoUseAfterFree`: no thread touches a freed chunk or a freed inbox.

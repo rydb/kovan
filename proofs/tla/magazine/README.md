@@ -38,6 +38,10 @@ What is left out or folded, and why it changes nothing:
   another is the same step with two blocks' names swapped: the states checked are every state
   any choice reaches, up to the names of the blocks, without the copies that differ only in
   names. (It only narrows the choices, so every violation it finds the unnarrowed model has too.)
+- Memory orderings: the model is sequentially consistent, as every model here. The rings' (the
+  turn word's `Acquire` load and `Release` store around the magazine's `Relaxed` one, the
+  ticket's compare-and-swap) are checked by Miri in CI, on the `recycle` tests and
+  `tests/node.rs` (`.github/workflows/miri.sh`).
 - The order of the blocks inside a magazine is not modelled: a refill puts at most one block in
   one, and no property here depends on which block a pop takes. That a refill's blocks pop in the
   order they were taken, at rising addresses, is proved in Lean (`refill_pops_in_carving_order`,
