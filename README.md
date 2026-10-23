@@ -171,6 +171,10 @@ cargo +nightly bench --bench comparison --features nightly
 ```toml
 # Nightly optimizations (~5% faster)
 kovan = { version = "0.1", features = ["nightly"] }
+
+# Node memory from a per-thread magazine cache over a slab layer instead of
+# an allocator call per node (every kovan crate has the same feature)
+kovan-map = { version = "0.1", features = ["recycle"] }
 ```
 
 ## Supported Platforms

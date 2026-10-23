@@ -22,6 +22,10 @@ path = "src/lib.rs"
 default = ["std"]
 std = []          # Enable std-dependent features.
 nightly = []      # Enable nightly-only optimizations.
+# Keeps the memory of freed nodes in a per-thread magazine cache of their
+# size class, for the next node of that size (see the crate docs). Off by
+# default; every kovan crate has a `recycle` feature that turns it on.
+recycle = ["std"]
 # Swaps the pointer-word atomic backing `Atomic<T>` and the reclamation
 # guard's protect-load path for shuttle's instrumented equivalent, so
 # shuttle's scheduler gets a yield point at every pointer load/store/CAS.
