@@ -16,4 +16,8 @@ cargo clean
 echo "Running Miri on kovan core..."
 cargo miri test -p kovan --lib --tests
 
+echo "Running Miri on kovan's magazine cache (the recycle feature)..."
+cargo miri test -p kovan --features recycle --lib recycle
+cargo miri test -p kovan --features recycle --test node
+
 echo "All Miri tests passed!"
