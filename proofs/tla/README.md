@@ -12,7 +12,7 @@ none for the code as built.
 | `reclaim/` | `kovan`'s memory reclamation: the global epoch, each thread's reservation and helper slots, pin (the drained-epoch skip, the transition attempts, the helped slow path and the detach of its slot list), the protected load (the raise, the escalation to the unconditional reservation), the guard's drop, retire (batches, their placement in the eligible slots, the count, the merge of a batch that cannot be placed), the traversal and the free-list cache, destructors that pin, load and retire from inside a free, flush, a thread's exit (two rounds, the deactivation, the batches parked on its tid) and the tid's hand-over, and the recycling of retired nodes through a pool (`retire_reclaimable`: the destructor that hands a node to the pool, the take, the re-initialised header, each node's incarnations) | `just tla reclaim` (32 to 73 minutes in the recorded runs, by the machine's load) |
 | `chained/` | `kovan_map::HashMap`, the chained map: link words with a deleted mark, a frozen flag and a held flag, one CAS per write, the unlink-then-retire rule, the walk that steps past a deleted node only through a live link, the conditional writes that hold the key's link while their closure runs, the freezing migration (which waits for a hold) and clear, the bucket-snapshot walk | `just tla chained` (about 23 minutes) |
 | `hopscotch/` | `kovan_map::HopscotchMap`: home buckets with hop bits, writer guard and move stamp, the guarded insert (existence scan, the bit published before the link, displacement toward the home), the guarded remove, the conditional writes (closure under the home guard, a compute of an absent key reserving its slot first), the lookup that rescans on a moved stamp, the resize that holds every writer guard, the clear, the walk across a table swap, the shrink a remove asks for and its threshold (the table's shrink word) | `just tla hopscotch` (about 3 minutes in the recorded run) |
-| `segqueue/` | `kovan_queue::SegQueue`: the two claim words and segment pointers, the push's fetch-add claim and the cell's compare-and-swap, the link of a successor holding the linking push's value, the tail word's and pointer's advance, the pop's view of the two words, its fetch-add claim and swap (a cell still being written taken out of play), the `try_pop` claim by compare-and-swap and its `Busy` answer, the drained head segment's successor found, the head's walk that moves the tail pointer off a segment before retiring it, and kovan freeing a retired segment after its holders | `just tla segqueue` |
+| `segqueue/` | `kovan_queue::SegQueue`: the two claim words and segment pointers, the push's fetch-add claim and the cell's compare-and-swap, the link of a successor holding the linking push's value, the tail word's and pointer's advance, the pop's view of the two words, its fetch-add claim and swap (a cell still being written taken out of play), the `try_pop` claim by compare-and-swap and its `Busy` answer, the drained head segment's successor found, the head's walk that moves the tail pointer off a segment before retiring it, and kovan freeing a retired segment after its holders | `just tla segqueue` (about 25 minutes in the recorded run, on 4 workers) |
 
 `just tla-all` runs every family (each directory of `proofs/tla/` with an `EXPECTED.txt`), and
 `just tla <family> [configuration...]` one family, or only the configurations named; both run
@@ -1689,3 +1689,18 @@ Segments of two cells and room for five segments (six in `SQ_push3`) in every on
 | `TP7` | `try_pop` | `seg_queue.rs:782-786` | after `drained` |
 | `TP8` | `try_pop`, `take` | `seg_queue.rs:805-807` | the swap to `TAKEN` |
 | `RC1` | kovan | `retire_reclaimable`, the guard's drop | a retired segment freed once its holders' operations ended |
+
+### TLC results
+
+The run recorded in `segqueue/tlc-run.txt` (4 workers for a passing configuration, one for a
+violation, at the lowest priority on a 36-core machine shared with other heavy work): 21 of 21
+configurations match `EXPECTED.txt`, in 1514 s of wall time. The passing ones are `SQ_mpmc`
+(72,271,075 distinct states, 788 s), `SQ_mpsc` (34,816,107, 383 s), `SQ_push3` (2,399,746, 31 s),
+`SQ_try` (345,338, 7 s) and `SQ_live` (50,897, 6 s, with `Termination`). The longest runs that
+break a property, on one worker, are `SQ_mut_store_tail_advance` (3,842,091 distinct states,
+151 s) and `SQ_mut_link_then_retry` (2,149,256, 74 s). The counterexample of
+`SQ_mut_store_tail_advance` needs three producers: one links the next segment, checks the tail
+word's segment and is descheduled before its store; a second claims a cell of that next segment
+and is descheduled before writing it; the third links the segment after that and returns, and
+the stale store then moves the tail word back over the unwritten cell, where the third's next
+push writes its value, ahead of the one it pushed before.

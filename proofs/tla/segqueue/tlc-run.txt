@@ -1,0 +1,28 @@
+TLC run of every configuration in proofs/tla/segqueue, 2026-10-23 01:25 UTC.
+Written by proofs/tla/run_tlc.sh, not by hand. Version 2.19 of 08 August 2024.
+Java -Xmx8g; -workers 4, or 1 worker where a violation is expected. Limit: 7200 s each.
+
+configuration                         generated   distinct    sec  result                     expected                   match
+SQ_mpsc                               111405297   34816107    383  pass                       pass                       yes
+SQ_mpmc                               229084960   72271075    788  pass                       pass                       yes
+SQ_try                                   922855     345338      7  pass                       pass                       yes
+SQ_push3                                7710525    2399746     31  pass                       pass                       yes
+SQ_live                                  131627      50897      6  pass                       pass                       yes
+SQ_mut_scan_pop                           29533      12637      2  violated:PopOrder          violated:PopOrder          yes
+SQ_mut_no_poison                         743144     300091     12  violated:NoLoss            violated:NoLoss            yes
+SQ_mut_retire_before_tail               1662136     661924     25  violated:NoUseAfterFree    violated:NoUseAfterFree    yes
+SQ_mut_busy_without_view                    305        160      1  violated:BusyMeansClaimed  violated:BusyMeansClaimed  yes
+SQ_mut_tail_before_head                     332        191      1  violated:EmptySound        violated:EmptySound        yes
+SQ_mut_link_then_retry                  5539341    2149256     74  violated:UniqueTake        violated:UniqueTake        yes
+SQ_mut_store_tail_advance              11710324    3842091    151  violated:RealTimeOrder     violated:RealTimeOrder     yes
+SQ_mut_load_after_claim                    7264       3307      1  violated:NoUnlinkedClaim   violated:NoUnlinkedClaim   yes
+SQ_mut_retry_same_cell                     4335       1730      2  violated:Termination       violated:Termination       yes
+SQ_wit_link                                 881        459      1  violated:NoLinkW           violated:NoLinkW           yes
+SQ_wit_poison                               410        219      2  violated:NoPoisonW         violated:NoPoisonW         yes
+SQ_wit_busy                                 656        343      1  violated:NoBusyW           violated:NoBusyW           yes
+SQ_wit_free                             1211223     485189     18  violated:NoFreeW           violated:NoFreeW           yes
+SQ_wit_empty                                 29         20      1  violated:NoEmptyAnswerW    violated:NoEmptyAnswerW    yes
+SQ_wit_bound                             100133      41910      3  violated:NoBound           violated:NoBound           yes
+SQ_wit_head_ahead                        100582      42116      3  violated:NoHeadAheadW      violated:NoHeadAheadW      yes
+
+results matching EXPECTED.txt: 21 of 21
