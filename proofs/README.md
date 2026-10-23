@@ -66,8 +66,8 @@ just proofs                         # all of the above
 TLA+: the models need Java on `PATH` (CI uses Java 21); the runner, `proofs/tla/run_tlc.sh`,
 fetches the pinned TLA+ tools on first use. A run compares each configuration's result with the
 family's `EXPECTED.txt` and exits non-zero on any mismatch. CI runs every family
-(`.github/workflows/tla.yml`). `proofs/tla/README.md` explains the models, their
-configurations and their findings.
+(`.github/workflows/tla.yml`). `proofs/tla/README.md` lists the models; each family's own
+`README.md` explains its model, its configurations and its findings.
 
 Lean: install elan once (`proofs/lean/README.md` says how). The recipes run
 `proofs/lean/check.sh`, which CI runs too (`.github/workflows/lean.yml`).
