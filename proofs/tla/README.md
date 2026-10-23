@@ -1,8 +1,8 @@
 # TLA+ models of kovan
 
-Four models, each at the grain of its code's atomic steps, checked by TLC: kovan's memory
-reclamation (the `kovan` crate), the two concurrent maps of `kovan-map` and the segment queue of
-`kovan-queue`. Each carries the defects fixed so far as mutations, one at a time (the maps' 0.1.20
+Six models, each at the grain of its code's atomic steps, checked by TLC: kovan's memory
+reclamation (the `kovan` crate) and its magazine cache and slab layer (the `recycle` feature), the
+two concurrent maps of `kovan-map` and the segment queue of `kovan-queue`. Each carries the defects fixed so far as mutations, one at a time (the maps' 0.1.20
 rules and the fixes merged into this branch, the reclamation's 0.1.21 rules and the later defects
 this branch fixed, the segment queue's earlier pop): TLC finds a counterexample for every one, and
 none for the code as built.
@@ -13,6 +13,8 @@ none for the code as built.
 | `chained/` | `kovan_map::HashMap`, the chained map: link words with a deleted mark, a frozen flag and a held flag, one CAS per write, the unlink-then-retire rule, the walk that steps past a deleted node only through a live link, the conditional writes that hold the key's link while their closure runs, the freezing migration (which waits for a hold) and clear, the bucket-snapshot walk | `just tla chained` (about 23 minutes) |
 | `hopscotch/` | `kovan_map::HopscotchMap`: home buckets with hop bits, writer guard and move stamp, the guarded insert (existence scan, the bit published before the link, displacement toward the home), the guarded remove, the conditional writes (closure under the home guard, a compute of an absent key reserving its slot first), the lookup that rescans on a moved stamp, the resize that holds every writer guard, the clear, the walk across a table swap, the shrink a remove asks for and its threshold (the table's shrink word) | `just tla hopscotch` (about 3 minutes in the recorded run) |
 | `segqueue/` | `kovan_queue::SegQueue`: the two claim words and segment pointers, the push's fetch-add claim and the cell's compare-and-swap, the link of a successor holding the linking push's value, the tail word's and pointer's advance, the pop's view of the two words, its fetch-add claim and swap (a cell still being written taken out of play), the `try_pop` claim by compare-and-swap and its `Busy` answer, the drained head segment's successor found, the head's walk that moves the tail pointer off a segment before retiring it, and kovan freeing a retired segment after its holders | `just tla segqueue` (about 25 minutes in the recorded run, on 4 workers) |
+| `magazine/` | the `recycle` feature's magazine cache for one class: each thread's loaded and previous magazines and their swaps, the depot's two Vyukov rings at their atomic steps (ticket, turn word, the ticket's compare-and-swap, the magazine, the published turn), the refill from the layer below, the hand-off of a full or empty magazine and the release of one the depot has no room for, a thread's exit | `just tla magazine` |
+| `slab/` | the slab layer under the magazine cache: an owner's chunks, its free lists and its spare chunk, the inbox other threads push blocks on, the owner's drain, its exit (the counts, the close and its count-downs), the last block back freeing an orphaned chunk and the inbox | `just tla slab` |
 
 `just tla-all` runs every family (each directory of `proofs/tla/` with an `EXPECTED.txt`), and
 `just tla <family> [configuration...]` one family, or only the configurations named; both run
@@ -1704,3 +1706,182 @@ word's segment and is descheduled before its store; a second claims a cell of th
 and is descheduled before writing it; the third links the segment after that and returns, and
 the stale store then moves the tail word back over the unwritten cell, where the third's next
 push writes its value, ahead of the one it pushed before.
+
+## The magazine cache (`magazine/Magazine.tla`)
+
+### What is transcribed from the code
+
+kovan's magazine cache for one size class (`kovan/src/recycle.rs`, the `recycle` feature): each
+thread's `loaded` and `previous` magazines, and the depot's two rings of full and empty magazines,
+each a Vyukov ring of `SLOTS` slots modelled step by step (the ticket loaded, the slot's turn word
+read, the ticket's compare-and-swap, the magazine stored, the turn published; and for a pop the
+magazine read, then the slot handed to the next round).
+
+- An allocation pops from `loaded`; finding it empty, it swaps with a full `previous`, or loads a
+  full magazine from the depot (handing the drained one to the empty ring), or refills: an empty
+  magazine loaded first (from the empty ring, or a new one), then `BATCH` blocks from the layer
+  below, one handed out and the rest in `loaded`.
+- A free pushes on `loaded`; finding it full, it swaps with an empty `previous`, or hands a full
+  `previous` to the full ring (giving its blocks back to the layer below when the ring has no
+  room) and loads an empty magazine.
+- An exit hands both magazines back: one with blocks to the full ring (its blocks to the layer
+  below when there is no room), an empty one to the empty ring (freed when there is no room).
+
+What is left out or folded, and why it changes nothing:
+
+- The layer below the magazines, the slab layer, is a set of free blocks here (`pool`): its own
+  protocol is the slab family below.
+- Tickets are counted without wrapping; `proofs/lean/Kovan/Magazine.lean` proves the wrapped
+  arithmetic decides as the unwrapped one does.
+- A thread's work on its own magazines between two ring operations is one step: no other thread
+  sees it.
+- Threads run scripted programs (`Prog`) as well as programs of any operations (`Ops`), with any
+  interleaving either way: a script reaches the deep cases (a ring filling, two pops racing for
+  one magazine) that an open program of the same length cannot reach in a search of reasonable
+  size.
+- A step that takes a free block, or one of the blocks a thread holds, takes the lowest-numbered
+  one. Those blocks are named nowhere else (`BlockOnce`), blocks are only compared for equality,
+  and a refill puts at most one block into a magazine (`BATCH` is 1 or 2, an `ASSUME`), so taking
+  another is the same step with two blocks' names swapped: the states checked are every state
+  any choice reaches, up to the names of the blocks, without the copies that differ only in
+  names. (It only narrows the choices, so every violation it finds the unnarrowed model has too.)
+- A hand-over goes to a thread between two of its operations; once every other thread is past
+  its program, the thread frees the block itself, as a program does whose consumers are gone.
+
+### Properties
+
+- `MagOnce`: every magazine is in exactly one place (a thread's pair, its hand, a ring's
+  published slot), or is one no one has, empty.
+- `BlockOnce`: every block is in exactly one place: the layer below, a thread's live nodes, a
+  free in progress, or one position of one magazine.
+- `Handover`: a pop about to read its slot finds the magazine the push of its ticket stored.
+- `FullHoldsBlocks`: the full ring holds only magazines with blocks.
+- `Bounded`: no magazine holds more than `ROUNDS` blocks, and no thread more than its pair and
+  one magazine in hand.
+- `PairShape`: between two operations, `loaded` is NULL only while `previous` is, and `previous`
+  is NULL, empty or full.
+- `ExitReturns`: once every thread has exited, none keeps a magazine or a block.
+- `Termination`, under fairness: every operation and every exit ends.
+
+### Mutations and witnesses
+
+| configuration | the wrong rule | expected |
+|---|---|---|
+| `MG_mut_pop_no_claim` | a pop takes its ticket with a plain store, not a compare-and-swap | `MagOnce` broken |
+| `MG_mut_push_turn_first` | a push publishes the turn before storing the magazine | `Handover` broken |
+| `MG_mut_exit_forgets_previous` | an exit drops its previous magazine | `MagOnce` broken |
+| `MG_mut_release_leaks` | a magazine the full ring has no room for has its blocks dropped | `BlockOnce` broken |
+| `MG_mut_empty_to_full` | an exit hands an empty magazine to the full ring | `FullHoldsBlocks` broken |
+| `MG_mut_swap_full_previous` | a free swaps with a full previous magazine | `Bounded` broken |
+| `MG_mut_pop_previous_in_place` | an allocation takes a block from a full previous in place | `PairShape` broken |
+| `MG_mut_exit_keeps_loaded` | an exit keeps its loaded magazine | `ExitReturns` broken |
+| `MG_mut_stale_ticket` | a ring operation retries a taken ticket forever | `Termination` broken |
+
+Each lists its property first, so TLC names it. The witnesses show the passing configurations
+reach an allocation from the depot (`MG_wit_depot_pop`), a full ring (`MG_wit_depot_full`), a
+refill (`MG_wit_fresh`), a new magazine (`MG_wit_new_magazine`), a ring going round more than once
+(`MG_wit_wrap`), and the depot holding full magazines after every thread exited
+(`MG_wit_exit_to_depot`).
+
+### Configurations
+
+| configuration | threads | programs |
+|---|---|---|
+| `MG_two` | two | one runs two operations of any kind, the other allocates then frees |
+| `MG_trade` | two | a producer hands two nodes to a consumer that allocates two and frees all four |
+| `MG_race` | three | one fills the depot at its exit while two allocate from it, so two pops race for one magazine |
+| `MG_rounds` | two | magazines of two blocks and refills of two: seven operations and six |
+| `MG_live` | two, fair | exits with three full magazines between them; `Termination` |
+
+Magazines of one block and rings of two slots unless said otherwise. The magazines that can exist
+(`NMags`) are kept few, since each spare one multiplies the states by the choice of which a new
+magazine takes; a step that finds no block or no magazine left cannot run, so a pool too small
+for some interleaving shows as a deadlock, never as a pass.
+
+### Code map
+
+| label | function | code | step |
+|---|---|---|---|
+| `RP1`-`RP5` | `Ring::push` | `recycle.rs:249-274` | ticket, turn word, the ticket's CAS, the magazine, the turn |
+| `OP1`-`OP5` | `Ring::pop` | `recycle.rs:277-302` | ticket, turn word, the ticket's CAS, the magazine, the next round's turn |
+| `GE1`, `GE2` | `Depot::give_empty` | `recycle.rs:326-331` | the empty ring, or the magazine freed |
+| `GB1`, `GB2` | `Depot::give_back` | `recycle.rs:336-346` | the full ring, or the blocks below and the magazine to the empty ring |
+| `AL1` | `Pair::pop`, `Pair::pop_slow` | `recycle.rs:394-430` | `loaded`, or a swap with a full `previous`, or the full ring |
+| `AL2`, `AL3` | `Pair::pop_slow` | `recycle.rs:408-430` | load the depot's full magazine; the drained one to the empty ring |
+| `AL2b`, `AL2c` | `Pair::refill` | `recycle.rs:436-453` | an empty magazine loaded, then a batch from the slab layer |
+| `FR1`-`FR4` | `Pair::push`, `Pair::push_slow` | `recycle.rs:457-500` | `loaded`, a swap, `previous` to the depot or its blocks below, an empty magazine |
+| `EX1`-`EX3` | `ThreadCache::drop` | `recycle.rs:548-560` | both magazines handed back |
+
+## The slab layer (`slab/Slab.tla`)
+
+### What is transcribed from the code
+
+The slab layer under the magazine cache for one class (`kovan/src/recycle/slab.rs`): one owner
+thread's chunks of `CAP` blocks, its inbox, and releaser threads it hands blocks to (the nodes of a
+structure other threads free).
+
+- The owner allocates from a chunk with a block to hand out (its free list, or carving); with none,
+  it drains its inbox (a swap) back into the chunks' free lists, or makes a chunk. A block back
+  to its own chunk goes on the free list; an emptied chunk is freed unless it is kept as the
+  class's one spare.
+- A releaser gives a block back by reading the chunk's inbox pointer and pushing the block on the
+  inbox with a compare-and-swap; finding the inbox closed, it counts the chunk down, and the last
+  block back frees the chunk (and, with the last reference, the inbox).
+- The owner's exit drains the inbox, writes each chunk's count of blocks out (freeing the empty
+  ones), closes the inbox with a swap, counts down for the blocks pushed in between, and gives up
+  its reference to the inbox.
+
+Every access to a chunk or to the inbox is checked against those already freed. Chunks are
+named by fresh ids, so an access to a freed one is never mistaken for one to a new chunk at the
+same address.
+
+### Properties
+
+- `NoUseAfterFree`: no thread touches a freed chunk or a freed inbox.
+- `BlockOnce`: every carved block of a live chunk is in exactly one place: a thread, a releaser
+  giving it back, the inbox, the owner's collected blocks, the chunk's free list, or counted back
+  into an orphaned chunk.
+- `BlocksOfFreed`: no block of a freed chunk is held, given back, in the inbox or collected.
+- `UsedRight`: while the owner runs, a chunk's count of blocks out is right.
+- `CountsRight`: once written at the exit, a chunk's count is its blocks out, and positive.
+- `NoLeak`: once every thread is done, every chunk and the inbox are freed.
+- `Termination`, under fairness.
+
+### Mutations and witnesses
+
+| configuration | the wrong rule | expected |
+|---|---|---|
+| `SL_mut_close_before_counts` | the exit closes the inbox before writing the counts | `CountsRight` broken |
+| `SL_mut_touch_after_push` | a releaser reads the chunk after its push | `NoUseAfterFree` broken |
+| `SL_mut_drop_closed_blocks` | the close drops the blocks it collected | `BlockOnce` broken |
+| `SL_mut_free_one_early` | the owner frees a chunk with one block still out | `BlocksOfFreed` broken |
+| `SL_mut_keep_inbox_ref` | freeing a chunk keeps its reference to the inbox | `NoLeak` broken |
+| `SL_mut_stale_head` | a releaser retries its compare-and-swap with the old head | `Termination` broken |
+
+The witnesses show the passing configurations reach a remote push (`SL_wit_remote_push`), a
+releaser counting down after the owner exited (`SL_wit_count_down`), a releaser freeing a chunk
+(`SL_wit_freed_by_releaser`), a spare chunk (`SL_wit_spare`), and a block handed out again from a
+fully carved chunk (`SL_wit_reuse`).
+
+### Configurations
+
+| configuration | releasers | owner operations, chunks |
+|---|---|---|
+| `SL_two` | two | nine, three chunks |
+| `SL_one` | one | eight, three chunks |
+| `SL_deep` | two | ten, four chunks |
+| `SL_live` | two, fair | three; `Termination` |
+
+Chunks of two blocks in every one.
+
+### Code map
+
+| label | function | code | step |
+|---|---|---|---|
+| `OW1` (alloc) | `SlabClass::alloc` | `slab.rs:237-269` | a free-list block, a carved one, or the chunk off the partial list |
+| `OW1` (drain), `OW2`, `OW2s` | `SlabClass::drain_inbox`, `settle` | `slab.rs:291-331` | the inbox swapped, each block to its chunk, an empty chunk freed or kept |
+| `OW1` (new chunk) | `SlabClass::new_chunk` | `slab.rs:334-377` | a chunk made, its inbox reference taken |
+| `OW1` (give back), `OW3` | `SlabClass::release_own`, `settle` | `slab.rs:277-312` | a block back to its own chunk |
+| `RR1`, `RR2` | `release_remote` | `slab.rs:492-516` | the chunk's inbox, the inbox word, the push's CAS |
+| `RR4` | `count_down`, `free_chunk`, `release_inbox` | `slab.rs:477-483`, `slab.rs:193-206`, `slab.rs:106-112` | the count-down; the last frees the chunk and maybe the inbox |
+| `EX1`-`EX6` | `SlabClass::orphan` | `slab.rs:432-469` | the drain, the counts, the close and its count-downs, the owner's reference |

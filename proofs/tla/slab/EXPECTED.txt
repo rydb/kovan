@@ -1,0 +1,16 @@
+# configuration                  module             expected
+SL_two                             MC_Slab            pass
+SL_one                             MC_Slab            pass
+SL_deep                            MC_Slab            pass
+SL_live                            MC_Slab            pass
+SL_mut_close_before_counts         MC_Slab            violated:CountsRight
+SL_mut_touch_after_push            MC_Slab            violated:NoUseAfterFree
+SL_mut_drop_closed_blocks          MC_Slab            violated:BlockOnce
+SL_mut_free_one_early              MC_Slab            violated:BlocksOfFreed
+SL_mut_keep_inbox_ref              MC_Slab            violated:NoLeak
+SL_mut_stale_head                  MC_Slab            violated:Termination
+SL_wit_remote_push                 MC_Slab            violated:NoRemotePushW
+SL_wit_count_down                  MC_Slab            violated:NoCountDownW
+SL_wit_freed_by_releaser           MC_Slab            violated:NoFreedByReleaserW
+SL_wit_spare                       MC_Slab            violated:NoSpareW
+SL_wit_reuse                       MC_Slab            violated:NoReuseW

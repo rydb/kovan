@@ -188,7 +188,7 @@ bench-ab *args:
 
 # ---------------------------------------------------------------- proofs
 
-# Model-check one TLA+ family (reclaim, chained, hopscotch), all its configurations or the ones named
+# Model-check one TLA+ family (reclaim, chained, hopscotch, segqueue, magazine, slab), all its configurations or the ones named
 [group("proofs")]
 tla family *configs:
     bash proofs/tla/run_tlc.sh {{ family }} {{ configs }}
