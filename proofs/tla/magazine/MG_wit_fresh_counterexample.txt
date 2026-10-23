@@ -1,0 +1,277 @@
+Error: Invariant NoFreshW is violated.
+Error: The behavior up to this point is:
+State 1: <Initial predicate>
+/\ hand = <<0>>
+/\ popAt = <<0, 0>>
+/\ k = <<0>>
+/\ slotMag = <<(0 :> 0 @@ 1 :> 0), (0 :> 0 @@ 1 :> 0)>>
+/\ pc = <<"TH1">>
+/\ pm = <<0>>
+/\ mags = <<<<>>, <<>>, <<>>, <<>>, <<>>, <<>>, <<>>>>
+/\ pool = 1..2
+/\ rm = <<0>>
+/\ fb = <<0>>
+/\ ro = <<0>>
+/\ rp = <<0>>
+/\ rv = <<FALSE>>
+/\ left = {}
+/\ previous = <<0>>
+/\ to = <<0>>
+/\ tp = <<0>>
+/\ pushAt = <<0, 0>>
+/\ loaded = <<0>>
+/\ held = <<{}>>
+/\ ticketMag = <<<<>>, <<>>>>
+/\ turn = <<(0 :> 0 @@ 1 :> 0), (0 :> 0 @@ 1 :> 0)>>
+/\ magPool = 1..7
+/\ seen = {}
+/\ stack = <<<<>>>>
+
+State 2: <TH1 line 917, col 14 to line 955, col 50 of module Magazine>
+/\ hand = <<0>>
+/\ popAt = <<0, 0>>
+/\ k = <<1>>
+/\ slotMag = <<(0 :> 0 @@ 1 :> 0), (0 :> 0 @@ 1 :> 0)>>
+/\ pc = <<"AL1">>
+/\ pm = <<0>>
+/\ mags = <<<<>>, <<>>, <<>>, <<>>, <<>>, <<>>, <<>>>>
+/\ pool = 1..2
+/\ rm = <<0>>
+/\ fb = <<0>>
+/\ ro = <<0>>
+/\ rp = <<0>>
+/\ rv = <<FALSE>>
+/\ left = {}
+/\ previous = <<0>>
+/\ to = <<0>>
+/\ tp = <<0>>
+/\ pushAt = <<0, 0>>
+/\ loaded = <<0>>
+/\ held = <<{}>>
+/\ ticketMag = <<<<>>, <<>>>>
+/\ turn = <<(0 :> 0 @@ 1 :> 0), (0 :> 0 @@ 1 :> 0)>>
+/\ magPool = 1..7
+/\ seen = {}
+/\ stack = <<<<[pc |-> "TH1", procedure |-> "Alloc"]>>>>
+
+State 3: <AL1 line 681, col 14 to line 713, col 81 of module Magazine>
+/\ hand = <<0>>
+/\ popAt = <<0, 0>>
+/\ k = <<1>>
+/\ slotMag = <<(0 :> 0 @@ 1 :> 0), (0 :> 0 @@ 1 :> 0)>>
+/\ pc = <<"OP1">>
+/\ pm = <<0>>
+/\ mags = <<<<>>, <<>>, <<>>, <<>>, <<>>, <<>>, <<>>>>
+/\ pool = 1..2
+/\ rm = <<0>>
+/\ fb = <<0>>
+/\ ro = <<1>>
+/\ rp = <<0>>
+/\ rv = <<FALSE>>
+/\ left = {}
+/\ previous = <<0>>
+/\ to = <<0>>
+/\ tp = <<0>>
+/\ pushAt = <<0, 0>>
+/\ loaded = <<0>>
+/\ held = <<{}>>
+/\ ticketMag = <<<<>>, <<>>>>
+/\ turn = <<(0 :> 0 @@ 1 :> 0), (0 :> 0 @@ 1 :> 0)>>
+/\ magPool = 1..7
+/\ seen = {}
+/\ stack = << << [pc |-> "AL2", ro |-> 0, to |-> 0, procedure |-> "RingPop"],
+      [pc |-> "TH1", procedure |-> "Alloc"] >> >>
+
+State 4: <OP1 line 548, col 14 to line 553, col 72 of module Magazine>
+/\ hand = <<0>>
+/\ popAt = <<0, 0>>
+/\ k = <<1>>
+/\ slotMag = <<(0 :> 0 @@ 1 :> 0), (0 :> 0 @@ 1 :> 0)>>
+/\ pc = <<"OP2">>
+/\ pm = <<0>>
+/\ mags = <<<<>>, <<>>, <<>>, <<>>, <<>>, <<>>, <<>>>>
+/\ pool = 1..2
+/\ rm = <<0>>
+/\ fb = <<0>>
+/\ ro = <<1>>
+/\ rp = <<0>>
+/\ rv = <<FALSE>>
+/\ left = {}
+/\ previous = <<0>>
+/\ to = <<0>>
+/\ tp = <<0>>
+/\ pushAt = <<0, 0>>
+/\ loaded = <<0>>
+/\ held = <<{}>>
+/\ ticketMag = <<<<>>, <<>>>>
+/\ turn = <<(0 :> 0 @@ 1 :> 0), (0 :> 0 @@ 1 :> 0)>>
+/\ magPool = 1..7
+/\ seen = {}
+/\ stack = << << [pc |-> "AL2", ro |-> 0, to |-> 0, procedure |-> "RingPop"],
+      [pc |-> "TH1", procedure |-> "Alloc"] >> >>
+
+State 5: <OP2 line 555, col 14 to line 570, col 61 of module Magazine>
+/\ hand = <<0>>
+/\ popAt = <<0, 0>>
+/\ k = <<1>>
+/\ slotMag = <<(0 :> 0 @@ 1 :> 0), (0 :> 0 @@ 1 :> 0)>>
+/\ pc = <<"AL2">>
+/\ pm = <<0>>
+/\ mags = <<<<>>, <<>>, <<>>, <<>>, <<>>, <<>>, <<>>>>
+/\ pool = 1..2
+/\ rm = <<0>>
+/\ fb = <<0>>
+/\ ro = <<0>>
+/\ rp = <<0>>
+/\ rv = <<FALSE>>
+/\ left = {}
+/\ previous = <<0>>
+/\ to = <<0>>
+/\ tp = <<0>>
+/\ pushAt = <<0, 0>>
+/\ loaded = <<0>>
+/\ held = <<{}>>
+/\ ticketMag = <<<<>>, <<>>>>
+/\ turn = <<(0 :> 0 @@ 1 :> 0), (0 :> 0 @@ 1 :> 0)>>
+/\ magPool = 1..7
+/\ seen = {}
+/\ stack = <<<<[pc |-> "TH1", procedure |-> "Alloc"]>>>>
+
+State 6: <AL2 line 715, col 14 to line 743, col 75 of module Magazine>
+/\ hand = <<0>>
+/\ popAt = <<0, 0>>
+/\ k = <<1>>
+/\ slotMag = <<(0 :> 0 @@ 1 :> 0), (0 :> 0 @@ 1 :> 0)>>
+/\ pc = <<"OP1">>
+/\ pm = <<0>>
+/\ mags = <<<<>>, <<>>, <<>>, <<>>, <<>>, <<>>, <<>>>>
+/\ pool = 1..2
+/\ rm = <<0>>
+/\ fb = <<0>>
+/\ ro = <<2>>
+/\ rp = <<0>>
+/\ rv = <<FALSE>>
+/\ left = {}
+/\ previous = <<0>>
+/\ to = <<0>>
+/\ tp = <<0>>
+/\ pushAt = <<0, 0>>
+/\ loaded = <<0>>
+/\ held = <<{}>>
+/\ ticketMag = <<<<>>, <<>>>>
+/\ turn = <<(0 :> 0 @@ 1 :> 0), (0 :> 0 @@ 1 :> 0)>>
+/\ magPool = 1..7
+/\ seen = {}
+/\ stack = << << [pc |-> "AL2b", ro |-> 0, to |-> 0, procedure |-> "RingPop"],
+      [pc |-> "TH1", procedure |-> "Alloc"] >> >>
+
+State 7: <OP1 line 548, col 14 to line 553, col 72 of module Magazine>
+/\ hand = <<0>>
+/\ popAt = <<0, 0>>
+/\ k = <<1>>
+/\ slotMag = <<(0 :> 0 @@ 1 :> 0), (0 :> 0 @@ 1 :> 0)>>
+/\ pc = <<"OP2">>
+/\ pm = <<0>>
+/\ mags = <<<<>>, <<>>, <<>>, <<>>, <<>>, <<>>, <<>>>>
+/\ pool = 1..2
+/\ rm = <<0>>
+/\ fb = <<0>>
+/\ ro = <<2>>
+/\ rp = <<0>>
+/\ rv = <<FALSE>>
+/\ left = {}
+/\ previous = <<0>>
+/\ to = <<0>>
+/\ tp = <<0>>
+/\ pushAt = <<0, 0>>
+/\ loaded = <<0>>
+/\ held = <<{}>>
+/\ ticketMag = <<<<>>, <<>>>>
+/\ turn = <<(0 :> 0 @@ 1 :> 0), (0 :> 0 @@ 1 :> 0)>>
+/\ magPool = 1..7
+/\ seen = {}
+/\ stack = << << [pc |-> "AL2b", ro |-> 0, to |-> 0, procedure |-> "RingPop"],
+      [pc |-> "TH1", procedure |-> "Alloc"] >> >>
+
+State 8: <OP2 line 555, col 14 to line 570, col 61 of module Magazine>
+/\ hand = <<0>>
+/\ popAt = <<0, 0>>
+/\ k = <<1>>
+/\ slotMag = <<(0 :> 0 @@ 1 :> 0), (0 :> 0 @@ 1 :> 0)>>
+/\ pc = <<"AL2b">>
+/\ pm = <<0>>
+/\ mags = <<<<>>, <<>>, <<>>, <<>>, <<>>, <<>>, <<>>>>
+/\ pool = 1..2
+/\ rm = <<0>>
+/\ fb = <<0>>
+/\ ro = <<0>>
+/\ rp = <<0>>
+/\ rv = <<FALSE>>
+/\ left = {}
+/\ previous = <<0>>
+/\ to = <<0>>
+/\ tp = <<0>>
+/\ pushAt = <<0, 0>>
+/\ loaded = <<0>>
+/\ held = <<{}>>
+/\ ticketMag = <<<<>>, <<>>>>
+/\ turn = <<(0 :> 0 @@ 1 :> 0), (0 :> 0 @@ 1 :> 0)>>
+/\ magPool = 1..7
+/\ seen = {}
+/\ stack = <<<<[pc |-> "TH1", procedure |-> "Alloc"]>>>>
+
+State 9: <AL2b line 754, col 15 to line 768, col 50 of module Magazine>
+/\ hand = <<0>>
+/\ popAt = <<0, 0>>
+/\ k = <<1>>
+/\ slotMag = <<(0 :> 0 @@ 1 :> 0), (0 :> 0 @@ 1 :> 0)>>
+/\ pc = <<"AL2c">>
+/\ pm = <<0>>
+/\ mags = <<<<>>, <<>>, <<>>, <<>>, <<>>, <<>>, <<>>>>
+/\ pool = 1..2
+/\ rm = <<0>>
+/\ fb = <<0>>
+/\ ro = <<0>>
+/\ rp = <<0>>
+/\ rv = <<FALSE>>
+/\ left = {}
+/\ previous = <<0>>
+/\ to = <<0>>
+/\ tp = <<0>>
+/\ pushAt = <<0, 0>>
+/\ loaded = <<1>>
+/\ held = <<{}>>
+/\ ticketMag = <<<<>>, <<>>>>
+/\ turn = <<(0 :> 0 @@ 1 :> 0), (0 :> 0 @@ 1 :> 0)>>
+/\ magPool = {2, 3, 4, 5, 6, 7}
+/\ seen = {"new_magazine"}
+/\ stack = <<<<[pc |-> "TH1", procedure |-> "Alloc"]>>>>
+
+State 10: <AL2c line 770, col 15 to line 782, col 50 of module Magazine>
+/\ hand = <<0>>
+/\ popAt = <<0, 0>>
+/\ k = <<1>>
+/\ slotMag = <<(0 :> 0 @@ 1 :> 0), (0 :> 0 @@ 1 :> 0)>>
+/\ pc = <<"TH1">>
+/\ pm = <<0>>
+/\ mags = <<<<>>, <<>>, <<>>, <<>>, <<>>, <<>>, <<>>>>
+/\ pool = {2}
+/\ rm = <<0>>
+/\ fb = <<0>>
+/\ ro = <<0>>
+/\ rp = <<0>>
+/\ rv = <<FALSE>>
+/\ left = {}
+/\ previous = <<0>>
+/\ to = <<0>>
+/\ tp = <<0>>
+/\ pushAt = <<0, 0>>
+/\ loaded = <<1>>
+/\ held = <<{1}>>
+/\ ticketMag = <<<<>>, <<>>>>
+/\ turn = <<(0 :> 0 @@ 1 :> 0), (0 :> 0 @@ 1 :> 0)>>
+/\ magPool = {2, 3, 4, 5, 6, 7}
+/\ seen = {"new_magazine", "fresh"}
+/\ stack = <<<<>>>>
+
+16 states generated, 16 distinct states found, 6 states left on queue.

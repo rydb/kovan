@@ -1,0 +1,27 @@
+TLC run of every configuration in proofs/tla/magazine, 2026-10-23 17:59 UTC.
+Written by proofs/tla/run_tlc.sh, not by hand. Version 2.19 of 08 August 2024.
+Java -Xmx8g; -workers 4, or 1 worker where a violation is expected. Limit: 3600 s each.
+
+configuration                         generated   distinct    sec  result                     expected                   match
+MG_two                                  4147653    2161034     56  pass                       pass                       yes
+MG_trade                               10128059    5261842    104  pass                       pass                       yes
+MG_race                               134954975   47740142    996  pass                       pass                       yes
+MG_rounds                                971153     504070     13  pass                       pass                       yes
+MG_live                                 2993193    1563754    100  pass                       pass                       yes
+MG_mut_pop_no_claim                     3117119    1243628    163  violated:MagOnce           violated:MagOnce           yes
+MG_mut_push_turn_first                    19434      10815      2  violated:Handover          violated:Handover          yes
+MG_mut_exit_forgets_previous                660        660      1  violated:MagOnce           violated:MagOnce           yes
+MG_mut_empty_to_full                      12814       7105      3  violated:FullHoldsBlocks   violated:FullHoldsBlocks   yes
+MG_mut_swap_full_previous                   240        240      1  violated:Bounded           violated:Bounded           yes
+MG_mut_pop_previous_in_place                548        548      1  violated:PairShape         violated:PairShape         yes
+MG_mut_exit_keeps_loaded                    702        702      1  violated:ExitReturns       violated:ExitReturns       yes
+MG_mut_stale_ticket                     1937984    1021716    194  violated:Termination       violated:Termination       yes
+MG_wit_depot_pop                          39104      21465      2  violated:NoDepotPopW       violated:NoDepotPopW       yes
+MG_wit_depot_full                       1784329     941102     16  violated:NoDepotFullW      violated:NoDepotFullW      yes
+MG_wit_fresh                                 16         16      1  violated:NoFreshW          violated:NoFreshW          yes
+MG_wit_new_magazine                           9          9      1  violated:NoNewMagazineW    violated:NoNewMagazineW    yes
+MG_wit_wrap                               10530      10530      1  violated:NoWrapW           violated:NoWrapW           yes
+MG_wit_exit_to_depot                       1038       1038      1  violated:NoExitToDepotW    violated:NoExitToDepotW    yes
+MG_mut_release_leaks                       4230       4230      2  violated:BlockOnce         violated:BlockOnce         yes
+
+results matching EXPECTED.txt: 20 of 20

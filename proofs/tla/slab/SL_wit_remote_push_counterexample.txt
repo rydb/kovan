@@ -1,0 +1,171 @@
+Error: Invariant NoRemotePushW is violated.
+Error: The behavior up to this point is:
+State 1: <Initial predicate>
+/\ outstanding = <<-1, -1, -1>>
+/\ spare = 0
+/\ partial = {}
+/\ made = {}
+/\ ob = <<0, 0>>
+/\ refs = 1
+/\ k = 0
+/\ pc = (0 :> "OW1" @@ 1 :> "RR0" @@ 2 :> "RR0")
+/\ collected = <<>>
+/\ rb = <<<<0, 0>>, <<0, 0>>>>
+/\ ver = 0
+/\ used = <<0, 0, 0>>
+/\ carved = <<0, 0, 0>>
+/\ errs = {}
+/\ inboxFreed = FALSE
+/\ returned = {}
+/\ closed = FALSE
+/\ held = (0 :> {} @@ 1 :> {} @@ 2 :> {})
+/\ freed = {}
+/\ local = <<{}, {}, {}>>
+/\ inbox = <<>>
+/\ head = <<[v |-> 0, shut |-> FALSE], [v |-> 0, shut |-> FALSE]>>
+
+State 2: <OW1 line 300, col 8 to line 359, col 34 of module Slab>
+/\ outstanding = <<-1, -1, -1>>
+/\ spare = 0
+/\ partial = {1}
+/\ made = {1}
+/\ ob = <<0, 0>>
+/\ refs = 2
+/\ k = 1
+/\ pc = (0 :> "OW1" @@ 1 :> "RR0" @@ 2 :> "RR0")
+/\ collected = <<>>
+/\ rb = <<<<0, 0>>, <<0, 0>>>>
+/\ ver = 0
+/\ used = <<0, 0, 0>>
+/\ carved = <<0, 0, 0>>
+/\ errs = {}
+/\ inboxFreed = FALSE
+/\ returned = {}
+/\ closed = FALSE
+/\ held = (0 :> {} @@ 1 :> {} @@ 2 :> {})
+/\ freed = {}
+/\ local = <<{}, {}, {}>>
+/\ inbox = <<>>
+/\ head = <<[v |-> 0, shut |-> FALSE], [v |-> 0, shut |-> FALSE]>>
+
+State 3: <OW1 line 300, col 8 to line 359, col 34 of module Slab>
+/\ outstanding = <<-1, -1, -1>>
+/\ spare = 0
+/\ partial = {1}
+/\ made = {1}
+/\ ob = <<0, 0>>
+/\ refs = 2
+/\ k = 2
+/\ pc = (0 :> "OW1" @@ 1 :> "RR0" @@ 2 :> "RR0")
+/\ collected = <<>>
+/\ rb = <<<<0, 0>>, <<0, 0>>>>
+/\ ver = 0
+/\ used = <<1, 0, 0>>
+/\ carved = <<1, 0, 0>>
+/\ errs = {}
+/\ inboxFreed = FALSE
+/\ returned = {}
+/\ closed = FALSE
+/\ held = (0 :> {<<1, 0>>} @@ 1 :> {} @@ 2 :> {})
+/\ freed = {}
+/\ local = <<{}, {}, {}>>
+/\ inbox = <<>>
+/\ head = <<[v |-> 0, shut |-> FALSE], [v |-> 0, shut |-> FALSE]>>
+
+State 4: <OW1 line 300, col 8 to line 359, col 34 of module Slab>
+/\ outstanding = <<-1, -1, -1>>
+/\ spare = 0
+/\ partial = {1}
+/\ made = {1}
+/\ ob = <<0, 0>>
+/\ refs = 2
+/\ k = 3
+/\ pc = (0 :> "OW1" @@ 1 :> "RR0" @@ 2 :> "RR0")
+/\ collected = <<>>
+/\ rb = <<<<0, 0>>, <<0, 0>>>>
+/\ ver = 0
+/\ used = <<1, 0, 0>>
+/\ carved = <<1, 0, 0>>
+/\ errs = {}
+/\ inboxFreed = FALSE
+/\ returned = {}
+/\ closed = FALSE
+/\ held = (0 :> {} @@ 1 :> {<<1, 0>>} @@ 2 :> {})
+/\ freed = {}
+/\ local = <<{}, {}, {}>>
+/\ inbox = <<>>
+/\ head = <<[v |-> 0, shut |-> FALSE], [v |-> 0, shut |-> FALSE]>>
+
+State 5: <RR0 line 491, col 14 to line 502, col 70 of module Slab>
+/\ outstanding = <<-1, -1, -1>>
+/\ spare = 0
+/\ partial = {1}
+/\ made = {1}
+/\ ob = <<0, 0>>
+/\ refs = 2
+/\ k = 3
+/\ pc = (0 :> "OW1" @@ 1 :> "RR1" @@ 2 :> "RR0")
+/\ collected = <<>>
+/\ rb = <<<<1, 0>>, <<0, 0>>>>
+/\ ver = 0
+/\ used = <<1, 0, 0>>
+/\ carved = <<1, 0, 0>>
+/\ errs = {}
+/\ inboxFreed = FALSE
+/\ returned = {}
+/\ closed = FALSE
+/\ held = (0 :> {} @@ 1 :> {} @@ 2 :> {})
+/\ freed = {}
+/\ local = <<{}, {}, {}>>
+/\ inbox = <<>>
+/\ head = <<[v |-> 0, shut |-> FALSE], [v |-> 0, shut |-> FALSE]>>
+
+State 6: <RR1 line 504, col 14 to line 510, col 68 of module Slab>
+/\ outstanding = <<-1, -1, -1>>
+/\ spare = 0
+/\ partial = {1}
+/\ made = {1}
+/\ ob = <<0, 0>>
+/\ refs = 2
+/\ k = 3
+/\ pc = (0 :> "OW1" @@ 1 :> "RR2" @@ 2 :> "RR0")
+/\ collected = <<>>
+/\ rb = <<<<1, 0>>, <<0, 0>>>>
+/\ ver = 0
+/\ used = <<1, 0, 0>>
+/\ carved = <<1, 0, 0>>
+/\ errs = {}
+/\ inboxFreed = FALSE
+/\ returned = {}
+/\ closed = FALSE
+/\ held = (0 :> {} @@ 1 :> {} @@ 2 :> {})
+/\ freed = {}
+/\ local = <<{}, {}, {}>>
+/\ inbox = <<>>
+/\ head = <<[v |-> 0, shut |-> FALSE], [v |-> 0, shut |-> FALSE]>>
+
+State 7: <RR2 line 512, col 14 to line 530, col 62 of module Slab>
+/\ outstanding = <<-1, -1, -1>>
+/\ spare = 0
+/\ partial = {1}
+/\ made = {1}
+/\ ob = <<0, 0>>
+/\ refs = 2
+/\ k = 3
+/\ pc = (0 :> "OW1" @@ 1 :> "RR0" @@ 2 :> "RR0")
+/\ collected = <<>>
+/\ rb = <<<<1, 0>>, <<0, 0>>>>
+/\ ver = 1
+/\ used = <<1, 0, 0>>
+/\ carved = <<1, 0, 0>>
+/\ errs = {}
+/\ inboxFreed = FALSE
+/\ returned = {}
+/\ closed = FALSE
+/\ held = (0 :> {} @@ 1 :> {} @@ 2 :> {})
+/\ freed = {}
+/\ local = <<{}, {}, {}>>
+/\ inbox = <<<<1, 0>>>>
+/\ head = <<[v |-> 0, shut |-> FALSE], [v |-> 0, shut |-> FALSE]>>
+
+125 states generated, 108 distinct states found, 46 states left on queue.

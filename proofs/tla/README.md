@@ -1812,6 +1812,18 @@ for some interleaving shows as a deadlock, never as a pass.
 | `FR1`-`FR4` | `Pair::push`, `Pair::push_slow` | `recycle.rs:457-500` | `loaded`, a swap, `previous` to the depot or its blocks below, an empty magazine |
 | `EX1`-`EX3` | `ThreadCache::drop` | `recycle.rs:548-560` | both magazines handed back |
 
+### TLC results
+
+The run recorded in `magazine/tlc-run.txt` (4 workers for a passing configuration, one for a
+violation, at the lowest priority on a 36-core machine shared with other heavy work): 20 of 20
+configurations match `EXPECTED.txt`, in 1659 s of wall time. The passing ones are `MG_race`
+(47,740,142 distinct states, 996 s), `MG_trade` (5,261,842, 104 s), `MG_two` (2,161,034, 56 s),
+`MG_live` (1,563,754, 100 s, with `Termination`) and `MG_rounds` (504,070, 13 s). The longest runs
+that break a property, on one worker, are `MG_mut_stale_ticket` (1,021,716 distinct states, 194 s)
+and `MG_mut_pop_no_claim` (1,243,628, 163 s). `MG_mut_stale_ticket` breaks a liveness property,
+which TLC checks at intervals on the part of the state space explored so far, so the count it stops
+at varies from run to run (CI's run of the same model stopped at 1,304,519).
+
 ## The slab layer (`slab/Slab.tla`)
 
 ### What is transcribed from the code
@@ -1885,3 +1897,11 @@ Chunks of two blocks in every one.
 | `RR1`, `RR2` | `release_remote` | `slab.rs:492-516` | the chunk's inbox, the inbox word, the push's CAS |
 | `RR4` | `count_down`, `free_chunk`, `release_inbox` | `slab.rs:477-483`, `slab.rs:193-206`, `slab.rs:106-112` | the count-down; the last frees the chunk and maybe the inbox |
 | `EX1`-`EX6` | `SlabClass::orphan` | `slab.rs:432-469` | the drain, the counts, the close and its count-downs, the owner's reference |
+
+### TLC results
+
+The run recorded in `slab/tlc-run.txt` (the magazine run's settings): 15 of 15 configurations
+match `EXPECTED.txt`, in 40 s of wall time. The passing ones are `SL_deep` (1,885,607 distinct
+states, 19 s), `SL_two` (390,403, 6 s), `SL_one` (23,197, 2 s) and `SL_live` (535, 1 s, with
+`Termination`). Every mutation breaks its property within 1,393 distinct states
+(`SL_mut_free_one_early`) and two seconds.

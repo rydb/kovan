@@ -1,0 +1,267 @@
+Error: Invariant BlocksOfFreed is violated.
+Error: The behavior up to this point is:
+State 1: <Initial predicate>
+/\ outstanding = <<-1, -1, -1>>
+/\ spare = 0
+/\ partial = {}
+/\ made = {}
+/\ ob = <<0, 0>>
+/\ refs = 1
+/\ k = 0
+/\ pc = (0 :> "OW1" @@ 1 :> "RR0")
+/\ collected = <<>>
+/\ rb = <<<<0, 0>>>>
+/\ ver = 0
+/\ used = <<0, 0, 0>>
+/\ carved = <<0, 0, 0>>
+/\ errs = {}
+/\ inboxFreed = FALSE
+/\ returned = {}
+/\ closed = FALSE
+/\ held = (0 :> {} @@ 1 :> {})
+/\ freed = {}
+/\ local = <<{}, {}, {}>>
+/\ inbox = <<>>
+/\ head = <<[v |-> 0, shut |-> FALSE]>>
+
+State 2: <OW1 line 300, col 8 to line 359, col 34 of module Slab>
+/\ outstanding = <<-1, -1, -1>>
+/\ spare = 0
+/\ partial = {1}
+/\ made = {1}
+/\ ob = <<0, 0>>
+/\ refs = 2
+/\ k = 1
+/\ pc = (0 :> "OW1" @@ 1 :> "RR0")
+/\ collected = <<>>
+/\ rb = <<<<0, 0>>>>
+/\ ver = 0
+/\ used = <<0, 0, 0>>
+/\ carved = <<0, 0, 0>>
+/\ errs = {}
+/\ inboxFreed = FALSE
+/\ returned = {}
+/\ closed = FALSE
+/\ held = (0 :> {} @@ 1 :> {})
+/\ freed = {}
+/\ local = <<{}, {}, {}>>
+/\ inbox = <<>>
+/\ head = <<[v |-> 0, shut |-> FALSE]>>
+
+State 3: <OW1 line 300, col 8 to line 359, col 34 of module Slab>
+/\ outstanding = <<-1, -1, -1>>
+/\ spare = 0
+/\ partial = {1}
+/\ made = {1}
+/\ ob = <<0, 0>>
+/\ refs = 2
+/\ k = 2
+/\ pc = (0 :> "OW1" @@ 1 :> "RR0")
+/\ collected = <<>>
+/\ rb = <<<<0, 0>>>>
+/\ ver = 0
+/\ used = <<1, 0, 0>>
+/\ carved = <<1, 0, 0>>
+/\ errs = {}
+/\ inboxFreed = FALSE
+/\ returned = {}
+/\ closed = FALSE
+/\ held = (0 :> {<<1, 0>>} @@ 1 :> {})
+/\ freed = {}
+/\ local = <<{}, {}, {}>>
+/\ inbox = <<>>
+/\ head = <<[v |-> 0, shut |-> FALSE]>>
+
+State 4: <OW1 line 300, col 8 to line 359, col 34 of module Slab>
+/\ outstanding = <<-1, -1, -1>>
+/\ spare = 0
+/\ partial = {1}
+/\ made = {1}
+/\ ob = <<0, 0>>
+/\ refs = 2
+/\ k = 3
+/\ pc = (0 :> "OW1" @@ 1 :> "RR0")
+/\ collected = <<>>
+/\ rb = <<<<0, 0>>>>
+/\ ver = 0
+/\ used = <<2, 0, 0>>
+/\ carved = <<2, 0, 0>>
+/\ errs = {}
+/\ inboxFreed = FALSE
+/\ returned = {}
+/\ closed = FALSE
+/\ held = (0 :> {<<1, 0>>, <<1, 1>>} @@ 1 :> {})
+/\ freed = {}
+/\ local = <<{}, {}, {}>>
+/\ inbox = <<>>
+/\ head = <<[v |-> 0, shut |-> FALSE]>>
+
+State 5: <OW1 line 300, col 8 to line 359, col 34 of module Slab>
+/\ outstanding = <<-1, -1, -1>>
+/\ spare = 0
+/\ partial = {}
+/\ made = {1}
+/\ ob = <<0, 0>>
+/\ refs = 2
+/\ k = 4
+/\ pc = (0 :> "OW1" @@ 1 :> "RR0")
+/\ collected = <<>>
+/\ rb = <<<<0, 0>>>>
+/\ ver = 0
+/\ used = <<2, 0, 0>>
+/\ carved = <<2, 0, 0>>
+/\ errs = {}
+/\ inboxFreed = FALSE
+/\ returned = {}
+/\ closed = FALSE
+/\ held = (0 :> {<<1, 0>>, <<1, 1>>} @@ 1 :> {})
+/\ freed = {}
+/\ local = <<{}, {}, {}>>
+/\ inbox = <<>>
+/\ head = <<[v |-> 0, shut |-> FALSE]>>
+
+State 6: <OW1 line 300, col 8 to line 359, col 34 of module Slab>
+/\ outstanding = <<-1, -1, -1>>
+/\ spare = 0
+/\ partial = {2}
+/\ made = {1, 2}
+/\ ob = <<0, 0>>
+/\ refs = 3
+/\ k = 5
+/\ pc = (0 :> "OW1" @@ 1 :> "RR0")
+/\ collected = <<>>
+/\ rb = <<<<0, 0>>>>
+/\ ver = 0
+/\ used = <<2, 0, 0>>
+/\ carved = <<2, 0, 0>>
+/\ errs = {}
+/\ inboxFreed = FALSE
+/\ returned = {}
+/\ closed = FALSE
+/\ held = (0 :> {<<1, 0>>, <<1, 1>>} @@ 1 :> {})
+/\ freed = {}
+/\ local = <<{}, {}, {}>>
+/\ inbox = <<>>
+/\ head = <<[v |-> 0, shut |-> FALSE]>>
+
+State 7: <OW1 line 300, col 8 to line 359, col 34 of module Slab>
+/\ outstanding = <<-1, -1, -1>>
+/\ spare = 0
+/\ partial = {2}
+/\ made = {1, 2}
+/\ ob = <<0, 0>>
+/\ refs = 3
+/\ k = 6
+/\ pc = (0 :> "OW1" @@ 1 :> "RR0")
+/\ collected = <<>>
+/\ rb = <<<<0, 0>>>>
+/\ ver = 0
+/\ used = <<2, 1, 0>>
+/\ carved = <<2, 1, 0>>
+/\ errs = {}
+/\ inboxFreed = FALSE
+/\ returned = {}
+/\ closed = FALSE
+/\ held = (0 :> {<<1, 0>>, <<1, 1>>, <<2, 0>>} @@ 1 :> {})
+/\ freed = {}
+/\ local = <<{}, {}, {}>>
+/\ inbox = <<>>
+/\ head = <<[v |-> 0, shut |-> FALSE]>>
+
+State 8: <OW1 line 300, col 8 to line 359, col 34 of module Slab>
+/\ outstanding = <<-1, -1, -1>>
+/\ spare = 0
+/\ partial = {2}
+/\ made = {1, 2}
+/\ ob = <<2, 0>>
+/\ refs = 3
+/\ k = 7
+/\ pc = (0 :> "OW3" @@ 1 :> "RR0")
+/\ collected = <<>>
+/\ rb = <<<<0, 0>>>>
+/\ ver = 0
+/\ used = <<2, 0, 0>>
+/\ carved = <<2, 1, 0>>
+/\ errs = {}
+/\ inboxFreed = FALSE
+/\ returned = {}
+/\ closed = FALSE
+/\ held = (0 :> {<<1, 0>>, <<1, 1>>} @@ 1 :> {})
+/\ freed = {}
+/\ local = <<{}, {<<2, 0>>}, {}>>
+/\ inbox = <<>>
+/\ head = <<[v |-> 0, shut |-> FALSE]>>
+
+State 9: <OW3 line 389, col 8 to line 401, col 34 of module Slab>
+/\ outstanding = <<-1, -1, -1>>
+/\ spare = 2
+/\ partial = {2}
+/\ made = {1, 2}
+/\ ob = <<2, 0>>
+/\ refs = 3
+/\ k = 7
+/\ pc = (0 :> "OW1" @@ 1 :> "RR0")
+/\ collected = <<>>
+/\ rb = <<<<0, 0>>>>
+/\ ver = 0
+/\ used = <<2, 0, 0>>
+/\ carved = <<2, 1, 0>>
+/\ errs = {}
+/\ inboxFreed = FALSE
+/\ returned = {}
+/\ closed = FALSE
+/\ held = (0 :> {<<1, 0>>, <<1, 1>>} @@ 1 :> {})
+/\ freed = {}
+/\ local = <<{}, {<<2, 0>>}, {}>>
+/\ inbox = <<>>
+/\ head = <<[v |-> 0, shut |-> FALSE]>>
+
+State 10: <OW1 line 300, col 8 to line 359, col 34 of module Slab>
+/\ outstanding = <<-1, -1, -1>>
+/\ spare = 2
+/\ partial = {2}
+/\ made = {1, 2}
+/\ ob = <<1, 0>>
+/\ refs = 3
+/\ k = 8
+/\ pc = (0 :> "OW3" @@ 1 :> "RR0")
+/\ collected = <<>>
+/\ rb = <<<<0, 0>>>>
+/\ ver = 0
+/\ used = <<1, 0, 0>>
+/\ carved = <<2, 1, 0>>
+/\ errs = {}
+/\ inboxFreed = FALSE
+/\ returned = {}
+/\ closed = FALSE
+/\ held = (0 :> {<<1, 1>>} @@ 1 :> {})
+/\ freed = {}
+/\ local = <<{<<1, 0>>}, {<<2, 0>>}, {}>>
+/\ inbox = <<>>
+/\ head = <<[v |-> 0, shut |-> FALSE]>>
+
+State 11: <OW3 line 389, col 8 to line 401, col 34 of module Slab>
+/\ outstanding = <<-1, -1, -1>>
+/\ spare = 2
+/\ partial = {2}
+/\ made = {1, 2}
+/\ ob = <<1, 0>>
+/\ refs = 2
+/\ k = 8
+/\ pc = (0 :> "OW1" @@ 1 :> "RR0")
+/\ collected = <<>>
+/\ rb = <<<<0, 0>>>>
+/\ ver = 0
+/\ used = <<1, 0, 0>>
+/\ carved = <<2, 1, 0>>
+/\ errs = {}
+/\ inboxFreed = FALSE
+/\ returned = {}
+/\ closed = FALSE
+/\ held = (0 :> {<<1, 1>>} @@ 1 :> {})
+/\ freed = {1}
+/\ local = <<{<<1, 0>>}, {<<2, 0>>}, {}>>
+/\ inbox = <<>>
+/\ head = <<[v |-> 0, shut |-> FALSE]>>
+
+2291 states generated, 1393 distinct states found, 632 states left on queue.
