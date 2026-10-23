@@ -215,9 +215,8 @@ fn shuttle_channel_blocking_recv_steals_notified_message_reparks() {
 /// (f) `notify_one` racing a fresh registration with a *stale* entry
 /// sitting ahead of it in the same `WaitList` -- the store-buffering
 /// (Dekker) interleaving `wakeup_fence` exists to exclude (see the module
-/// docs on `crate::waitlist`, and 02_wakeloss_and_watchdogs.md section
-/// 1.1): thread A's register-then-recheck racing thread B's
-/// publish-then-notify, where naive Acquire/Release on the two
+/// docs on `crate::waitlist`): thread A's register-then-recheck racing
+/// thread B's publish-then-notify, where naive Acquire/Release on the two
 /// independent locations (the registration queue, the message) could let
 /// both sides observe stale state and the wakeup vanish.
 ///
@@ -225,9 +224,10 @@ fn shuttle_channel_blocking_recv_steals_notified_message_reparks() {
 /// what a `recv()` does when its own post-register recheck finds a
 /// message and never parks -- see "why registration can go stale" in the
 /// `waitlist` module docs) sits in the queue *ahead* of the fresh one by
-/// construction (`SegQueue` is FIFO), so `notify_one` must pop through it
-/// and land on the live, concurrently-registered receiver instead of
-/// discarding the wakeup on the stale head.
+/// construction (`SegQueue` is a linearizable FIFO: a push that returned
+/// comes out before one that began after it), so `notify_one` must pop
+/// through it and land on the live, concurrently-registered receiver
+/// instead of discarding the wakeup on the stale head.
 fn notify_one_reaches_fresh_registration_past_stale_entry() {
     let (tx, rx) = unbounded::<u64>();
 
