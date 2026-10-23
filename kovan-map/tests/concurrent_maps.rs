@@ -182,7 +182,12 @@ mod get_or_insert_answers_its_own_value_when_it_inserts {
         let _serial = serial();
         const KEYS: u64 = 4_000;
         let mut seen_race = 0usize;
-        for round in 0..scaled(20) {
+        // Whether the two threads ever meet on a key is the scheduler's call: past the
+        // scaled rounds, keep going until they have, up to twenty times as many.
+        let (rounds, most) = (scaled(20), scaled(400));
+        let mut round = 0;
+        while round < rounds || (seen_race == 0 && round < most) {
+            round += 1;
             let map = Arc::new(M::with_capacity(8_192));
             let m = Arc::clone(&map);
             // Both threads take the keys in the same order: each key is claimed and replaced at
@@ -212,7 +217,7 @@ mod get_or_insert_answers_its_own_value_when_it_inserts {
         }
         assert!(
             seen_race > 0,
-            "{}: the replace never saw the claim's value",
+            "{}: the replace never saw the claim's value in {round} rounds",
             M::NAME
         );
     }
