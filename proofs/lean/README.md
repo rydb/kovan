@@ -144,6 +144,9 @@ two rings of 16 slots, whose tickets and turn words count to `2^64` and then wra
    blocks in a chunk, each block lies wholly inside and aligned to 16, and a refill takes between
    one block and a magazine's worth.
 5. The cache holds at most two magazines of 32 blocks per thread and class and 16 in the depot.
+6. A refill hands out the first block it takes and leaves the others to pop in the order it took
+   them, and blocks carved one after another lie at rising addresses: nodes allocated one after
+   another lie at rising addresses, which a prefetcher streams.
 
 `Kovan/Magazine.lean` proves these; the TLA+ model in `../tla/magazine` checks the threads'
 interleavings.
@@ -261,7 +264,8 @@ without wrapping (`pos`, `classify`).
 
 `Kovan/Magazine.lean`, a model of `kovan/src/recycle.rs` (`class_of`, `CLASS_SIZES`, the
 rings' `turn_of`, `wrapping_sub` and the signs `push` and `pop` branch on, `ROUNDS`,
-`DEPOT_SLOTS`, `refill_count`) and `kovan/src/recycle/slab.rs` (`chunk_of`, `capacity`).
+`DEPOT_SLOTS`, `refill_count`, the loop of `Pair::refill`) and `kovan/src/recycle/slab.rs`
+(`chunk_of`, `capacity`, the carving offset of `SlabClass::alloc`).
 
 | theorem | what it says |
 |---------|--------------|
@@ -275,6 +279,8 @@ rings' `turn_of`, `wrapping_sub` and the signs `push` and `pop` branch on, `ROUN
 | `chunkOf_block` | a block carved from a chunk finds its chunk by masking its address |
 | `capacity_fits`, `block_aligned` | with a header of at most 128 bytes, every class's chunk holds at least two blocks, each wholly inside and aligned to 16 |
 | `refillCount_bounds` | a refill takes at least one block and at most a magazine's |
+| `refillLoop_slot`, `refillLoop_above`, `refill_pops_in_carving_order`, `refill_fits` | the refill's loop stores the `j`-th block it takes in slot `rest - 1 - j` and nothing at or past `rest`, so the `k`-th pop after it takes the `(k + 1)`-th block taken (the refill's own allocation the first), and the blocks fit in the magazine |
+| `carve_rises` | blocks carved from a chunk one after another lie at rising addresses |
 | `magazines_hold_at_most`, `class_bound`, `bound_for_64_byte_nodes` | the blocks per thread and in the depot of one class, and the crate docs' numbers for 64-byte nodes |
 
 ## How to check it

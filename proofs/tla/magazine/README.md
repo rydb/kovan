@@ -13,7 +13,7 @@ magazine read, then the slot handed to the next round).
 - An allocation pops from `loaded`; finding it empty, it swaps with a full `previous`, or loads a
   full magazine from the depot (handing the drained one to the empty ring), or refills: an empty
   magazine loaded first (from the empty ring, or a new one), then `BATCH` blocks from the layer
-  below, one handed out and the rest in `loaded`.
+  below, the first handed out and the rest in `loaded`, to pop in the order they were taken.
 - A free pushes on `loaded`; finding it full, it swaps with an empty `previous`, or hands a full
   `previous` to the full ring (giving its blocks back to the layer below when the ring has no
   room) and loads an empty magazine.
@@ -38,6 +38,10 @@ What is left out or folded, and why it changes nothing:
   another is the same step with two blocks' names swapped: the states checked are every state
   any choice reaches, up to the names of the blocks, without the copies that differ only in
   names. (It only narrows the choices, so every violation it finds the unnarrowed model has too.)
+- The order of the blocks inside a magazine is not modelled: a refill puts at most one block in
+  one, and no property here depends on which block a pop takes. That a refill's blocks pop in the
+  order they were taken, at rising addresses, is proved in Lean (`refill_pops_in_carving_order`,
+  `carve_rises` in `proofs/lean/Kovan/Magazine.lean`).
 - A hand-over goes to a thread between two of its operations; once every other thread is past
   its program, the thread frees the block itself, as a program does whose consumers are gone.
 

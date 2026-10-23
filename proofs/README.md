@@ -122,5 +122,5 @@ Lean: install elan once (`proofs/lean/README.md` says how). The recipes run
   distance from head to tail, or 0 while pops ran ahead.
 - `lean/Kovan/Magazine.lean`: the magazine cache's classes (the smallest that fits, aligned to 16),
   the rings' wrapped ticket arithmetic and the slot states it tells apart, the slab layer's chunk
-  geometry (a block's masked address is its chunk, every block inside and aligned) and the memory
-  bound.
+  geometry (a block's masked address is its chunk, every block inside and aligned), the order a
+  refill hands its blocks out in (the order they were carved) and the memory bound.

@@ -23,6 +23,10 @@ as they are: 20 classes up to 1 KiB, rings of 16 slots, tickets and turn words o
    the ring full or empty, reload the ticket) comes from exactly one of these.
 4. The cache holds at most two magazines of 32 blocks per thread and class, and the depot 16 per
    class: for 64-byte nodes, 4 KiB per thread and 32 KiB in the depot.
+5. A refill hands out the first block it takes from the slab layer and stores the others in the
+   magazine so that the allocations after it pop them in the order they were taken. Carved from a
+   chunk one after another they lie at rising addresses, so nodes allocated one after another
+   do too, as with the global allocator, and a prefetcher streams them.
 
 ## What the model leaves out
 
@@ -302,5 +306,65 @@ theorem class_bound {threadLens depotLens : List Nat} (ht : threadLens.length �
 /-- The crate docs' numbers: 64-byte nodes take 4 KiB per thread and 32 KiB in the depot. -/
 theorem bound_for_64_byte_nodes : 2 * rounds * 64 = 4096 ∧ slots * rounds * 64 = 32768 := by
   decide
+
+/-! ## The order a refill hands its blocks out in
+
+`Pair::refill` takes `refillCount` blocks from the slab layer one after another. It hands out the
+first (`carved 0`), then for `i` from `rest - 1` down to `0`, with `rest = refillCount - 1`, stores
+the next block in slot `i` of the empty magazine `loaded`, and sets the magazine's length to
+`rest`. A pop takes the slot just below the length. -/
+
+/-- Slot `i` of `loaded` after the first `n` steps of the refill's loop, from the slots `before`
+it: step `n` stores `carved (n + 1)` in slot `rest - 1 - n`. -/
+def refillLoop {α : Type} (rest : Nat) (carved before : Nat → α) : Nat → Nat → α
+  | 0, i => before i
+  | n + 1, i => if i = rest - 1 - n then carved (n + 1) else refillLoop rest carved before n i
+
+/-- The slot the `k`-th pop of a magazine of length `len` reads, with no push in between. -/
+def popSlot (len k : Nat) : Nat := len - 1 - k
+
+/-- After `n` steps, slot `rest - 1 - j` holds the block taken at step `j`, for every `j < n`. -/
+theorem refillLoop_slot {α : Type} {rest n j : Nat} (carved before : Nat → α) (hn : n ≤ rest)
+    (hj : j < n) : refillLoop rest carved before n (rest - 1 - j) = carved (j + 1) := by
+  induction n with
+  | zero => omega
+  | succ n ih =>
+    simp only [refillLoop]
+    by_cases h : j = n
+    · subst h; simp
+    · have hne : rest - 1 - j ≠ rest - 1 - n := by omega
+      rw [ite_eq_right hne]
+      exact ih (by omega) (by omega)
+
+/-- The loop writes no slot at or past `rest`: the rest of the magazine is as it was. -/
+theorem refillLoop_above {α : Type} {rest n i : Nat} (carved before : Nat → α) (hn : n ≤ rest)
+    (hi : rest ≤ i) : refillLoop rest carved before n i = before i := by
+  induction n with
+  | zero => simp only [refillLoop]
+  | succ n ih =>
+    have hne : i ≠ rest - 1 - n := by omega
+    simp only [refillLoop]
+    rw [ite_eq_right hne]
+    exact ih (by omega)
+
+/-- The allocations after a refill take its blocks in the order the slab layer handed them out:
+the refill's own allocation `carved 0`, then the `k`-th pop `carved (k + 1)`. -/
+theorem refill_pops_in_carving_order {α : Type} {rest k : Nat} (carved before : Nat → α)
+    (hk : k < rest) : refillLoop rest carved before rest (popSlot rest k) = carved (k + 1) := by
+  unfold popSlot
+  exact refillLoop_slot carved before (Nat.le_refl rest) hk
+
+/-- The blocks a refill leaves in `loaded` fit in it. -/
+theorem refill_fits (size : Nat) : refillCount size - 1 < rounds := by
+  have := (refillCount_bounds size).2
+  simp only [rounds]
+  omega
+
+/-- `SlabClass::alloc` carves block `n` of a chunk at `base + header + n * size`: blocks carved
+one after another lie at rising addresses, so a refill from a fresh chunk hands them out rising. -/
+theorem carve_rises {base header size n : Nat} (hs : 0 < size) :
+    base + header + n * size < base + header + (n + 1) * size := by
+  rw [Nat.succ_mul]
+  omega
 
 end Kovan.Magazine
