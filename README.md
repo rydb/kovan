@@ -249,7 +249,7 @@ why, rather than shipping a test that asserts nothing.
 | Target | What CI runs | Result |
 | --- | --- | --- |
 | `x86_64` | Full workspace suite (native DCAS path) | 544 |
-| `i686` | Full workspace suite at 32-bit — real threads on the seqlock fallback | 544 |
+| `i686` | Full workspace suite at 32-bit: real threads on the seqlock fallback | 544 |
 | `wasm32-unknown-unknown` | Build (incl. `--no-default-features`), clippy, **and runs** the wasm suites via `wasm-bindgen-test` | 213 |
 | `wasm32-wasip1` | Build, clippy, **and runs** the wasm suites under `wasmtime` | 212 |
 
@@ -258,14 +258,14 @@ target combining 32-bit pointers with real concurrency.
 
 `wasm32-unknown-unknown` is the load-bearing wasm job, not `wasip1`. `std`
 routes `target_os = "wasi"` to its unix implementation, so `Instant::now()`,
-`SystemTime::now()` and `thread::sleep` all work there — while on
+`SystemTime::now()` and `thread::sleep` all work there, while on
 `wasm32-unknown-unknown` they hit the `unsupported` arm and **panic at
 runtime despite compiling**. Only the unknown-unknown job catches that class.
 (The 212 vs 213 difference is one `#[should_panic]` case; wasip1's harness has
 no `catch_unwind`.)
 
 Test targets are discovered from `cargo metadata` by
-`.github/workflows/wasm-test.sh` — any `[[test]]` named `wasm_*` is picked up
+`.github/workflows/wasm-test.sh`: any `[[test]]` named `wasm_*` is picked up
 automatically, so adding a suite needs no CI change. That script also fails the
 build if any test binary registers **zero** tests, since a binary that runs
 nothing still exits 0 and would otherwise read as a pass.

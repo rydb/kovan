@@ -74,7 +74,7 @@
 //!   stalled reader only delays batches containing nodes born before its
 //!   pinned epoch; younger garbage remains reclaimable. (A reader stalled
 //!   *inside* an escalated critical section defers all younger batches
-//!   until it resumes — escalation windows are bounded by the critical
+//!   until it resumes: escalation windows are bounded by the critical
 //!   section that triggered them.)
 //! - **`no_std` Compatible**: Uses only `alloc`. No standard library required.
 //!
