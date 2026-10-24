@@ -284,8 +284,12 @@ PO3v: \* the tail word, and what the two say
     elsif h0.id < lh3 \/ ~Linked(lh3, h0.id) \/ h0.ix >= SEG \/ WalkGone(h0.id) then
         goto PO3;
     end if;
-PO7: \* locate the head word's cell
-    errs := errs \cup TouchSet(WalkSet(lh3, h0.id)) || prot[self] := Reached(self, WalkSet(lh3, h0.id));
+PO7: \* locate the head word's cell (the checked walk; the segment gone: look again)
+    if WalkGone(h0.id) then
+        goto PO3;
+    else
+        errs := errs \cup TouchSet(WalkSet(lh3, h0.id)) || prot[self] := Reached(self, WalkSet(lh3, h0.id));
+    end if;
 PO8: \* (the PATIENCE re-reads folded in) the claim, a compare-and-swap of the head word from h0,
      \* and the swap to TAKEN
     if hw # h0 then
@@ -310,25 +314,23 @@ PO4:
     cw := hw || hw := [hw EXCEPT !.ix = @ + 1]
         || claimsC := IF hw.ix < SEG THEN claimsC \cup {Pos(hw.id, hw.ix)} ELSE claimsC;
     if cw.ix >= SEG then goto PO1; end if;
-PO5: \* locate, and the swap to TAKEN (the PATIENCE re-reads folded into it); a segment the
-     \* head passed is gone, with the cell
+PO5: \* locate (the checked walk; a segment the head passed is gone, with the cell), and the
+     \* swap to TAKEN (the PATIENCE re-reads folded into it)
     if WalkGone(cw.id) then
         goto PO1;
-    end if;
-PO5w:
-    errs := errs \cup TouchSet(WalkSet(lh3, cw.id))
-        \cup (IF cw.id < lh3 \/ ~Linked(lh3, cw.id) THEN {"unlinked_claim"} ELSE {})
-        \cup (IF cst[cw.id][cw.ix] = "FULL"
-              THEN TakeCheck(startTaken, Pos(cw.id, cw.ix), cval[cw.id][cw.ix]) ELSE {})
-        || prot[self] := Reached(self, WalkSet(lh3, cw.id));
-    if cst[cw.id][cw.ix] = "FULL" then
-        cst[cw.id][cw.ix] := "TAKEN" || took := took \cup {cval[cw.id][cw.ix]}
+    elsif cst[cw.id][cw.ix] = "FULL" then
+        errs := errs \cup TouchSet(WalkSet(lh3, cw.id))
+            \cup (IF cw.id < lh3 \/ ~Linked(lh3, cw.id) THEN {"unlinked_claim"} ELSE {})
+            \cup TakeCheck(startTaken, Pos(cw.id, cw.ix), cval[cw.id][cw.ix])
+            || prot[self] := Reached(self, WalkSet(lh3, cw.id))
+            || cst[cw.id][cw.ix] := "TAKEN" || took := took \cup {cval[cw.id][cw.ix]}
             || said := said \cup {"value"} || busy[self] := FALSE;
         return;
-    elsif ~MutNoPoison then
-        cst[cw.id][cw.ix] := "TAKEN";
-        goto PO1;
     else
+        errs := errs \cup TouchSet(WalkSet(lh3, cw.id))
+            \cup (IF cw.id < lh3 \/ ~Linked(lh3, cw.id) THEN {"unlinked_claim"} ELSE {})
+            || prot[self] := Reached(self, WalkSet(lh3, cw.id))
+            || cst[cw.id][cw.ix] := IF MutNoPoison THEN cst[cw.id][cw.ix] ELSE "TAKEN";
         goto PO1;
     end if;
 PO6: \* after a drained view
@@ -383,10 +385,13 @@ TP5:
     elsif h1.id < lh4 \/ ~Linked(lh4, h1.id) \/ h1.ix >= SEG \/ WalkGone(h1.id) then
         goto TP3;
     end if;
-TP6: \* locate the head word's cell and read its state; claim a FULL one by the CAS of the head
-     \* word from h1 to h1 + 1 (a cell read FULL stays FULL until its claimer takes it, and that
-     \* claim moves the word, so the read and the CAS fold into one step)
-    if cst[h1.id][h1.ix] = "EMPTY" then
+TP6: \* locate the head word's cell (the checked walk; gone: look again) and read its state; claim
+     \* a FULL one by the CAS of the head word from h1 to h1 + 1 (a cell read FULL stays FULL until
+     \* its claimer takes it, and that claim moves the word, so the read and the CAS fold into one
+     \* step)
+    if WalkGone(h1.id) then
+        goto TP3;
+    elsif cst[h1.id][h1.ix] = "EMPTY" then
         \* BusyMeansClaimed: a push claimed this cell and has not written it
         errs := errs \cup TouchSet(WalkSet(lh4, h1.id))
             \cup (IF Pos(h1.id, h1.ix) \notin claimsP THEN {"busy_unclaimed"} ELSE {})
@@ -443,19 +448,20 @@ PU3: \* tail.word.fetch_add(1)
 PU3m: \* (load_after_claim) tail.seg.load after the claim
     lt := tptr || prot[self] := Reached(self, {tptr});
     if w.ix >= SEG then goto PU5; end if;
-PU4: \* locate; the head pointer past the claim's segment: a pop took the cell out of play
+PU4: \* locate (the checked walk); the head pointer past the claim's segment: a pop took the cell
+     \* out of play
     if WalkGone(w.id) then
         goto PU2;
-    end if;
-PU4w:
-    errs := errs \cup TouchSet(WalkSet(lt, w.id))
-        \* the claim names a segment at or past the pointer loaded before it, linked
-        \cup (IF w.id < lt \/ ~Linked(lt, w.id) THEN {"unlinked_claim"} ELSE {})
-        || prot[self] := Reached(self, WalkSet(lt, w.id));
-    if w.id < lt \/ ~Linked(lt, w.id) then
-        goto PU2;
-    elsif w.id = lt then
-        goto PU4b;
+    else
+        errs := errs \cup TouchSet(WalkSet(lt, w.id))
+            \* the claim names a segment at or past the pointer loaded before it, linked
+            \cup (IF w.id < lt \/ ~Linked(lt, w.id) THEN {"unlinked_claim"} ELSE {})
+            || prot[self] := Reached(self, WalkSet(lt, w.id));
+        if w.id < lt \/ ~Linked(lt, w.id) then
+            goto PU2;
+        elsif w.id = lt then
+            goto PU4b;
+        end if;
     end if;
 PU4a: \* the pointer lags behind the word: catch_up_tail
     CatchUpTail();
@@ -546,7 +552,7 @@ RC1:
     end while;
 end process;
 end algorithm; *)
-\* BEGIN TRANSLATION (chksum(pcal) = "6acbee1d" /\ chksum(tla) = "ddfaea3c")
+\* BEGIN TRANSLATION (chksum(pcal) = "36368a05" /\ chksum(tla) = "ae1b247a")
 \* Procedure variable startTaken of procedure Pop at line 249 col 32 changed to startTaken_
 CONSTANT defaultInitValue
 VARIABLES cst, cval, nxt, retired, freed, holders, prot, tw, hw, tptr, hptr, 
@@ -863,9 +869,12 @@ PO3v(self) == /\ pc[self] = "PO3v"
                               lt, w, nx, before, n >>
 
 PO7(self) == /\ pc[self] = "PO7"
-             /\ /\ errs' = (errs \cup TouchSet(WalkSet(lh3[self], h0[self].id)))
-                /\ prot' = [prot EXCEPT ![self] = Reached(self, WalkSet(lh3[self], h0[self].id))]
-             /\ pc' = [pc EXCEPT ![self] = "PO8"]
+             /\ IF WalkGone(h0[self].id)
+                   THEN /\ pc' = [pc EXCEPT ![self] = "PO3"]
+                        /\ UNCHANGED << prot, errs >>
+                   ELSE /\ /\ errs' = (errs \cup TouchSet(WalkSet(lh3[self], h0[self].id)))
+                           /\ prot' = [prot EXCEPT ![self] = Reached(self, WalkSet(lh3[self], h0[self].id))]
+                        /\ pc' = [pc EXCEPT ![self] = "PO8"]
              /\ UNCHANGED << cst, cval, nxt, retired, freed, holders, tw, hw, 
                              tptr, hptr, opn, busy, pos, claimsP, claimsC, 
                              took, done, said, rv, stack, lh, hn, hs, lp, h0, 
@@ -931,45 +940,40 @@ PO4(self) == /\ pc[self] = "PO4"
 PO5(self) == /\ pc[self] = "PO5"
              /\ IF WalkGone(cw[self].id)
                    THEN /\ pc' = [pc EXCEPT ![self] = "PO1"]
-                   ELSE /\ pc' = [pc EXCEPT ![self] = "PO5w"]
-             /\ UNCHANGED << cst, cval, nxt, retired, freed, holders, prot, tw, 
-                             hw, tptr, hptr, opn, busy, pos, claimsP, claimsC, 
-                             took, done, said, errs, rv, stack, lh, hn, hs, lp, 
-                             h0, t0, view, lh3, cw, startTaken_, snapped, scan, 
-                             lh4, h1, startTaken, k, lt, w, nx, before, n >>
-
-PO5w(self) == /\ pc[self] = "PO5w"
-              /\ /\ errs' = (    errs \cup TouchSet(WalkSet(lh3[self], cw[self].id))
-                             \cup (IF cw[self].id < lh3[self] \/ ~Linked(lh3[self], cw[self].id) THEN {"unlinked_claim"} ELSE {})
-                             \cup (IF cst[cw[self].id][cw[self].ix] = "FULL"
-                                   THEN TakeCheck(startTaken_[self], Pos(cw[self].id, cw[self].ix), cval[cw[self].id][cw[self].ix]) ELSE {}))
-                 /\ prot' = [prot EXCEPT ![self] = Reached(self, WalkSet(lh3[self], cw[self].id))]
-              /\ IF cst[cw[self].id][cw[self].ix] = "FULL"
-                    THEN /\ /\ busy' = [busy EXCEPT ![self] = FALSE]
-                            /\ cst' = [cst EXCEPT ![cw[self].id][cw[self].ix] = "TAKEN"]
-                            /\ said' = (said \cup {"value"})
-                            /\ took' = (took \cup {cval[cw[self].id][cw[self].ix]})
-                         /\ pc' = [pc EXCEPT ![self] = Head(stack[self]).pc]
-                         /\ h0' = [h0 EXCEPT ![self] = Head(stack[self]).h0]
-                         /\ t0' = [t0 EXCEPT ![self] = Head(stack[self]).t0]
-                         /\ view' = [view EXCEPT ![self] = Head(stack[self]).view]
-                         /\ lh3' = [lh3 EXCEPT ![self] = Head(stack[self]).lh3]
-                         /\ cw' = [cw EXCEPT ![self] = Head(stack[self]).cw]
-                         /\ startTaken_' = [startTaken_ EXCEPT ![self] = Head(stack[self]).startTaken_]
-                         /\ snapped' = [snapped EXCEPT ![self] = Head(stack[self]).snapped]
-                         /\ scan' = [scan EXCEPT ![self] = Head(stack[self]).scan]
-                         /\ stack' = [stack EXCEPT ![self] = Tail(stack[self])]
-                    ELSE /\ IF ~MutNoPoison
-                               THEN /\ cst' = [cst EXCEPT ![cw[self].id][cw[self].ix] = "TAKEN"]
-                                    /\ pc' = [pc EXCEPT ![self] = "PO1"]
-                               ELSE /\ pc' = [pc EXCEPT ![self] = "PO1"]
-                                    /\ cst' = cst
-                         /\ UNCHANGED << busy, took, said, stack, h0, t0, view, 
-                                         lh3, cw, startTaken_, snapped, scan >>
-              /\ UNCHANGED << cval, nxt, retired, freed, holders, tw, hw, tptr, 
-                              hptr, opn, pos, claimsP, claimsC, done, rv, lh, 
-                              hn, hs, lp, lh4, h1, startTaken, k, lt, w, nx, 
-                              before, n >>
+                        /\ UNCHANGED << cst, prot, busy, took, said, errs, 
+                                        stack, h0, t0, view, lh3, cw, 
+                                        startTaken_, snapped, scan >>
+                   ELSE /\ IF cst[cw[self].id][cw[self].ix] = "FULL"
+                              THEN /\ /\ busy' = [busy EXCEPT ![self] = FALSE]
+                                      /\ cst' = [cst EXCEPT ![cw[self].id][cw[self].ix] = "TAKEN"]
+                                      /\ errs' = (    errs \cup TouchSet(WalkSet(lh3[self], cw[self].id))
+                                                  \cup (IF cw[self].id < lh3[self] \/ ~Linked(lh3[self], cw[self].id) THEN {"unlinked_claim"} ELSE {})
+                                                  \cup TakeCheck(startTaken_[self], Pos(cw[self].id, cw[self].ix), cval[cw[self].id][cw[self].ix]))
+                                      /\ prot' = [prot EXCEPT ![self] = Reached(self, WalkSet(lh3[self], cw[self].id))]
+                                      /\ said' = (said \cup {"value"})
+                                      /\ took' = (took \cup {cval[cw[self].id][cw[self].ix]})
+                                   /\ pc' = [pc EXCEPT ![self] = Head(stack[self]).pc]
+                                   /\ h0' = [h0 EXCEPT ![self] = Head(stack[self]).h0]
+                                   /\ t0' = [t0 EXCEPT ![self] = Head(stack[self]).t0]
+                                   /\ view' = [view EXCEPT ![self] = Head(stack[self]).view]
+                                   /\ lh3' = [lh3 EXCEPT ![self] = Head(stack[self]).lh3]
+                                   /\ cw' = [cw EXCEPT ![self] = Head(stack[self]).cw]
+                                   /\ startTaken_' = [startTaken_ EXCEPT ![self] = Head(stack[self]).startTaken_]
+                                   /\ snapped' = [snapped EXCEPT ![self] = Head(stack[self]).snapped]
+                                   /\ scan' = [scan EXCEPT ![self] = Head(stack[self]).scan]
+                                   /\ stack' = [stack EXCEPT ![self] = Tail(stack[self])]
+                              ELSE /\ /\ cst' = [cst EXCEPT ![cw[self].id][cw[self].ix] = IF MutNoPoison THEN cst[cw[self].id][cw[self].ix] ELSE "TAKEN"]
+                                      /\ errs' = (    errs \cup TouchSet(WalkSet(lh3[self], cw[self].id))
+                                                  \cup (IF cw[self].id < lh3[self] \/ ~Linked(lh3[self], cw[self].id) THEN {"unlinked_claim"} ELSE {}))
+                                      /\ prot' = [prot EXCEPT ![self] = Reached(self, WalkSet(lh3[self], cw[self].id))]
+                                   /\ pc' = [pc EXCEPT ![self] = "PO1"]
+                                   /\ UNCHANGED << busy, took, said, stack, h0, 
+                                                   t0, view, lh3, cw, 
+                                                   startTaken_, snapped, scan >>
+             /\ UNCHANGED << cval, nxt, retired, freed, holders, tw, hw, tptr, 
+                             hptr, opn, pos, claimsP, claimsC, done, rv, lh, 
+                             hn, hs, lp, lh4, h1, startTaken, k, lt, w, nx, 
+                             before, n >>
 
 PO6(self) == /\ pc[self] = "PO6"
              /\ IF rv[self]
@@ -1048,8 +1052,7 @@ PS2(self) == /\ pc[self] = "PS2"
 
 Pop(self) == PO1(self) \/ PO2(self) \/ PO3(self) \/ PO3w(self)
                 \/ PO3v(self) \/ PO7(self) \/ PO8(self) \/ PO4(self)
-                \/ PO5(self) \/ PO5w(self) \/ PO6(self) \/ PS1(self)
-                \/ PS2(self)
+                \/ PO5(self) \/ PO6(self) \/ PS1(self) \/ PS2(self)
 
 TP1(self) == /\ pc[self] = "TP1"
              /\ /\ h1' = [h1 EXCEPT ![self] = hw]
@@ -1131,28 +1134,33 @@ TP5(self) == /\ pc[self] = "TP5"
                              n >>
 
 TP6(self) == /\ pc[self] = "TP6"
-             /\ IF cst[h1[self].id][h1[self].ix] = "EMPTY"
-                   THEN /\ /\ busy' = [busy EXCEPT ![self] = FALSE]
-                           /\ errs' = (    errs \cup TouchSet(WalkSet(lh4[self], h1[self].id))
-                                       \cup (IF Pos(h1[self].id, h1[self].ix) \notin claimsP THEN {"busy_unclaimed"} ELSE {}))
-                           /\ said' = (said \cup {"busy"})
-                        /\ pc' = [pc EXCEPT ![self] = Head(stack[self]).pc]
-                        /\ lh4' = [lh4 EXCEPT ![self] = Head(stack[self]).lh4]
-                        /\ h1' = [h1 EXCEPT ![self] = Head(stack[self]).h1]
-                        /\ startTaken' = [startTaken EXCEPT ![self] = Head(stack[self]).startTaken]
-                        /\ stack' = [stack EXCEPT ![self] = Tail(stack[self])]
-                        /\ UNCHANGED << prot, hw, claimsC >>
-                   ELSE /\ IF cst[h1[self].id][h1[self].ix] = "FULL" /\ hw = h1[self]
-                              THEN /\ /\ claimsC' = (claimsC \cup {Pos(h1[self].id, h1[self].ix)})
-                                      /\ errs' = (errs \cup TouchSet(WalkSet(lh4[self], h1[self].id)))
-                                      /\ hw' = [hw EXCEPT !.ix = @ + 1]
-                                      /\ prot' = [prot EXCEPT ![self] = Reached(self, WalkSet(lh4[self], h1[self].id))]
-                                   /\ pc' = [pc EXCEPT ![self] = "TP8"]
-                              ELSE /\ /\ errs' = (errs \cup TouchSet(WalkSet(lh4[self], h1[self].id)))
-                                      /\ prot' = [prot EXCEPT ![self] = Reached(self, WalkSet(lh4[self], h1[self].id))]
-                                   /\ pc' = [pc EXCEPT ![self] = "TP3"]
-                                   /\ UNCHANGED << hw, claimsC >>
-                        /\ UNCHANGED << busy, said, stack, lh4, h1, startTaken >>
+             /\ IF WalkGone(h1[self].id)
+                   THEN /\ pc' = [pc EXCEPT ![self] = "TP3"]
+                        /\ UNCHANGED << prot, hw, busy, claimsC, said, errs, 
+                                        stack, lh4, h1, startTaken >>
+                   ELSE /\ IF cst[h1[self].id][h1[self].ix] = "EMPTY"
+                              THEN /\ /\ busy' = [busy EXCEPT ![self] = FALSE]
+                                      /\ errs' = (    errs \cup TouchSet(WalkSet(lh4[self], h1[self].id))
+                                                  \cup (IF Pos(h1[self].id, h1[self].ix) \notin claimsP THEN {"busy_unclaimed"} ELSE {}))
+                                      /\ said' = (said \cup {"busy"})
+                                   /\ pc' = [pc EXCEPT ![self] = Head(stack[self]).pc]
+                                   /\ lh4' = [lh4 EXCEPT ![self] = Head(stack[self]).lh4]
+                                   /\ h1' = [h1 EXCEPT ![self] = Head(stack[self]).h1]
+                                   /\ startTaken' = [startTaken EXCEPT ![self] = Head(stack[self]).startTaken]
+                                   /\ stack' = [stack EXCEPT ![self] = Tail(stack[self])]
+                                   /\ UNCHANGED << prot, hw, claimsC >>
+                              ELSE /\ IF cst[h1[self].id][h1[self].ix] = "FULL" /\ hw = h1[self]
+                                         THEN /\ /\ claimsC' = (claimsC \cup {Pos(h1[self].id, h1[self].ix)})
+                                                 /\ errs' = (errs \cup TouchSet(WalkSet(lh4[self], h1[self].id)))
+                                                 /\ hw' = [hw EXCEPT !.ix = @ + 1]
+                                                 /\ prot' = [prot EXCEPT ![self] = Reached(self, WalkSet(lh4[self], h1[self].id))]
+                                              /\ pc' = [pc EXCEPT ![self] = "TP8"]
+                                         ELSE /\ /\ errs' = (errs \cup TouchSet(WalkSet(lh4[self], h1[self].id)))
+                                                 /\ prot' = [prot EXCEPT ![self] = Reached(self, WalkSet(lh4[self], h1[self].id))]
+                                              /\ pc' = [pc EXCEPT ![self] = "TP3"]
+                                              /\ UNCHANGED << hw, claimsC >>
+                                   /\ UNCHANGED << busy, said, stack, lh4, h1, 
+                                                   startTaken >>
              /\ UNCHANGED << cst, cval, nxt, retired, freed, holders, tw, tptr, 
                              hptr, opn, pos, claimsP, took, done, rv, lh, hn, 
                              hs, lp, h0, t0, view, lh3, cw, startTaken_, 
@@ -1262,28 +1270,21 @@ PU3m(self) == /\ pc[self] = "PU3m"
 PU4(self) == /\ pc[self] = "PU4"
              /\ IF WalkGone(w[self].id)
                    THEN /\ pc' = [pc EXCEPT ![self] = "PU2"]
-                   ELSE /\ pc' = [pc EXCEPT ![self] = "PU4w"]
-             /\ UNCHANGED << cst, cval, nxt, retired, freed, holders, prot, tw, 
-                             hw, tptr, hptr, opn, busy, pos, claimsP, claimsC, 
-                             took, done, said, errs, rv, stack, lh, hn, hs, lp, 
-                             h0, t0, view, lh3, cw, startTaken_, snapped, scan, 
+                        /\ UNCHANGED << prot, errs >>
+                   ELSE /\ /\ errs' = (    errs \cup TouchSet(WalkSet(lt[self], w[self].id))
+                                       
+                                       \cup (IF w[self].id < lt[self] \/ ~Linked(lt[self], w[self].id) THEN {"unlinked_claim"} ELSE {}))
+                           /\ prot' = [prot EXCEPT ![self] = Reached(self, WalkSet(lt[self], w[self].id))]
+                        /\ IF w[self].id < lt[self] \/ ~Linked(lt[self], w[self].id)
+                              THEN /\ pc' = [pc EXCEPT ![self] = "PU2"]
+                              ELSE /\ IF w[self].id = lt[self]
+                                         THEN /\ pc' = [pc EXCEPT ![self] = "PU4b"]
+                                         ELSE /\ pc' = [pc EXCEPT ![self] = "PU4a"]
+             /\ UNCHANGED << cst, cval, nxt, retired, freed, holders, tw, hw, 
+                             tptr, hptr, opn, busy, pos, claimsP, claimsC, 
+                             took, done, said, rv, stack, lh, hn, hs, lp, h0, 
+                             t0, view, lh3, cw, startTaken_, snapped, scan, 
                              lh4, h1, startTaken, k, lt, w, nx, before, n >>
-
-PU4w(self) == /\ pc[self] = "PU4w"
-              /\ /\ errs' = (    errs \cup TouchSet(WalkSet(lt[self], w[self].id))
-                             
-                             \cup (IF w[self].id < lt[self] \/ ~Linked(lt[self], w[self].id) THEN {"unlinked_claim"} ELSE {}))
-                 /\ prot' = [prot EXCEPT ![self] = Reached(self, WalkSet(lt[self], w[self].id))]
-              /\ IF w[self].id < lt[self] \/ ~Linked(lt[self], w[self].id)
-                    THEN /\ pc' = [pc EXCEPT ![self] = "PU2"]
-                    ELSE /\ IF w[self].id = lt[self]
-                               THEN /\ pc' = [pc EXCEPT ![self] = "PU4b"]
-                               ELSE /\ pc' = [pc EXCEPT ![self] = "PU4a"]
-              /\ UNCHANGED << cst, cval, nxt, retired, freed, holders, tw, hw, 
-                              tptr, hptr, opn, busy, pos, claimsP, claimsC, 
-                              took, done, said, rv, stack, lh, hn, hs, lp, h0, 
-                              t0, view, lh3, cw, startTaken_, snapped, scan, 
-                              lh4, h1, startTaken, k, lt, w, nx, before, n >>
 
 PU4a(self) == /\ pc[self] = "PU4a"
               /\ /\ errs' = (errs \cup Touch(tptr, Min2(tw.id, MaxSegs - 1)))
@@ -1432,9 +1433,8 @@ PU8(self) == /\ pc[self] = "PU8"
                              n >>
 
 Producer(self) == PU1(self) \/ PU2(self) \/ PU3(self) \/ PU3m(self)
-                     \/ PU4(self) \/ PU4w(self) \/ PU4a(self) \/ PU4b(self)
-                     \/ PU5(self) \/ PU6(self) \/ PU7(self) \/ PU7s(self)
-                     \/ PU8(self)
+                     \/ PU4(self) \/ PU4a(self) \/ PU4b(self) \/ PU5(self)
+                     \/ PU6(self) \/ PU7(self) \/ PU7s(self) \/ PU8(self)
 
 CO1(self) == /\ pc[self] = "CO1"
              /\ IF n[self] < Pops
