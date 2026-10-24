@@ -187,17 +187,8 @@ impl<'a> Transaction<'a> {
             return Ok(value.clone());
         }
 
-        // 2. Check Read Set (Cache)
-        if self.read_set.contains_key(&id) {
-            // We already validated this version, re-read raw just to get value
-            let shared = tvar.0.data.load(Ordering::Acquire, self.guard);
-            // SAFETY: Kovan guard ensures validity
-            unsafe {
-                return Ok(shared.as_ref().unwrap().data.clone());
-            }
-        }
-
-        // 3. Actual Read
+        // 2. A validated read, a repeated one too: a commit may have replaced the value since
+        // the first read, and a transaction that read both would see two values of it.
         let (locked, version) = tvar.0.load_version_lock();
 
         // If locked by someone else, or version is newer than our start time, abort
@@ -214,17 +205,23 @@ impl<'a> Transaction<'a> {
             return Err(StmError::Retry);
         }
 
-        // Record in Read Set.
-        let inner_arc = Arc::clone(&tvar.0);
-        let keep_alive: Arc<dyn Any + Send + Sync> = inner_arc;
-        self.read_set.insert(
-            id,
-            ReadEntry {
-                version,
-                lock_atomic: &tvar.0.version_lock as *const _,
-                _keep_alive: keep_alive,
-            },
-        );
+        // Record in Read Set, or find the version the first read recorded.
+        match self.read_set.get(&id) {
+            Some(first) if first.version != version => return Err(StmError::Retry),
+            Some(_) => {}
+            None => {
+                let inner_arc = Arc::clone(&tvar.0);
+                let keep_alive: Arc<dyn Any + Send + Sync> = inner_arc;
+                self.read_set.insert(
+                    id,
+                    ReadEntry {
+                        version,
+                        lock_atomic: &tvar.0.version_lock as *const _,
+                        _keep_alive: keep_alive,
+                    },
+                );
+            }
+        }
 
         // SAFETY: Guard is active, pointer is valid.
         unsafe {
