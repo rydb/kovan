@@ -288,3 +288,42 @@ fn len_matches_net_pushes_under_concurrent_reads() {
 fn shuttle_seg_queue_len_matches_net_pushes_under_concurrent_reads() {
     shuttle::check_pct(len_matches_net_pushes_under_concurrent_reads, 5000, 5);
 }
+
+fn per_producer_order() {
+    let queue = Arc::new(SegQueue::<u64>::new());
+    let producer = {
+        let queue = Arc::clone(&queue);
+        shuttle::thread::spawn(move || {
+            queue.push(1);
+            queue.push(2);
+        })
+    };
+    let consumer = {
+        let queue = Arc::clone(&queue);
+        shuttle::thread::spawn(move || {
+            let mut got = Vec::new();
+            for _ in 0..3 {
+                if let Some(v) = queue.pop() {
+                    got.push(v);
+                }
+            }
+            got
+        })
+    };
+    producer.join().unwrap();
+    let mut got = consumer.join().unwrap();
+    while let Some(v) = queue.pop() {
+        got.push(v);
+    }
+    assert_eq!(
+        got,
+        vec![1, 2],
+        "values of one producer came out out of order"
+    );
+}
+
+#[test]
+fn shuttle_seg_queue_per_producer_order() {
+    let scheduler = shuttle::scheduler::PctScheduler::new_from_seed(1, 3, 20_000);
+    shuttle::Runner::new(scheduler, shuttle::Config::default()).run(per_producer_order);
+}

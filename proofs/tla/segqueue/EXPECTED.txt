@@ -1,0 +1,22 @@
+# configuration                  module             expected
+SQ_mpsc                            MC_SegQueue        pass
+SQ_mpmc                            MC_SegQueue        pass
+SQ_try                             MC_SegQueue        pass
+SQ_push3                           MC_SegQueue        pass
+SQ_live                            MC_SegQueue        pass
+SQ_mut_scan_pop                    MC_SegQueue        violated:PopOrder
+SQ_mut_no_poison                   MC_SegQueue        violated:NoLoss
+SQ_mut_retire_before_tail          MC_SegQueue        violated:NoUseAfterFree
+SQ_mut_busy_without_view           MC_SegQueue        violated:BusyMeansClaimed
+SQ_mut_tail_before_head            MC_SegQueue        violated:EmptySound
+SQ_mut_link_then_retry             MC_SegQueue        violated:UniqueTake
+SQ_mut_store_tail_advance          MC_SegQueue        violated:RealTimeOrder
+SQ_mut_load_after_claim            MC_SegQueue        violated:NoUnlinkedClaim
+SQ_mut_retry_same_cell             MC_SegQueue        violated:Termination
+SQ_wit_link                        MC_SegQueue        violated:NoLinkW
+SQ_wit_poison                      MC_SegQueue        violated:NoPoisonW
+SQ_wit_busy                        MC_SegQueue        violated:NoBusyW
+SQ_wit_free                        MC_SegQueue        violated:NoFreeW
+SQ_wit_empty                       MC_SegQueue        violated:NoEmptyAnswerW
+SQ_wit_bound                       MC_SegQueue        violated:NoBound
+SQ_wit_head_ahead                  MC_SegQueue        violated:NoHeadAheadW

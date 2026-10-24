@@ -2,6 +2,7 @@ import Kovan.FlushExit
 import Kovan.HopscotchShrink
 import Kovan.HopscotchShrinkThreads
 import Kovan.Recycle
+import Kovan.SegQueue
 
 /-!
 # The Lean proofs of kovan
