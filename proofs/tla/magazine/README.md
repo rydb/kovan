@@ -90,7 +90,7 @@ refill (`MG_wit_fresh`), a new magazine (`MG_wit_new_magazine`), a ring going ro
 |---|---|---|
 | `MG_two` | two | one runs two operations of any kind, the other allocates then frees |
 | `MG_trade` | two | a producer hands two nodes to a consumer that allocates two and frees all four |
-| `MG_race` | three | one fills the depot at its exit while two allocate from it, so two pops race for one magazine |
+| `MG_race` | three | one allocates and frees, filling the depot with one full magazine at its exit, while two allocate from it, so their two pops race for it |
 | `MG_rounds` | two | magazines of two blocks and refills of two: seven operations and six |
 | `MG_live` | two, fair | exits with three full magazines between them; `Termination` |
 
@@ -117,10 +117,13 @@ for some interleaving shows as a deadlock, never as a pass.
 
 The run recorded in `tlc-run.txt` (4 workers for a passing configuration, one for a
 violation, at the lowest priority on a 36-core machine shared with other heavy work): 20 of 20
-configurations match `EXPECTED.txt`, in 1659 s of wall time. The passing ones are `MG_race`
-(47,740,142 distinct states, 996 s), `MG_trade` (5,261,842, 104 s), `MG_two` (2,161,034, 56 s),
-`MG_live` (1,563,754, 100 s, with `Termination`) and `MG_rounds` (504,070, 13 s). The longest runs
-that break a property, on one worker, are `MG_mut_stale_ticket` (1,021,716 distinct states, 194 s)
-and `MG_mut_pop_no_claim` (1,243,628, 163 s). `MG_mut_stale_ticket` breaks a liveness property,
-which TLC checks at intervals on the part of the state space explored so far, so the count it stops
-at varies from run to run (CI's run of the same model stopped at 1,304,519).
+configurations match `EXPECTED.txt`, in 746 s of TLC time. The passing ones are `MG_trade`
+(5,261,842 distinct states, 103 s), `MG_race` (4,501,042, 91 s), `MG_two` (2,161,034, 55 s),
+`MG_live` (1,563,754, 102 s, with `Termination`) and `MG_rounds` (504,070, 14 s). `MG_race` had its
+first thread free two blocks, 47,740,142 distinct states and 22 minutes on a CI runner, over the
+TLA+ job's 20-minute budget; with one block the two pops still race for the one magazine its exit
+leaves in the depot (both reach the ticket's compare-and-swap with the same ticket, which a check
+of that state confirmed). The longest runs that break a property, on one worker, are
+`MG_mut_stale_ticket` (1,057,112 distinct states, 193 s) and `MG_mut_pop_no_claim` (1,243,628,
+156 s). `MG_mut_stale_ticket` breaks a liveness property, which TLC checks at intervals on the
+part of the state space explored so far, so the count it stops at varies from run to run.
