@@ -327,3 +327,58 @@ fn shuttle_seg_queue_per_producer_order() {
     let scheduler = shuttle::scheduler::PctScheduler::new_from_seed(1, 3, 20_000);
     shuttle::Runner::new(scheduler, shuttle::Config::default()).run(per_producer_order);
 }
+
+/// (e) `try_pop` as the only consumer while several producers cross a
+/// segment boundary (the shape of `seg_queue_order.rs`'s
+/// `single_consumer_try_pop_sees_every_producer_in_order`): every value comes
+/// out once, and no claimed cell answers `Busy` for good. A cell left empty
+/// for good would make the consumer spin until shuttle's step bound fails it.
+fn try_pop_consumer_with_producers_across_a_boundary() {
+    const PRODUCERS: u64 = 3;
+    const PER: u64 = 12;
+    let queue = Arc::new(SegQueue::<u64>::new());
+    let producers: Vec<_> = (0..PRODUCERS)
+        .map(|p| {
+            let queue = Arc::clone(&queue);
+            shuttle::thread::spawn(move || {
+                for s in 0..PER {
+                    queue.push(p * PER + s);
+                }
+            })
+        })
+        .collect();
+    let consumer = {
+        let queue = Arc::clone(&queue);
+        shuttle::thread::spawn(move || {
+            let mut popped = Vec::new();
+            while (popped.len() as u64) < PRODUCERS * PER {
+                match queue.try_pop() {
+                    Ok(v) => popped.push(v),
+                    Err(_) => shuttle::hint::spin_loop(),
+                }
+            }
+            popped
+        })
+    };
+    for p in producers {
+        p.join().unwrap();
+    }
+    let mut popped = consumer.join().unwrap();
+    popped.sort_unstable();
+    assert_eq!(popped, (0..PRODUCERS * PER).collect::<Vec<_>>());
+    assert!(queue.is_empty());
+}
+
+#[test]
+fn shuttle_seg_queue_try_pop_consumer_with_producers_across_a_boundary() {
+    shuttle::check_pct(
+        try_pop_consumer_with_producers_across_a_boundary,
+        100_000,
+        3,
+    );
+    shuttle::check_pct(
+        try_pop_consumer_with_producers_across_a_boundary,
+        100_000,
+        5,
+    );
+}
