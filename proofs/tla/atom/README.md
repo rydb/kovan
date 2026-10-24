@@ -194,29 +194,29 @@ at once in it.
 | label | function | code | step |
 |---|---|---|---|
 | `OP` | every operation | | the operation's first step, as below |
-| `OP` (`load`) | `Atom::load`, `AtomOption::load`, `AtomMap::load` | `atom.rs:334`, `702`, `850`; `guard.rs:526-542` | `guard::pin()` |
-| `LD2` | `Atomic::load`, `protect_load`, `protect_load_cold` | `atom.rs:335`, `703-712`; `atomic.rs:101-107`; `guard.rs:289-354` | the word loaded, the published epoch raised; `None` on a null word |
+| `OP` (`load`) | `Atom::load`, `AtomOption::load`, `AtomMap::load` | `atom.rs:341`, `709`, `857`; `guard.rs:526-542` | `guard::pin()` |
+| `LD2` | `Atomic::load`, `protect_load`, `protect_load_cold` | `atom.rs:342`, `710-719`; `atomic.rs:101-107`; `guard.rs:289-354` | the word loaded, the published epoch raised; `None` on a null word |
 | `OP` (`drop`, `dropc`) | `Guard::drop`, `unpin` | `guard.rs:73-89`, `376-388` | the pin count lowered, saturating; the section ends at 0 |
-| `OP` (`store`, `swap`) | `Atom::store`, `Atom::swap`, `AtomOption::store_some` | `atom.rs:404-405`, `438-439`, `731-732`; `node.rs:78-83`; `retired.rs:113-121` | `AtomNode::boxed`, stamped with `current_birth_epoch`, then `guard::pin()` |
-| `ST2` | `Atomic::swap` | `atom.rs:408`, `734`; `atomic.rs:246-252` | the word swapped to the new node |
-| `SN2` | `AtomOption::store_none` | `atom.rs:745-747` | the word swapped to null |
-| `ST3` | `retire_node`, `enqueue_node`, the guard's drop | `atom.rs:409-414`, `735-739`, `748-752`; `node.rs:149-159`; `guard.rs:987-1088` | the old node retired with the value's destructor (any retire may advance the epoch), the guard dropped |
-| `OP` (`take`) | `AtomOption::take` | `atom.rs:761` | `guard::pin()` |
-| `SW2` | `Atomic::swap` | `atom.rs:442`, `763` | the word swapped |
-| `SW3` | `swap`, `take` | `atom.rs:442-445`, `763-769` | the `Removed` made of the old node, left as it is, the guard dropped |
+| `OP` (`store`, `swap`) | `Atom::store`, `Atom::swap`, `AtomOption::store_some` | `atom.rs:411-412`, `445-446`, `738-739`; `node.rs:78-83`; `retired.rs:113-121` | `AtomNode::boxed`, stamped with `current_birth_epoch`, then `guard::pin()` |
+| `ST2` | `Atomic::swap` | `atom.rs:415`, `741`; `atomic.rs:246-252` | the word swapped to the new node |
+| `SN2` | `AtomOption::store_none` | `atom.rs:752-754` | the word swapped to null |
+| `ST3` | `retire_node`, `enqueue_node`, the guard's drop | `atom.rs:416-421`, `742-746`, `755-759`; `node.rs:149-159`; `guard.rs:987-1088` | the old node retired with the value's destructor (any retire may advance the epoch), the guard dropped |
+| `OP` (`take`) | `AtomOption::take` | `atom.rs:768` | `guard::pin()` |
+| `SW2` | `Atomic::swap` | `atom.rs:449`, `770` | the word swapped |
+| `SW3` | `swap`, `take` | `atom.rs:449-452`, `770-776` | the `Removed` made of the old node, left as it is, the guard dropped |
 | `OP` (`dropr`) | `Removed::drop` | `atom.rs:191-198`; `node.rs:149-159` | the node retired with the value's destructor and its own birth epoch |
 | `OP` (`unchecked`) | `Removed::into_inner_unchecked`, `AtomNode::into_val` | `atom.rs:183-188`, `84-90` | the value moved out to the caller and the node freed, once no reader reaches it |
-| `OP` (`cas`) | `Atom::compare_and_swap` | `atom.rs:471-472` | `AtomNode::boxed`, the nested `guard::pin()` |
-| `CS2` | `compare_and_swap` | `atom.rs:473-483` | the word loaded (protected), compared with `current`; `Err(into_val(new))` |
-| `CS3` | `Atomic::compare_exchange` | `atom.rs:485-511`; `atomic.rs:192-213` | the compare-and-swap; `Ok(AtomGuard)` keeping the pin, or `Err(into_val(new))` |
-| `CS4` | `compare_and_swap` | `atom.rs:495-500` | the old node retired |
-| `OP` (`rcu`), `RU1` | `Atom::rcu` | `atom.rs:540` | `guard::pin()`, at each attempt |
-| `RU2` | `Atom::rcu` | `atom.rs:541-544` | the word loaded (protected), the closure reads the value |
-| `RU3` | `Atom::rcu` | `atom.rs:545-555`, `564-567` | `AtomNode::boxed`, the compare-and-swap; on failure `drop_node` and the guard's drop |
-| `RU4` | `Atom::rcu` | `atom.rs:556-562` | the old node retired, the guard dropped |
-| `OP` (`into_inner`) | `Atom::into_inner`, `AtomNode::into_val` | `atom.rs:297-306`, `84-90` | pin, load, the node freed now, the value to the caller |
-| `OP` (`dropatom`) | `Drop for Atom`, `Drop for AtomOption`, `flush` | `atom.rs:607-619`, `775-785`; `guard.rs:1531-1637` | the last node's value dropped and the node freed, the epoch advanced |
-| `OP` (`is_none`) | `AtomOption::is_none`, `is_some` | `atom.rs:717-726` | pin, load, the null check, the guard's drop |
+| `OP` (`cas`) | `Atom::compare_and_swap` | `atom.rs:478-479` | `AtomNode::boxed`, the nested `guard::pin()` |
+| `CS2` | `compare_and_swap` | `atom.rs:480-490` | the word loaded (protected), compared with `current`; `Err(into_val(new))` |
+| `CS3` | `Atomic::compare_exchange` | `atom.rs:492-518`; `atomic.rs:192-213` | the compare-and-swap; `Ok(AtomGuard)` keeping the pin, or `Err(into_val(new))` |
+| `CS4` | `compare_and_swap` | `atom.rs:502-507` | the old node retired |
+| `OP` (`rcu`), `RU1` | `Atom::rcu` | `atom.rs:547` | `guard::pin()`, at each attempt |
+| `RU2` | `Atom::rcu` | `atom.rs:548-551` | the word loaded (protected), the closure reads the value |
+| `RU3` | `Atom::rcu` | `atom.rs:552-562`, `571-574` | `AtomNode::boxed`, the compare-and-swap; on failure `drop_node` and the guard's drop |
+| `RU4` | `Atom::rcu` | `atom.rs:563-569` | the old node retired, the guard dropped |
+| `OP` (`into_inner`) | `Atom::into_inner`, `AtomNode::into_val` | `atom.rs:304-313`, `84-90` | pin, load, the node freed now, the value to the caller |
+| `OP` (`dropatom`) | `Drop for Atom`, `Drop for AtomOption`, `flush` | `atom.rs:614-626`, `782-792`; `guard.rs:1531-1637` | the last node's value dropped and the node freed, the epoch advanced |
+| `OP` (`is_none`) | `AtomOption::is_none`, `is_some` | `atom.rs:724-733` | pin, load, the null check, the guard's drop |
 | `RC1` | kovan's reclamation | `guard.rs:1265-1345` (`try_retire`'s scan); `node.rs:167-171` (the destructors) | a retired node freed once its sections have ended; `drop_node` or `free_node` |
 | `ST2r`, `ST2w`, `RU2b`, `II2`; `OP` (`send`, `recv`) | (mutations) | | the steps a wrong rule adds |
 
@@ -224,10 +224,10 @@ at once in it.
 
 The run recorded in `tlc-run.txt` (4 workers for a passing configuration, one for a violation,
 at the lowest priority on a 36-core machine shared with other heavy work): 41 of 41
-configurations match `EXPECTED.txt`, in 101 s of TLC time. The passing ones are `AT_rcu`
-(1,899,167 distinct states, 21 s), `AT_store` (203,053, 4 s), `AT_cas` (152,291, 4 s), `AT_cas2`
+configurations match `EXPECTED.txt`, in 97 s of TLC time. The passing ones are `AT_rcu`
+(1,899,167 distinct states, 20 s), `AT_store` (203,053, 4 s), `AT_cas` (152,291, 3 s), `AT_cas2`
 (130,017, 4 s), `AT_opt` (92,554, 3 s), `AT_mix` (87,456, 3 s), `AT_end` (75,999, 3 s), `AT_live`
-(60,014, 10 s, with `Termination` and `Reclaimed`) and `AT_inner` (34,186, 2 s); the ones with a
+(60,014, 9 s, with `Termination` and `Reclaimed`) and `AT_inner` (34,186, 2 s); the ones with a
 `swap` or a `take` reach fewer states than with the copy, which allocated a wrapper. The longest
 runs that break a property stop within 59,923 distinct states and 4 s. The trace of
 `AT_mut_removed_copy` is the defect 15ae2c4 fixed: a reader loads the value; a swap hands back a

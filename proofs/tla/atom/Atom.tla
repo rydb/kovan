@@ -244,7 +244,7 @@ OP: \* the first step of the thread's next operation
     if ix[self] > Len(Prog[self]) then
         goto Done;
     elsif Op(self) = "load" then
-        \* Atom::load, AtomOption::load, AtomMap::load (atom.rs:333-342, 701-713, 849-857):
+        \* Atom::load, AtomOption::load, AtomMap::load (atom.rs:340-349, 708-720, 856-864):
         \* guard::pin()
         Pin();
         seen[self] := {Abs};
@@ -267,7 +267,7 @@ OP: \* the first step of the thread's next operation
         ix[self] := ix[self] + 1;
         goto OP;
     elsif Op(self) \in {"store", "swap"} then
-        \* Atom::store, AtomOption::store_some, Atom::swap (atom.rs:403-405, 437-439, 730-732):
+        \* Atom::store, AtomOption::store_some, Atom::swap (atom.rs:410-412, 444-446, 737-739):
         \* AtomNode::boxed(val), then guard::pin()
         with a \in AllocSet do
             said := Note(IF node[a].ver # NOVER THEN {"reuse"} ELSE {});
@@ -285,16 +285,16 @@ OP: \* the first step of the thread's next operation
             goto ST2;
         end if;
     elsif Op(self) = "take" then
-        \* AtomOption::take (atom.rs:760-761): guard::pin()
+        \* AtomOption::take (atom.rs:767-768): guard::pin()
         Pin();
         seen[self] := {Abs};
         goto SW2;
     elsif Op(self) = "store_none" then
-        \* AtomOption::store_none (atom.rs:744-745): guard::pin()
+        \* AtomOption::store_none (atom.rs:751-752): guard::pin()
         Pin();
         goto SN2;
     elsif Op(self) = "is_none" then
-        \* AtomOption::is_none, is_some (atom.rs:717-726): a pin, a protected load, the null check
+        \* AtomOption::is_none, is_some (atom.rs:724-733): a pin, a protected load, the null check
         \* and the guard's drop; the guard protects nothing it dereferences
         if pinc[self] = 0 then
             era[self] := E || cbirth[self] := E;
@@ -354,7 +354,7 @@ OP: \* the first step of the thread's next operation
         goto OP;
     elsif Op(self) = "cas" then
         \* Atom::compare_and_swap(&current, new) with the thread's AtomGuard as `current`
-        \* (atom.rs:471-472): AtomNode::boxed(new), guard::pin(), nested under `current`
+        \* (atom.rs:478-479): AtomNode::boxed(new), guard::pin(), nested under `current`
         with a \in AllocSet do
             said := Note(IF node[a].ver # NOVER THEN {"reuse"} ELSE {});
             node[a] := NewNode(MyVal(self), Birth(self), node[a]);
@@ -364,13 +364,13 @@ OP: \* the first step of the thread's next operation
         Pin();
         goto CS2;
     elsif Op(self) = "rcu" then
-        \* Atom::rcu (atom.rs:540): guard::pin(); (the witness of a call's second retry forgets
+        \* Atom::rcu (atom.rs:547): guard::pin(); (the witness of a call's second retry forgets
         \* the last call's first)
         Pin();
         said := IF Wit = "rcu_retry2" THEN said \ {RetryMark(self)} ELSE said;
         goto RU2;
     elsif Op(self) = "into_inner" then
-        \* Atom::into_inner (atom.rs:297-306): pin, load, mem::forget(self), AtomNode::into_val:
+        \* Atom::into_inner (atom.rs:304-313): pin, load, mem::forget(self), AtomNode::into_val:
         \* the value read out, the node freed now; the caller drops the value it gets
         await Exclusive(self);
         if pinc[self] = 0 then
@@ -388,7 +388,7 @@ OP: \* the first step of the thread's next operation
             goto OP;
         end if;
     elsif Op(self) = "dropatom" then
-        \* Drop for Atom, AtomOption (atom.rs:607-619, 775-785): load_raw, drop_node on the last
+        \* Drop for Atom, AtomOption (atom.rs:614-626, 782-792): load_raw, drop_node on the last
         \* node, crate::flush(), whose increment_era advances the epoch
         await Exclusive(self);
         if cell # NULL /\ ~MutDropSkips then
@@ -440,7 +440,7 @@ LD2: \* self.inner.load(Acquire, &guard): protect_load, its raise of the publish
 
 \* ---------------------------------------------------------------- into_inner_no_forget
 II2: \* (into_inner_no_forget) `self` not forgotten: the atom's Drop runs on the word into_val
-     \* left, drop_node on the node it freed, then crate::flush() (atom.rs:607-619)
+     \* left, drop_node on the node it freed, then crate::flush() (atom.rs:614-626)
     errs := errs \cup DropErr(node[cell].ver)
                  \cup (IF node[cell].st = "free" THEN {"double_free"} ELSE {});
     vst[node[cell].ver] := "dropped";
@@ -454,7 +454,7 @@ II2: \* (into_inner_no_forget) `self` not forgotten: the atom's Drop runs on the
 ST2r: \* (retire_before_swap) the node the word names retired before the swap
     node := Retire(node, cell, "drop", node[cell].birth);
     goto ST2;
-ST2: \* self.inner.swap(new, AcqRel) (atom.rs:408, 734)
+ST2: \* self.inner.swap(new, AcqRel) (atom.rs:415, 741)
     lp[self] := Ptr(cell) || cell := nw[self];
     seen := Saw(MyVal(self));
     wsince := Woke(self);
@@ -462,11 +462,11 @@ ST2: \* self.inner.swap(new, AcqRel) (atom.rs:408, 734)
 ST2w: \* (publish_before_init) the value written into the node already published
     node[nw[self]].val := MyVal(self);
     goto ST3;
-SN2: \* AtomOption::store_none: self.inner.swap(null, AcqRel) (atom.rs:746-747)
+SN2: \* AtomOption::store_none: self.inner.swap(null, AcqRel) (atom.rs:753-754)
     lp[self] := Ptr(cell) || cell := NULL;
     seen := Saw(NONE);
     goto ST3;
-ST3: \* retire_node(old_ptr) when not null (atom.rs:409-414, 735-739, 748-752), the guard's drop
+ST3: \* retire_node(old_ptr) when not null (atom.rs:416-421, 742-746, 755-759), the guard's drop
     if lp[self] = NOP \/ MutRetireFirst \/ MutNoRetire then
         node := UnpinN(node, self);
     elsif MutDropNow then
@@ -483,12 +483,12 @@ ST3: \* retire_node(old_ptr) when not null (atom.rs:409-414, 735-739, 748-752), 
     goto OP;
 
 \* ---------------------------------------------------------------- swap, take
-SW2: \* self.inner.swap(new, AcqRel) (atom.rs:442, 763)
+SW2: \* self.inner.swap(new, AcqRel) (atom.rs:449, 770)
     lp[self] := Ptr(cell) || cell := nw[self];
     seen := Saw(IF nw[self] = NULL THEN NONE ELSE MyVal(self));
     wsince := Woke(self);
     goto SW3;
-SW3: \* the Removed made of the old node, left as it is (atom.rs:442-445, 763-769), the guard's
+SW3: \* the Removed made of the old node, left as it is (atom.rs:449-452, 770-776), the guard's
      \* drop; removed_copy: ptr::read of the value, its birth_epoch, retire_node_dealloc_only
     if lp[self] = NOP then
         \* take of an empty AtomOption: None
@@ -526,7 +526,7 @@ SW3: \* the Removed made of the old node, left as it is (atom.rs:442-445, 763-76
     end if;
 
 \* ---------------------------------------------------------------- compare_and_swap
-CS2: \* self.inner.load(Acquire, &guard) (atom.rs:473), compared with current.ptr (513-519)
+CS2: \* self.inner.load(Acquire, &guard) (atom.rs:480), compared with current.ptr (513-519)
     if ~MutCasUnprot then
         era[self] := Max2(era[self], E);
     end if;
@@ -543,10 +543,10 @@ CS2: \* self.inner.load(Acquire, &guard) (atom.rs:473), compared with current.pt
         lp[self] := Ptr(cell);
         goto CS3;
     end if;
-CS3: \* self.inner.compare_exchange(current_shared, new, AcqRel, Acquire) (atom.rs:488-494);
+CS3: \* self.inner.compare_exchange(current_shared, new, AcqRel, Acquire) (atom.rs:495-501);
      \* cas_check_then_store: the word swapped in unconditionally
     if cell = lp[self][1] \/ MutCheckStore then
-        \* Ok: the AtomGuard of the new node keeps this pin (atom.rs:501-505)
+        \* Ok: the AtomGuard of the new node keeps this pin (atom.rs:508-512)
         errs := errs \cup (IF Abs = ag[self][2] THEN {} ELSE {"cas_exact"});
         lp[self] := Ptr(cell) || cell := nw[self] || cg[self] := <<nw[self], MyVal(self)>>
             || nw[self] := NULL;
@@ -554,7 +554,7 @@ CS3: \* self.inner.compare_exchange(current_shared, new, AcqRel, Acquire) (atom.
         wsince := Woke(self);
         goto CS4;
     else
-        \* Err(AtomNode::into_val(new_ptr)) (atom.rs:507-511)
+        \* Err(AtomNode::into_val(new_ptr)) (atom.rs:514-518)
         errs := errs \cup (IF Abs = ag[self][2] THEN {"cas_exact"} ELSE {});
         vst[MyVal(self)] := "dropped";
         node := UnpinN(FreeN(node, nw[self]), self);
@@ -563,7 +563,7 @@ CS3: \* self.inner.compare_exchange(current_shared, new, AcqRel, Acquire) (atom.
         said := Note({"cas_err_race"});
         goto OP;
     end if;
-CS4: \* retire_node(old_ptr) (atom.rs:495-500)
+CS4: \* retire_node(old_ptr) (atom.rs:502-507)
     node := Retire(node, lp[self][1], "drop", node[lp[self][1]].birth);
     said := Note(IF Skips(node[lp[self][1]].birth) THEN {"skip"} ELSE {});
     Advance(cbirth[self]);
@@ -571,17 +571,17 @@ CS4: \* retire_node(old_ptr) (atom.rs:495-500)
     goto OP;
 
 \* ---------------------------------------------------------------- rcu
-RU1: \* a retry: guard::pin() (atom.rs:540)
+RU1: \* a retry: guard::pin() (atom.rs:547)
     Pin();
     goto RU2;
-RU2: \* self.inner.load(Acquire, &guard) (atom.rs:541); the closure reads the value (579-580)
+RU2: \* self.inner.load(Acquire, &guard) (atom.rs:548); the closure reads the value (579-580)
     lp[self] := Ptr(cell) || era[self] := Max2(era[self], E) || wsince[self] := FALSE;
     errs := errs \cup (IF node[cell].val = node[cell].ver THEN {} ELSE {"lin"});
     if MutReload then goto RU2b; else goto RU3; end if;
 RU2b: \* (rcu_reload_expected) the word loaded again for the CAS
     ep[self] := Ptr(cell) || era[self] := Max2(era[self], E);
     goto RU3;
-RU3: \* AtomNode::boxed(new_val) (atom.rs:545), compare_exchange(current, new) (585-591)
+RU3: \* AtomNode::boxed(new_val) (atom.rs:552), compare_exchange(current, new) (585-591)
     if cell = Exp(self)[1] then
         with a \in AllocSet do
             errs := errs \cup (IF node[cell].ver = lp[self][2] THEN {} ELSE {"rcu_applies"});
@@ -594,7 +594,7 @@ RU3: \* AtomNode::boxed(new_val) (atom.rs:545), compare_exchange(current, new) (
         wsince := Woke(self);
         goto RU4;
     else
-        \* Err: drop_node(new_ptr), the value dropped (atom.rs:564-567); a write took effect
+        \* Err: drop_node(new_ptr), the value dropped (atom.rs:571-574); a write took effect
         \* since the load (LockFree)
         errs := errs \cup (IF wsince[self] THEN {} ELSE {"lockfree"});
         vst[MyVal(self)] := "dropped";
@@ -610,7 +610,7 @@ RU3: \* AtomNode::boxed(new_val) (atom.rs:545), compare_exchange(current, new) (
             goto RU1;
         end if;
     end if;
-RU4: \* retire_node(old_ptr) (atom.rs:556-562), the guard's drop at the return
+RU4: \* retire_node(old_ptr) (atom.rs:563-569), the guard's drop at the return
     node := UnpinN(Retire(node, Exp(self)[1], "drop", node[Exp(self)[1]].birth), self);
     said := Note((IF Skips(node[Exp(self)[1]].birth) THEN {"skip"} ELSE {}) \cup HeldBy(Exp(self)));
     Advance(cbirth[self]);
