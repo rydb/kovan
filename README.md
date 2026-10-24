@@ -37,7 +37,7 @@ Kovan tracks this automatically with near-zero overhead on reads.
 
 ```toml
 [dependencies]
-kovan = "0.1"
+kovan = "0.2"
 ```
 
 ## Ecosystem
@@ -170,12 +170,15 @@ cargo +nightly bench --bench comparison --features nightly
 
 ```toml
 # Nightly optimizations (~5% faster)
-kovan = { version = "0.1", features = ["nightly"] }
+kovan = { version = "0.2", features = ["nightly"] }
 
 # Node memory from a per-thread magazine cache over a slab layer instead of
 # an allocator call per node (every kovan crate has the same feature); it beats
-# glibc's allocator but not mimalloc, so measure with yours (see the crate docs)
-kovan-map = { version = "0.1", features = ["recycle"] }
+# glibc's allocator but not mimalloc, so measure with yours (see the crate docs).
+# Turn it on in the application, never in a library: Cargo enables a feature
+# for the whole build, so a library that turns it on turns it on for every
+# kovan structure of the programs that use it.
+kovan-map = { version = "0.2", features = ["recycle"] }
 ```
 
 ## Supported Platforms

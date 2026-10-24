@@ -1,7 +1,6 @@
 [package]
 name = "kovan-mvcc"
-# 0.2: `Txn::read` returns a Result (a read that gives up on a lock is an error, not None).
-version = "0.2.0"
+version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
 authors.workspace = true
