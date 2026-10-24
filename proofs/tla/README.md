@@ -3,7 +3,8 @@
 Nine models, each at the grain of its code's atomic steps, checked by TLC: kovan's memory
 reclamation (the `kovan` crate), its `Atom`, and its magazine cache and slab layer (the `recycle`
 feature), the two concurrent maps of `kovan-map`, the segment queue of `kovan-queue`, the
-software transactional memory of `kovan-stm` and the Percolator transactions of `kovan-mvcc`. Each carries the defects fixed so far as mutations, one at a time (the maps' 0.1.20
+software transactional memory of `kovan-stm`, the Percolator transactions of `kovan-mvcc` and the channels of
+`kovan-channel`. Each carries the defects fixed so far as mutations, one at a time (the maps' 0.1.20
 rules and the fixes merged into this branch, the reclamation's 0.1.21 rules and the later defects
 this branch fixed, the segment queue's earlier pop): TLC finds a counterexample for every one, and
 none for the code as built.
@@ -19,6 +20,7 @@ none for the code as built.
 | [`atom/`](atom/README.md) | `kovan::Atom` and `AtomOption`: the pointer word, nodes at addresses that can be reused, load, store, `swap` and `take` with the `Removed` that reads the value in its node, `compare_and_swap` and its success guard, `rcu`'s retry loop, `into_inner` and `Drop`, over the reclamation's birth-epoch rule; one object per value, drop once, no use after free, no leak, linearizability, lock-free `rcu`; the 0.1.22 copy in `Removed` and six other defects as mutations | `just tla atom` |
 | [`stm/`](stm/README.md) | `kovan_stm`: the lock words, the version clock, a load's validation (a repeat load too), the commit's locking, clock, read-set validation, publication and unlocking, rollback and commit hooks, the drops and retires of values and variables; serializability, opacity, all-or-none, drop once, no use after free, no leak, termination; the 0.1.22 re-read and four other defects as mutations | `just tla stm` |
 | [`mvcc/`](mvcc/README.md) | `kovan_mvcc`: the timestamp oracle, `begin`'s registration, reads at their read timestamp that meet locks and back off, prewrite's three passes, the SSI validation, the primary's and the secondaries' commit, rollback, the embedder's in-flight registry and `safe_read_ts`, and a GC with `gc_watermark`; snapshot reads, no dirty read, first committer wins, all or nothing, serial reads, a sound watermark and read horizon, no leak, termination; the six defects of 0.1.22 it found and nineteen other wrong rules as mutations | `just tla mvcc` |
+| [`channel/`](channel/README.md) | `kovan_channel`: both flavors' list and counts, the wait lists, `Signal` and `AsyncSignal` with its `AtomicWaker`, the blocking, deadline and async waits, the bounded sends, the receiver count, the disconnect and `select!`; the list's safety and FIFO order, no loss, no duplicate, no lost wakeup, the waker's contract, termination; the eight defects it found (seven of 0.1.22, one in the fix as first written) and thirty other wrong rules as mutations | `just tla channel` |
 
 Each family's README describes its model, what it leaves out and why, its properties, its
 configurations, its code map and its TLC results.

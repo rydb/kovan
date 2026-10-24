@@ -16,10 +16,10 @@ use std::sync::atomic::{AtomicBool, AtomicUsize};
 
 #[cfg(not(target_arch = "wasm32"))]
 use crate::flavors::RecvDeadline;
+use crate::signal::Notifier;
 #[cfg(not(target_arch = "wasm32"))]
 use crate::signal::Signal;
-use crate::signal::{AsyncSignal, Notifier};
-use crate::waitlist::{WaitList, wakeup_fence};
+use crate::waitlist::{AsyncWait, WaitList, wakeup_fence};
 
 #[repr(C)]
 pub(crate) struct Node<T> {
@@ -303,14 +303,14 @@ impl<T: 'static> Receiver<T> {
 
             if let Some(msg) = self.try_recv() {
                 // We registered but found a message already: not going to
-                // wait, so mark our own entry stale (see `waitlist` docs).
-                signal.notify();
+                // wait, so abandon our own entry (see `waitlist` docs).
+                self.inner.receivers.abandon(&*signal);
                 return Some(msg);
             }
 
             // Check disconnection after registering signal but before parking
             if self.is_disconnected() {
-                signal.notify();
+                self.inner.receivers.abandon(&*signal);
                 return self.try_recv(); // Drain remaining
             }
 
@@ -371,13 +371,13 @@ impl<T: 'static> Receiver<T> {
 
             if let Some(msg) = self.try_recv() {
                 // We registered but found a message already: not going to
-                // wait, so mark our own entry stale (see `waitlist` docs).
-                signal.notify();
+                // wait, so abandon our own entry (see `waitlist` docs).
+                self.inner.receivers.abandon(&*signal);
                 return RecvDeadline::Msg(msg);
             }
 
             if self.is_disconnected() {
-                signal.notify();
+                self.inner.receivers.abandon(&*signal);
                 return match self.try_recv() {
                     Some(msg) => RecvDeadline::Msg(msg),
                     None => RecvDeadline::Disconnected,
@@ -388,7 +388,7 @@ impl<T: 'static> Receiver<T> {
                 // Timed out: mark our own entry stale (see `waitlist`
                 // docs) and do one last recheck -- a message or disconnect
                 // may have landed in the instant the deadline passed.
-                signal.notify();
+                self.inner.receivers.abandon(&*signal);
                 if let Some(msg) = self.try_recv() {
                     return RecvDeadline::Msg(msg);
                 }
@@ -448,18 +448,23 @@ impl<T: 'static> Receiver<T> {
     /// reopens the exact store-buffering race the protocol exists to
     /// close, and a real wakeup can be silently lost.
     ///
-    /// `signal` must be a fresh registration, not a `Notifier` that was
-    /// already notified (for example, reused across loop iterations
-    /// without resetting): an already-notified entry is indistinguishable
-    /// from a stale one, and `notify_one` will pop and discard it unread,
-    /// silently starving this registration forever.
+    /// A signal another channel already notified may be registered (the
+    /// one `Signal` of a `select!` is registered on its channels one after
+    /// another): its entry is stale and skipped, and the caller's wait
+    /// returns at once. A caller that stops waiting without being woken must
+    /// withdraw the signal ([`Signal::cancel`](crate::signal::Signal::cancel))
+    /// and, when that answers `false`, pass the wakeup it took on with
+    /// [`wake_one_waiter`](Self::wake_one_waiter) on every channel it
+    /// registered on.
     pub fn register_signal(&self, signal: Arc<dyn Notifier>) {
-        debug_assert!(
-            !signal.is_notified(),
-            "register_signal: registering an already-notified Notifier; it will be treated as \
-             a stale entry and skipped by notify_one, silently losing this registration's wakeup"
-        );
         self.inner.receivers.register(signal);
+    }
+
+    /// Wakes one receiver waiting on this channel, if any: how a caller of
+    /// [`register_signal`](Self::register_signal) passes on a wakeup its
+    /// signal took and did not use.
+    pub fn wake_one_waiter(&self) {
+        self.inner.receivers.notify_one();
     }
 
     /// Receives a message from the channel asynchronously.
@@ -472,7 +477,7 @@ impl<T: 'static> Receiver<T> {
 
         struct RecvFuture<'a, T: 'static> {
             receiver: &'a Receiver<T>,
-            signal: Arc<AsyncSignal>,
+            wait: AsyncWait,
         }
 
         impl<'a, T: 'static> Unpin for RecvFuture<'a, T> {}
@@ -482,31 +487,30 @@ impl<T: 'static> Receiver<T> {
 
             fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
                 let this = self.get_mut();
+                let list = &this.receiver.inner.receivers;
+                this.wait.begin_poll();
                 if let Some(msg) = this.receiver.try_recv() {
+                    this.wait.finish(list);
                     return Poll::Ready(Some(msg));
                 }
 
                 // Disconnected and empty — done
                 if this.receiver.is_disconnected() {
+                    this.wait.finish(list);
                     return Poll::Ready(this.receiver.try_recv());
                 }
 
-                if this.signal.is_notified() {
-                    this.signal = Arc::new(AsyncSignal::new());
-                }
-
-                this.signal.register(cx.waker());
-                this.receiver.inner.receivers.register(this.signal.clone());
+                this.wait.register(list, cx.waker());
                 wakeup_fence();
 
                 // Re-check
                 if let Some(msg) = this.receiver.try_recv() {
-                    this.signal.notify();
+                    this.wait.finish(list);
                     return Poll::Ready(Some(msg));
                 }
 
                 if this.receiver.is_disconnected() {
-                    this.signal.notify();
+                    this.wait.finish(list);
                     // Drain once more rather than trusting the try_recv
                     // just above (see `Receiver::recv`'s final check for
                     // why that try_recv and this is_disconnected read can
@@ -518,9 +522,17 @@ impl<T: 'static> Receiver<T> {
             }
         }
 
+        // Dropped while pending: its entry must not take a wakeup meant for
+        // a receiver that waits.
+        impl<'a, T: 'static> Drop for RecvFuture<'a, T> {
+            fn drop(&mut self) {
+                self.wait.finish(&self.receiver.inner.receivers);
+            }
+        }
+
         RecvFuture {
             receiver: self,
-            signal: Arc::new(AsyncSignal::new()),
+            wait: AsyncWait::new(),
         }
         .await
     }

@@ -17,6 +17,23 @@
 ///     default => println!("No message available"),
 /// }
 /// ```
+///
+/// Without a `default` arm, `select!` waits until an arm can run. Once every
+/// channel is disconnected and empty none ever can: a `disconnected` arm then
+/// runs, and without one `select!` panics rather than wait for good.
+///
+/// ```
+/// use kovan_channel::{unbounded, select};
+///
+/// let (s1, r1) = unbounded::<i32>();
+/// drop(s1);
+///
+/// let gone = select! {
+///     v1 = r1 => v1 == 0;
+///     disconnected => true,
+/// };
+/// assert!(gone);
+/// ```
 #[macro_export]
 macro_rules! select {
     // Case with default
@@ -39,10 +56,23 @@ macro_rules! select {
             }
         }
     };
-    // Case without default
+    // Case with an arm for every channel disconnected and empty
+    (
+        $($name:pat = $rx:expr => $body:expr),* ;
+        disconnected => $disconnected_body:expr $(,)?
+    ) => {
+        $crate::select!(@wait $($name = $rx => $body),* ; { $disconnected_body })
+    };
+    // Case without default: no arm can ever run once every channel is
+    // disconnected and empty, so that is a panic, not a hang
     (
         $($name:pat = $rx:expr => $body:expr),* $(,)?
     ) => {
+        $crate::select!(@wait $($name = $rx => $body),* ; {
+            panic!("select!: every channel is disconnected and empty, so no arm can ever run")
+        })
+    };
+    (@wait $($name:pat = $rx:expr => $body:expr),* ; $disconnected_body:block) => {
         {
             use std::sync::Arc;
             use std::sync::atomic::{Ordering, fence};
@@ -57,16 +87,33 @@ macro_rules! select {
                     }
                 )*
 
-                // 2. Register all. A fresh `Signal` every iteration:
-                // `Signal` has no reset, so reusing one across loop passes
-                // would leave `state` stuck at "notified" after the first
-                // wakeup -- every later `wait()` on it then returns
-                // immediately (hot-spinning step 1..4 instead of actually
-                // parking) and every later registration is a stale entry
-                // piling up, unbounded, in each channel's `WaitList`.
+                // Every channel disconnected and empty: no arm can run.
+                // (A channel can disconnect after its try_recv above, so it
+                // is drained once more first.)
+                if true $(&& $rx.is_disconnected())* {
+                    $(
+                        if let Some($name) = $rx.try_recv() {
+                            #[allow(unreachable_code)]
+                            break $body;
+                        }
+                    )*
+                    // Without a `disconnected` arm this is a panic, which never
+                    // breaks: the lint below is the macro's choice, not the caller's.
+                    #[allow(unreachable_code, clippy::diverging_sub_expression)]
+                    break $disconnected_body;
+                }
+
+                // 2. Register on every channel that can still deliver. A
+                // fresh `Signal` every iteration: `Signal` has no reset. A
+                // disconnected channel gets none: no sender is left to pop
+                // its wait list, so entries there would pile up for good.
                 let signal = Arc::new(Signal::new());
+                let mut live = 0usize;
                 $(
-                    $rx.register_signal(signal.clone());
+                    if !$rx.is_disconnected() {
+                        $rx.register_signal(signal.clone());
+                        live += 1;
+                    }
                 )*
 
                 // Loss-free wakeup: pairs registration with the recheck
@@ -75,15 +122,30 @@ macro_rules! select {
                 // `crate::waitlist` module docs for the full proof.
                 fence(Ordering::SeqCst);
 
-                // 3. Re-check all
+                // 3. Re-check all: a value, or a channel that disconnected
+                // since it was registered on, ends the wait.
                 let mut ready = false;
+                let mut live_now = 0usize;
                 $(
                     if !$rx.is_empty() {
                         ready = true;
                     }
+                    if !$rx.is_disconnected() {
+                        live_now += 1;
+                    }
                 )*
 
-                if ready {
+                // No channel registered on: each disconnected after the
+                // check above, and nothing is left to end the wait, so that
+                // check runs again.
+                if ready || live == 0 || live_now < live {
+                    // Not going to wait: withdraw the signal, and pass on a
+                    // wakeup a channel delivered to it first.
+                    if !signal.cancel() {
+                        $(
+                            $rx.wake_one_waiter();
+                        )*
+                    }
                     continue;
                 }
 

@@ -103,6 +103,9 @@ Lean: install elan once (`proofs/lean/README.md` says how). The recipes run
 - `tla/mvcc/`: `kovan_mvcc`'s Percolator transactions (registration, reads that meet locks, the
   three prewrite passes, SSI, commit, rollback, the in-flight registry and `safe_read_ts`, the GC
   and its watermark), 53 configurations: 17 that must pass and 36 that must fail.
+- `tla/channel/`: `kovan_channel` (both flavors' list and counts, the wait lists and their
+  cancel, the signals and the `AtomicWaker`, every wait, the bounded sends and the receiver count,
+  the disconnect, `select!`), 83 configurations: 27 that must pass and 56 that must fail.
 - `lean/Kovan/HopscotchShrink.lean`: the hopscotch map's shrink threshold, for one thread and
   every sequence of operations: a successful resize and a clear erase it; after a failed shrink
   at `c` entries, until the next erasure, no shrink is asked for while `max (c / 2) 1` entries
@@ -137,6 +140,9 @@ Lean: install elan once (`proofs/lean/README.md` says how). The recipes run
   one magazine class), the value-pointer compare as a compare of nodes, and the birth-epoch rule:
   a batch's birth is the least of its nodes', and neither a reader of a node, nor the node a
   `Removed` retires, nor `compare_and_swap`'s success guard is skipped for it.
+- `lean/Kovan/Channel.lean`: the channels' arithmetic: the `AtomicWaker` word, the bounded count
+  against any capacity, the sender and receiver counts (exactly one last drop), and the signal's
+  word (of a notifier's `try_notify` and the owner's `cancel`, the first wins, every later loses).
 - `lean/Kovan/Mvcc.lean`: the MVCC store's oracle (unique and increasing for `2^64 - 1` calls),
   `DefaultBackoff`'s schedule, `safe_read_ts`'s pin, and the version chains: prewrite's and the
   SSI validation's checks exact, and both GC passes keep every read at or above the watermark.

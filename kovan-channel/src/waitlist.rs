@@ -14,9 +14,8 @@
 //!    relevant `WaitList`.
 //! 2. **Fence**: [`wakeup_fence`] -- a `SeqCst` fence.
 //! 3. **Recheck**: re-read the condition. If it is now satisfiable, resolve
-//!    immediately *and call `notify()` on the just-pushed entry itself*
-//!    before returning, marking it stale (see below). Otherwise, actually
-//!    wait (park / return `Pending`).
+//!    immediately and *abandon* the just-pushed entry ([`WaitList::abandon`],
+//!    see below). Otherwise, actually wait (park / return `Pending`).
 //!
 //! The producing side (the operation that changes the condition -- a
 //! message enqueue, a freed slot, a disconnect) mirrors this:
@@ -53,25 +52,30 @@
 //! Because registration is unconditional (step 1 happens before the
 //! recheck can decide it wasn't needed), a registering thread can end up
 //! abandoning its own entry -- it never parks/never returns `Pending`,
-//! because the recheck in step 3 already found the condition satisfied.
+//! because the recheck in step 3 already found the condition satisfied (or
+//! an async operation completes, or is dropped, while its entry is queued).
 //! Left alone, that entry would sit in the queue looking exactly like a
 //! live waiter, and a later `notify_one` could pop *it* instead of an
 //! actually-parked waiter, wasting the one wakeup that message was
 //! supposed to deliver.
 //!
-//! The fix is for the abandoning thread to call `notify()` on its own
-//! entry before returning (see step 3 above). That flips
-//! [`Notifier::is_notified`] to `true` for it. `notify_one` pops in a loop,
-//! skipping any already-notified entry it finds and moving on to the next,
-//! so a self-abandoned (stale) entry never absorbs a wakeup meant for a
-//! genuine waiter -- it is simply discarded. `notify()` is idempotent, so
-//! self-notifying a signal that a real notifier is *also* about to (or
-//! just did) notify is harmless.
+//! A signal has three states, waiting, notified and cancelled, and a waiter
+//! leaves the first for exactly one of the others, by compare-and-swap:
+//! `notify_one` delivers with [`Notifier::try_notify`], which only a waiting
+//! entry accepts (it pops on past any other), and the abandoning thread
+//! withdraws its entry with [`Notifier::cancel`]. When the cancel loses, a
+//! notifier delivered a wakeup to the entry between the recheck and the
+//! cancel, one the abandoning thread is not going to use, so it passes it on
+//! with a `notify_one` of its own. A wakeup is therefore spent on a waiter
+//! that waits, or handed on; never on an entry nobody waits on. (Marking the
+//! entry stale with `notify()` after the take, as this crate did before,
+//! left that window open: the TLA+ model, `proofs/tla/channel`, found it.)
 
-use crate::signal::Notifier;
+use crate::signal::{AsyncSignal, Notifier};
 use kovan_queue::seg_queue::SegQueue;
 use std::sync::Arc;
 use std::sync::atomic::Ordering;
+use std::task::Waker;
 
 // Shuttle's own `fence` is (as of shuttle 0.9) a documented no-op under the
 // checker -- shuttle already treats every atomic operation as `SeqCst`, so
@@ -119,15 +123,23 @@ impl WaitList {
         self.queue.push(notifier);
     }
 
-    /// Wakes exactly one live waiter, skipping stale entries so a real
+    /// Wakes exactly one live waiter, popping past stale entries so a real
     /// wakeup is never wasted on one. No-op if the queue is empty or every
     /// entry in it is stale.
     pub(crate) fn notify_one(&self) {
         while let Some(notifier) = self.queue.pop() {
-            if !notifier.is_notified() {
-                notifier.notify();
+            if notifier.try_notify() {
                 return;
             }
+        }
+    }
+
+    /// Withdraws an entry its owner registered on this list and no longer
+    /// waits on; when a notifier woke it first, passes that wakeup on to the
+    /// next waiter. See the module docs.
+    pub(crate) fn abandon(&self, notifier: &dyn Notifier) {
+        if !notifier.cancel() {
+            self.notify_one();
         }
     }
 
@@ -136,6 +148,58 @@ impl WaitList {
     pub(crate) fn notify_all(&self) {
         while let Some(notifier) = self.queue.pop() {
             notifier.notify();
+        }
+    }
+}
+
+/// An async operation's registration on a wait list: the signal it waits on,
+/// and whether an entry of it may still be queued. The three async channel
+/// operations share it, so they follow one protocol: register at most one
+/// entry at a time, take a wakeup a notifier delivered as the poll's own, and
+/// abandon the entry when the operation completes or is dropped without
+/// using it (see the module docs).
+pub(crate) struct AsyncWait {
+    signal: Arc<AsyncSignal>,
+    queued: bool,
+}
+
+impl AsyncWait {
+    pub(crate) fn new() -> Self {
+        Self {
+            signal: Arc::new(AsyncSignal::new()),
+            queued: false,
+        }
+    }
+
+    /// At a poll's start: a notifier that woke the signal popped its entry,
+    /// and the wakeup is this poll's.
+    pub(crate) fn begin_poll(&mut self) {
+        if self.queued && self.signal.was_woken() {
+            self.queued = false;
+        }
+    }
+
+    /// Registers for a wakeup on `list`: the waker updated, and an entry
+    /// queued unless one already is. The caller fences and re-checks after.
+    pub(crate) fn register(&mut self, list: &WaitList, waker: &Waker) {
+        if self.queued {
+            self.signal.register(waker);
+            return;
+        }
+        if self.signal.is_notified() {
+            self.signal = Arc::new(AsyncSignal::new());
+        }
+        self.signal.register(waker);
+        list.register(self.signal.clone());
+        self.queued = true;
+    }
+
+    /// The operation completes, or is dropped, while an entry may be queued
+    /// on `list`: withdraw it, or pass on a wakeup it took and did not use.
+    pub(crate) fn finish(&mut self, list: &WaitList) {
+        if self.queued {
+            self.queued = false;
+            list.abandon(&*self.signal);
         }
     }
 }

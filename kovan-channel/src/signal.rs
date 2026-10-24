@@ -48,7 +48,42 @@ pub trait Notifier: Send + Sync {
     fn is_notified(&self) -> bool {
         false
     }
+
+    /// Notifies the waiter if it still waits, and answers whether it did:
+    /// the wait list's `notify_one` delivers its one wakeup with this, so a
+    /// waiter that cancelled in the meantime does not take it. The default
+    /// checks, then notifies, as this trait's users outside the crate did;
+    /// the crate's own signals do both in one compare-and-swap.
+    fn try_notify(&self) -> bool {
+        if self.is_notified() {
+            false
+        } else {
+            self.notify();
+            true
+        }
+    }
+
+    /// Withdraws a registration whose owner stopped waiting, and answers
+    /// whether it was still waiting. `false` means a notifier delivered a
+    /// wakeup to it first: the owner then passes it on (the wait list's
+    /// `abandon`). The default checks, then notifies, as this trait's users
+    /// outside the crate did; the crate's own signals do both in one
+    /// compare-and-swap.
+    fn cancel(&self) -> bool {
+        if self.is_notified() {
+            false
+        } else {
+            self.notify();
+            true
+        }
+    }
 }
+
+/// A signal's state: waiting, notified by a notifier, or withdrawn by its
+/// owner. A waiter takes exactly one of the last two, by compare-and-swap.
+const WAITING: usize = 0;
+const NOTIFIED: usize = 1;
+const CANCELLED: usize = 2;
 
 /// A signal for blocking thread synchronization.
 ///
@@ -111,12 +146,29 @@ pub struct Signal {
 #[cfg(not(target_arch = "wasm32"))]
 impl Notifier for Signal {
     fn notify(&self) {
-        self.state.store(1, Ordering::Release);
+        self.state.store(NOTIFIED, Ordering::Release);
         self.thread.unpark();
     }
 
     fn is_notified(&self) -> bool {
-        self.state.load(Ordering::Relaxed) != 0
+        self.state.load(Ordering::Relaxed) != WAITING
+    }
+
+    fn try_notify(&self) -> bool {
+        let won = self
+            .state
+            .compare_exchange(WAITING, NOTIFIED, Ordering::AcqRel, Ordering::Acquire)
+            .is_ok();
+        if won {
+            self.thread.unpark();
+        }
+        won
+    }
+
+    fn cancel(&self) -> bool {
+        self.state
+            .compare_exchange(WAITING, CANCELLED, Ordering::AcqRel, Ordering::Acquire)
+            .is_ok()
     }
 }
 
@@ -132,7 +184,7 @@ impl Signal {
     /// Creates a new signal for the current thread.
     pub fn new() -> Self {
         Self {
-            state: AtomicUsize::new(0),
+            state: AtomicUsize::new(WAITING),
             thread: thread::current(),
         }
     }
@@ -145,7 +197,7 @@ impl Signal {
     /// unparks (see `crate::waitlist` for why a thread can pick up an
     /// unpark token that wasn't meant for this particular wait).
     pub fn wait(&self) {
-        while self.state.load(Ordering::Acquire) == 0 {
+        while self.state.load(Ordering::Acquire) == WAITING {
             thread::park();
         }
     }
@@ -166,7 +218,7 @@ impl Signal {
     /// tests in `tests/recv_deadline_test.rs` instead.
     pub fn wait_deadline(&self, deadline: Instant) -> bool {
         loop {
-            if self.state.load(Ordering::Acquire) != 0 {
+            if self.state.load(Ordering::Acquire) != WAITING {
                 return true;
             }
             let now = Instant::now();
@@ -182,9 +234,16 @@ impl Signal {
         Notifier::notify(self);
     }
 
-    /// Returns true if the signal has been notified.
+    /// Returns true if the signal has been notified (or cancelled).
     pub fn is_notified(&self) -> bool {
         Notifier::is_notified(self)
+    }
+
+    /// Withdraws the signal from the wait lists it is registered on, and
+    /// answers whether it was still waiting: `false` means a notifier woke it
+    /// first, and the wakeup is the caller's to pass on (`select!` does).
+    pub fn cancel(&self) -> bool {
+        Notifier::cancel(self)
     }
 }
 
@@ -388,7 +447,7 @@ impl AsyncSignal {
     /// Creates a new async signal.
     pub fn new() -> Self {
         Self {
-            state: AtomicUsize::new(0),
+            state: AtomicUsize::new(WAITING),
             waker: AtomicWaker::new(),
         }
     }
@@ -398,20 +457,43 @@ impl AsyncSignal {
         self.waker.register(waker);
     }
 
-    /// Returns true if the signal has been notified.
+    /// Returns true if the signal has been notified (or cancelled).
     pub fn is_notified(&self) -> bool {
         Notifier::is_notified(self)
+    }
+
+    /// Whether a notifier woke this signal (not its owner's cancel): its
+    /// wait list entry is gone, and the wakeup was this signal's to use.
+    pub(crate) fn was_woken(&self) -> bool {
+        self.state.load(Ordering::Acquire) == NOTIFIED
     }
 }
 
 impl Notifier for AsyncSignal {
     fn notify(&self) {
-        self.state.store(1, Ordering::Release);
+        self.state.store(NOTIFIED, Ordering::Release);
         self.waker.wake();
     }
 
     fn is_notified(&self) -> bool {
-        self.state.load(Ordering::Relaxed) != 0
+        self.state.load(Ordering::Relaxed) != WAITING
+    }
+
+    fn try_notify(&self) -> bool {
+        let won = self
+            .state
+            .compare_exchange(WAITING, NOTIFIED, Ordering::AcqRel, Ordering::Acquire)
+            .is_ok();
+        if won {
+            self.waker.wake();
+        }
+        won
+    }
+
+    fn cancel(&self) -> bool {
+        self.state
+            .compare_exchange(WAITING, CANCELLED, Ordering::AcqRel, Ordering::Acquire)
+            .is_ok()
     }
 }
 
