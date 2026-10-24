@@ -26,8 +26,8 @@ fn test_two_key_lost_update() {
     let h1 = thread::spawn(move || {
         b1.wait();
         let mut txn = db1.begin();
-        let v0 = u64::from_le_bytes(txn.read("acc_0").unwrap().try_into().unwrap());
-        let v1 = u64::from_le_bytes(txn.read("acc_1").unwrap().try_into().unwrap());
+        let v0 = u64::from_le_bytes(txn.read("acc_0").unwrap().unwrap().try_into().unwrap());
+        let v1 = u64::from_le_bytes(txn.read("acc_1").unwrap().unwrap().try_into().unwrap());
         eprintln!("[T1] Read: acc_0={}, acc_1={}", v0, v1);
 
         let w0 = txn.write("acc_0", (v0 - 10).to_le_bytes().to_vec());
@@ -53,8 +53,8 @@ fn test_two_key_lost_update() {
     let h2 = thread::spawn(move || {
         b2.wait();
         let mut txn = db2.begin();
-        let v0 = u64::from_le_bytes(txn.read("acc_0").unwrap().try_into().unwrap());
-        let v1 = u64::from_le_bytes(txn.read("acc_1").unwrap().try_into().unwrap());
+        let v0 = u64::from_le_bytes(txn.read("acc_0").unwrap().unwrap().try_into().unwrap());
+        let v1 = u64::from_le_bytes(txn.read("acc_1").unwrap().unwrap().try_into().unwrap());
         eprintln!("[T2] Read: acc_0={}, acc_1={}", v0, v1);
 
         let w0 = txn.write("acc_0", (v0 - 10).to_le_bytes().to_vec());
@@ -83,8 +83,8 @@ fn test_two_key_lost_update() {
 
     // Check final balance
     let txn = db.begin();
-    let v0 = u64::from_le_bytes(txn.read("acc_0").unwrap().try_into().unwrap());
-    let v1 = u64::from_le_bytes(txn.read("acc_1").unwrap().try_into().unwrap());
+    let v0 = u64::from_le_bytes(txn.read("acc_0").unwrap().unwrap().try_into().unwrap());
+    let v1 = u64::from_le_bytes(txn.read("acc_1").unwrap().unwrap().try_into().unwrap());
     eprintln!("[FINAL] acc_0={}, acc_1={}, total={}", v0, v1, v0 + v1);
 
     assert_eq!(v0 + v1, 2000, "Money was created or destroyed!");

@@ -1,4 +1,4 @@
-use kovan_mvcc::KovanMVCC;
+use kovan_mvcc::{KovanMVCC, MvccError};
 use rand::Rng;
 use std::sync::Arc;
 use std::thread;
@@ -49,18 +49,22 @@ fn test_bank_consistency() {
                     // Read phase
                     // Read phase
                     let b_from_bytes = match txn.read(&k_from) {
-                        Some(v) => v,
-                        None => {
+                        Ok(Some(v)) => v,
+                        Ok(None) => panic!("account {} exists", k_from),
+                        Err(MvccError::LockConflict { .. }) => {
                             thread::yield_now();
                             continue;
                         }
+                        Err(e) => panic!("read of {}: {e}", k_from),
                     };
                     let b_to_bytes = match txn.read(&k_to) {
-                        Some(v) => v,
-                        None => {
+                        Ok(Some(v)) => v,
+                        Ok(None) => panic!("account {} exists", k_to),
+                        Err(MvccError::LockConflict { .. }) => {
                             thread::yield_now();
                             continue;
                         }
+                        Err(e) => panic!("read of {}: {e}", k_to),
                     };
 
                     let b_from = u64::from_le_bytes(b_from_bytes.try_into().unwrap());
@@ -101,7 +105,7 @@ fn test_bank_consistency() {
     let mut total = 0;
     for i in 0..ACCOUNTS {
         let key = format!("acc_{}", i);
-        let val = txn.read(&key).unwrap();
+        let val = txn.read(&key).unwrap().expect("account exists");
         let balance = u64::from_le_bytes(val.try_into().unwrap());
         eprintln!("[FINAL] {} = {}", key, balance);
         total += balance;

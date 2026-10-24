@@ -54,5 +54,5 @@ fn sequential_write_write_conflict_first_committer_wins() {
 
     // Verify T1 won
     let tf = db.begin();
-    assert_eq!(tf.read("target").unwrap(), b"v1");
+    assert_eq!(tf.read("target").unwrap().unwrap(), b"v1");
 }

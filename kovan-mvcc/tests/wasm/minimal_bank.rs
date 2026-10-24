@@ -42,7 +42,7 @@ const NUM_ACCOUNTS: usize = 3;
 const INITIAL_BALANCE: u64 = 1000;
 
 fn read_balance(txn: &Txn, key: &str) -> u64 {
-    u64::from_le_bytes(txn.read(key).unwrap().try_into().unwrap())
+    u64::from_le_bytes(txn.read(key).unwrap().unwrap().try_into().unwrap())
 }
 
 #[test]

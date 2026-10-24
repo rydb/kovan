@@ -25,6 +25,7 @@ fn test_drop_cleans_up_locks() {
     let txn3 = db.begin();
     let val = txn3
         .read("key1")
+        .unwrap()
         .expect("key1 should be readable after dropped txn");
     assert_eq!(
         val, b"initial",
@@ -33,6 +34,7 @@ fn test_drop_cleans_up_locks() {
 
     let val = txn3
         .read("key2")
+        .unwrap()
         .expect("key2 should be readable after dropped txn");
     assert_eq!(
         val, b"initial",
@@ -63,7 +65,7 @@ fn test_drop_uncommitted_no_prewrite() {
         .expect("should succeed since no stale locks exist");
 
     let txn3 = db.begin();
-    assert_eq!(txn3.read("key1").unwrap(), b"value2");
+    assert_eq!(txn3.read("key1").unwrap().unwrap(), b"value2");
 }
 
 /// Two transactions writing to the same key -- one must fail cleanly.
@@ -105,7 +107,10 @@ fn test_concurrent_prewrite_conflict() {
 
     // The key should be readable and contain one of the committed values
     let reader = db.begin();
-    let val = reader.read("shared_key").expect("key should be readable");
+    let val = reader
+        .read("shared_key")
+        .unwrap()
+        .expect("key should be readable");
     assert!(
         val == b"from_txn1" || val == b"from_txn2",
         "value should be from one of the committed transactions, got {:?}",
@@ -135,8 +140,8 @@ fn test_rollback_allows_new_writes() {
 
     // Verify the values
     let txn3 = db.begin();
-    assert_eq!(txn3.read("rkey1").unwrap(), b"real_value1");
-    assert_eq!(txn3.read("rkey2").unwrap(), b"real_value2");
+    assert_eq!(txn3.read("rkey1").unwrap().unwrap(), b"real_value1");
+    assert_eq!(txn3.read("rkey2").unwrap().unwrap(), b"real_value2");
 }
 
 /// Keys that were never written to before should still work
@@ -154,7 +159,7 @@ fn test_rollback_on_fresh_keys() {
     // Should read as None since the only write was rolled back
     let reader = db.begin();
     assert!(
-        reader.read("fresh_key").is_none(),
+        reader.read("fresh_key").unwrap().is_none(),
         "rolled back key should not be readable"
     );
 
@@ -164,7 +169,7 @@ fn test_rollback_on_fresh_keys() {
     txn2.commit().expect("commit after rollback should succeed");
 
     let reader2 = db.begin();
-    assert_eq!(reader2.read("fresh_key").unwrap(), b"attempt2");
+    assert_eq!(reader2.read("fresh_key").unwrap().unwrap(), b"attempt2");
 }
 
 /// Multi-key transactions should have all keys readable after commit.
@@ -179,9 +184,9 @@ fn test_secondary_commit_all_keys_readable() {
     txn.commit().unwrap();
 
     let reader = db.begin();
-    assert_eq!(reader.read("mk_a").unwrap(), b"val_a");
-    assert_eq!(reader.read("mk_b").unwrap(), b"val_b");
-    assert_eq!(reader.read("mk_c").unwrap(), b"val_c");
+    assert_eq!(reader.read("mk_a").unwrap().unwrap(), b"val_a");
+    assert_eq!(reader.read("mk_b").unwrap().unwrap(), b"val_b");
+    assert_eq!(reader.read("mk_c").unwrap().unwrap(), b"val_c");
 }
 
 /// Multiple multi-key transactions should maintain consistency.
@@ -202,6 +207,6 @@ fn test_secondary_commit_overwrite() {
     txn2.commit().unwrap();
 
     let reader = db.begin();
-    assert_eq!(reader.read("s_key1").unwrap(), b"v2_a");
-    assert_eq!(reader.read("s_key2").unwrap(), b"v2_b");
+    assert_eq!(reader.read("s_key1").unwrap().unwrap(), b"v2_a");
+    assert_eq!(reader.read("s_key2").unwrap().unwrap(), b"v2_b");
 }

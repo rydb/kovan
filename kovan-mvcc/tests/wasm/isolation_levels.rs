@@ -76,14 +76,14 @@ fn test_rc_sees_latest_committed_per_read() {
     t1.commit().unwrap();
 
     let t2 = db.begin_with_isolation(IsolationLevel::ReadCommitted);
-    assert_eq!(t2.read("key").unwrap(), b"v1");
+    assert_eq!(t2.read("key").unwrap().unwrap(), b"v1");
 
     let mut t3 = db.begin();
     t3.write("key", b"v2".to_vec()).unwrap();
     t3.commit().unwrap();
 
     // RC: second read sees the new committed value
-    assert_eq!(t2.read("key").unwrap(), b"v2");
+    assert_eq!(t2.read("key").unwrap().unwrap(), b"v2");
 }
 
 /// Sequential adaptation: T1 writes but doesn't commit; T2(RC) reads
@@ -100,7 +100,7 @@ fn test_rc_no_dirty_reads() {
     // writer has written but NOT committed
 
     let reader = db.begin_with_isolation(IsolationLevel::ReadCommitted);
-    let result = reader.read("key");
+    let result = reader.read("key").unwrap();
     assert!(result.is_none(), "RC must not see uncommitted data");
 
     drop(writer); // Rollback
@@ -116,7 +116,7 @@ fn test_rc_non_repeatable_read_allowed() {
     setup.commit().unwrap();
 
     let t_rc = db.begin_with_isolation(IsolationLevel::ReadCommitted);
-    let read1 = t_rc.read("key").unwrap();
+    let read1 = t_rc.read("key").unwrap().unwrap();
     assert_eq!(read1, b"v1");
 
     // Concurrent commit changes the value
@@ -125,7 +125,7 @@ fn test_rc_non_repeatable_read_allowed() {
     writer.commit().unwrap();
 
     // RC: second read may return different value (non-repeatable read)
-    let read2 = t_rc.read("key").unwrap();
+    let read2 = t_rc.read("key").unwrap().unwrap();
     assert_eq!(read2, b"v2", "RC allows non-repeatable reads");
     assert_ne!(read1, read2);
 }
@@ -136,7 +136,7 @@ fn test_rc_phantom_read_allowed() {
     let db = KovanMVCC::new();
 
     let t_rc = db.begin_with_isolation(IsolationLevel::ReadCommitted);
-    assert!(t_rc.read("phantom").is_none());
+    assert!(t_rc.read("phantom").unwrap().is_none());
 
     // Another txn inserts the key
     let mut writer = db.begin();
@@ -144,7 +144,7 @@ fn test_rc_phantom_read_allowed() {
     writer.commit().unwrap();
 
     // RC: sees the phantom
-    assert_eq!(t_rc.read("phantom").unwrap(), b"appeared");
+    assert_eq!(t_rc.read("phantom").unwrap().unwrap(), b"appeared");
 }
 
 /// Sequential adaptation: RC doesn't bypass write-write conflict detection.
@@ -189,13 +189,13 @@ fn test_rr_repeatable_reads() {
     setup.commit().unwrap();
 
     let t_rr = db.begin_with_isolation(IsolationLevel::RepeatableRead);
-    let read1 = t_rr.read("key").unwrap();
+    let read1 = t_rr.read("key").unwrap().unwrap();
 
     let mut writer = db.begin();
     writer.write("key", b"changed".to_vec()).unwrap();
     writer.commit().unwrap();
 
-    let read2 = t_rr.read("key").unwrap();
+    let read2 = t_rr.read("key").unwrap().unwrap();
     assert_eq!(read1, read2, "RR must return same value for same key");
 }
 
@@ -207,7 +207,7 @@ fn test_rr_no_dirty_reads() {
     writer.write("key", b"dirty".to_vec()).unwrap();
 
     let reader = db.begin_with_isolation(IsolationLevel::RepeatableRead);
-    assert!(reader.read("key").is_none());
+    assert!(reader.read("key").unwrap().is_none());
 
     drop(writer);
 }
@@ -224,7 +224,7 @@ fn test_rr_phantom_prevented() {
     writer.commit().unwrap();
 
     assert!(
-        reader.read("phantom").is_none(),
+        reader.read("phantom").unwrap().is_none(),
         "RR prevents phantom reads"
     );
 }
@@ -245,12 +245,12 @@ fn test_rr_write_skew_allowed() {
     setup.commit().unwrap();
 
     let mut txn1 = db.begin_with_isolation(IsolationLevel::RepeatableRead);
-    let alice1 = txn1.read("alice_oncall").unwrap();
-    let bob1 = txn1.read("bob_oncall").unwrap();
+    let alice1 = txn1.read("alice_oncall").unwrap().unwrap();
+    let bob1 = txn1.read("bob_oncall").unwrap().unwrap();
 
     let mut txn2 = db.begin_with_isolation(IsolationLevel::RepeatableRead);
-    let alice2 = txn2.read("alice_oncall").unwrap();
-    let bob2 = txn2.read("bob_oncall").unwrap();
+    let alice2 = txn2.read("alice_oncall").unwrap().unwrap();
+    let bob2 = txn2.read("bob_oncall").unwrap().unwrap();
 
     if alice1 == b"true" && bob1 == b"true" {
         txn1.write("alice_oncall", b"false".to_vec()).unwrap();
@@ -281,16 +281,16 @@ fn test_begin_defaults_to_read_committed() {
     assert_eq!(t_begin.isolation_level(), t_explicit.isolation_level());
 
     // Both see committed value
-    assert_eq!(t_begin.read("key").unwrap(), b"v1");
-    assert_eq!(t_explicit.read("key").unwrap(), b"v1");
+    assert_eq!(t_begin.read("key").unwrap().unwrap(), b"v1");
+    assert_eq!(t_explicit.read("key").unwrap().unwrap(), b"v1");
 
     // After concurrent commit, RC sees the new value (non-repeatable read)
     let mut writer = db.begin();
     writer.write("key", b"v2".to_vec()).unwrap();
     writer.commit().unwrap();
 
-    assert_eq!(t_begin.read("key").unwrap(), b"v2");
-    assert_eq!(t_explicit.read("key").unwrap(), b"v2");
+    assert_eq!(t_begin.read("key").unwrap().unwrap(), b"v2");
+    assert_eq!(t_explicit.read("key").unwrap().unwrap(), b"v2");
 }
 
 // ===========================================================================
@@ -314,12 +314,12 @@ fn test_serializable_write_skew_prevented() {
     setup.commit().unwrap();
 
     let mut txn1 = db.begin_with_isolation(IsolationLevel::Serializable);
-    let alice1 = txn1.read("alice_oncall").unwrap();
-    let bob1 = txn1.read("bob_oncall").unwrap();
+    let alice1 = txn1.read("alice_oncall").unwrap().unwrap();
+    let bob1 = txn1.read("bob_oncall").unwrap().unwrap();
 
     let mut txn2 = db.begin_with_isolation(IsolationLevel::Serializable);
-    let alice2 = txn2.read("alice_oncall").unwrap();
-    let bob2 = txn2.read("bob_oncall").unwrap();
+    let alice2 = txn2.read("alice_oncall").unwrap().unwrap();
+    let bob2 = txn2.read("bob_oncall").unwrap().unwrap();
 
     if alice1 == b"true" && bob1 == b"true" {
         txn1.write("alice_oncall", b"false".to_vec()).unwrap();
@@ -359,12 +359,12 @@ fn test_serializable_no_false_positive_disjoint() {
 
     // T1 reads "a", writes "a"
     let mut t1 = db.begin_with_isolation(IsolationLevel::Serializable);
-    t1.read("a");
+    t1.read("a").unwrap();
     t1.write("a", b"10".to_vec()).unwrap();
 
     // T2 reads "b", writes "b"
     let mut t2 = db.begin_with_isolation(IsolationLevel::Serializable);
-    t2.read("b");
+    t2.read("b").unwrap();
     t2.write("b", b"20".to_vec()).unwrap();
 
     // Both should commit since their read/write sets are disjoint
@@ -382,7 +382,7 @@ fn test_serializable_read_only_txn_no_conflict() {
     setup.commit().unwrap();
 
     let reader = db.begin_with_isolation(IsolationLevel::Serializable);
-    assert_eq!(reader.read("key").unwrap(), b"value");
+    assert_eq!(reader.read("key").unwrap().unwrap(), b"value");
 
     // Concurrent write
     let mut writer = db.begin();
@@ -390,7 +390,7 @@ fn test_serializable_read_only_txn_no_conflict() {
     writer.commit().unwrap();
 
     // Read again — still sees old value (snapshot)
-    assert_eq!(reader.read("key").unwrap(), b"value");
+    assert_eq!(reader.read("key").unwrap().unwrap(), b"value");
 
     // Drop reader — no commit, no prewrite, no SSI check → no error
     drop(reader);
@@ -404,7 +404,7 @@ fn test_serializable_phantom_prevention() {
 
     let mut t1 = db.begin_with_isolation(IsolationLevel::Serializable);
     // Read non-existent key — added to read_set
-    assert!(t1.read("phantom_key").is_none());
+    assert!(t1.read("phantom_key").unwrap().is_none());
 
     // T2 inserts the key and commits
     let mut t2 = db.begin();
@@ -455,7 +455,7 @@ fn test_serializable_read_set_includes_misses() {
 
     let mut t1 = db.begin_with_isolation(IsolationLevel::Serializable);
     // Read a non-existent key
-    assert!(t1.read("nonexistent").is_none());
+    assert!(t1.read("nonexistent").unwrap().is_none());
 
     // Another txn creates it
     let mut t2 = db.begin();
@@ -491,9 +491,9 @@ fn test_mixed_isolation_levels_same_db() {
     let t_sr = db.begin_with_isolation(IsolationLevel::Serializable);
 
     // All see the committed value
-    assert_eq!(t_rc.read("key").unwrap(), b"v1");
-    assert_eq!(t_rr.read("key").unwrap(), b"v1");
-    assert_eq!(t_sr.read("key").unwrap(), b"v1");
+    assert_eq!(t_rc.read("key").unwrap().unwrap(), b"v1");
+    assert_eq!(t_rr.read("key").unwrap().unwrap(), b"v1");
+    assert_eq!(t_sr.read("key").unwrap().unwrap(), b"v1");
 
     // Concurrent commit
     let mut writer = db.begin();
@@ -501,9 +501,9 @@ fn test_mixed_isolation_levels_same_db() {
     writer.commit().unwrap();
 
     // RC sees new value, RR and Serializable see old value
-    assert_eq!(t_rc.read("key").unwrap(), b"v2");
-    assert_eq!(t_rr.read("key").unwrap(), b"v1");
-    assert_eq!(t_sr.read("key").unwrap(), b"v1");
+    assert_eq!(t_rc.read("key").unwrap().unwrap(), b"v2");
+    assert_eq!(t_rr.read("key").unwrap().unwrap(), b"v1");
+    assert_eq!(t_sr.read("key").unwrap().unwrap(), b"v1");
 }
 
 #[test]
@@ -520,10 +520,10 @@ fn test_serializable_vs_rr_write_skew() {
     let mut t1_rr = db.begin_with_isolation(IsolationLevel::RepeatableRead);
     let mut t2_rr = db.begin_with_isolation(IsolationLevel::RepeatableRead);
 
-    let x1 = u64::from_le_bytes(t1_rr.read("X").unwrap().try_into().unwrap());
-    let y1 = u64::from_le_bytes(t1_rr.read("Y").unwrap().try_into().unwrap());
-    let x2 = u64::from_le_bytes(t2_rr.read("X").unwrap().try_into().unwrap());
-    let y2 = u64::from_le_bytes(t2_rr.read("Y").unwrap().try_into().unwrap());
+    let x1 = u64::from_le_bytes(t1_rr.read("X").unwrap().unwrap().try_into().unwrap());
+    let y1 = u64::from_le_bytes(t1_rr.read("Y").unwrap().unwrap().try_into().unwrap());
+    let x2 = u64::from_le_bytes(t2_rr.read("X").unwrap().unwrap().try_into().unwrap());
+    let y2 = u64::from_le_bytes(t2_rr.read("Y").unwrap().unwrap().try_into().unwrap());
 
     if x1 + y1 >= 1 {
         t1_rr.write("X", (x1 - 1).to_le_bytes().to_vec()).unwrap();
@@ -545,10 +545,10 @@ fn test_serializable_vs_rr_write_skew() {
     let mut t1_sr = db.begin_with_isolation(IsolationLevel::Serializable);
     let mut t2_sr = db.begin_with_isolation(IsolationLevel::Serializable);
 
-    let x1 = u64::from_le_bytes(t1_sr.read("X").unwrap().try_into().unwrap());
-    let y1 = u64::from_le_bytes(t1_sr.read("Y").unwrap().try_into().unwrap());
-    let x2 = u64::from_le_bytes(t2_sr.read("X").unwrap().try_into().unwrap());
-    let y2 = u64::from_le_bytes(t2_sr.read("Y").unwrap().try_into().unwrap());
+    let x1 = u64::from_le_bytes(t1_sr.read("X").unwrap().unwrap().try_into().unwrap());
+    let y1 = u64::from_le_bytes(t1_sr.read("Y").unwrap().unwrap().try_into().unwrap());
+    let x2 = u64::from_le_bytes(t2_sr.read("X").unwrap().unwrap().try_into().unwrap());
+    let y2 = u64::from_le_bytes(t2_sr.read("Y").unwrap().unwrap().try_into().unwrap());
 
     if x1 + y1 >= 1 {
         t1_sr.write("X", (x1 - 1).to_le_bytes().to_vec()).unwrap();

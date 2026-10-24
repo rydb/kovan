@@ -67,6 +67,22 @@ pub trait Storage: Send + Sync {
     }
 }
 
+/// The latest Put or Delete record at or below `ts`, Rollback records skipped.
+fn latest_commit_at_or_below(map: &BTreeMap<u64, WriteInfo>, ts: u64) -> Option<(u64, WriteInfo)> {
+    map.range(..=ts)
+        .rev()
+        .find(|(_, info)| info.kind != WriteKind::Rollback)
+        .map(|(commit_ts, info)| (*commit_ts, info.clone()))
+}
+
+/// Removes every entry below `ts`, answering how many.
+fn remove_below<V>(map: &mut BTreeMap<u64, V>, ts: u64) -> usize {
+    let kept = map.split_off(&ts);
+    let removed = map.len();
+    *map = kept;
+    removed
+}
+
 /// In-Memory Storage Implementation
 /// Uses HashMap for concurrent access.
 pub struct InMemoryStorage {
@@ -197,45 +213,35 @@ impl Storage for InMemoryStorage {
     }
 
     fn gc_writes(&self, key: &[u8], watermark: u64) -> usize {
-        if let Some(map_mutex) = self.writes.get(key) {
-            let mut map = map_mutex.lock();
-            // Find the latest version at or below watermark
-            let latest_visible = map.range(..=watermark).next_back().map(|(k, _)| *k);
-            if let Some(keep_ts) = latest_visible {
-                // Remove all entries strictly below keep_ts
-                let to_remove: Vec<u64> = map.range(..keep_ts).map(|(k, _)| *k).collect();
-                let count = to_remove.len();
-                for ts in to_remove {
-                    map.remove(&ts);
-                }
-                count
-            } else {
-                0
-            }
-        } else {
-            0
-        }
+        let Some(map_mutex) = self.writes.get(key) else {
+            return 0;
+        };
+        let mut map = map_mutex.lock();
+        // Every read at or above the watermark finds its version at or above
+        // the latest commit at or below it, so the records under that commit
+        // go; a Rollback record is no version and keeps nothing.
+        let Some((keep_ts, _)) = latest_commit_at_or_below(&map, watermark) else {
+            return 0;
+        };
+        remove_below(&mut map, keep_ts)
     }
 
     fn gc_data(&self, key: &[u8], watermark: u64) -> usize {
-        if let Some(map_mutex) = self.data.get(key) {
-            let mut map = map_mutex.lock();
-            // Find the latest version at or below watermark
-            let latest_visible = map.range(..=watermark).next_back().map(|(k, _)| *k);
-            if let Some(keep_ts) = latest_visible {
-                // Remove all entries strictly below keep_ts
-                let to_remove: Vec<u64> = map.range(..keep_ts).map(|(k, _)| *k).collect();
-                let count = to_remove.len();
-                for ts in to_remove {
-                    map.remove(&ts);
-                }
-                count
-            } else {
-                0
-            }
-        } else {
-            0
-        }
+        // The data the latest commit at or below the watermark names is the
+        // oldest any read can load: the data under it goes. Data no commit
+        // names (a prewrite in progress) is never under it: a prewrite below
+        // a commit of its key fails its write-write check.
+        let keep_start = match self.writes.get(key) {
+            Some(map_mutex) => match latest_commit_at_or_below(&map_mutex.lock(), watermark) {
+                Some((_, info)) => info.start_ts,
+                None => return 0,
+            },
+            None => return 0,
+        };
+        let Some(map_mutex) = self.data.get(key) else {
+            return 0;
+        };
+        remove_below(&mut map_mutex.lock(), keep_start)
     }
 
     fn scan_write_keys(&self) -> Vec<Vec<u8>> {
