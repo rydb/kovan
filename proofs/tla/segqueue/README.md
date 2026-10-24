@@ -15,17 +15,24 @@ successor link, and kovan's reclamation of the segments the head retires.
   with the value in its first cell (or meets the successor another push linked), moves the tail
   word to the successor's second cell, then the tail pointer.
 - A pop reads the head word, then the tail word, and classifies the two (`classify`). On `Empty`
-  it answers `None`; otherwise it pins, loads the head pointer, and either claims a cell with a
-  fetch-add of the head word and swaps it to `TAKEN` (a `FULL` cell is its value, an `EMPTY` one
-  is taken out of play), or, on `Drained`, finds the successor (none: the queue is empty), moves
-  the head word to it and walks the head pointer forward, moving the tail pointer off each
-  segment first; the winner of the head pointer's compare-and-swap retires the segment.
+  it answers `None`; otherwise it pins, loads the head pointer, reads the two words again, and
+  either walks to the cell the head word names, claims it with a compare-and-swap of the head
+  word from that word and swaps it to `TAKEN` (a `FULL` cell is its value, an `EMPTY` one is
+  taken out of play), or, on `Drained`, finds the successor (none: the queue is empty), moves the
+  head word to it and walks the head pointer forward, moving the tail pointer off each segment
+  first; the winner of the head pointer's compare-and-swap retires the segment.
 - `try_pop` reads the words the same way, pinned after a first look, and claims only the cell
   the head word names, by a compare-and-swap of the head word, after reading the cell `FULL`; it
   answers `Busy` for an `EMPTY` one.
-- kovan's reclamation is what [the reclamation family](../reclaim/README.md) proves of it: a
-  retired segment is freed once every operation that was in progress when it was retired has
-  ended.
+- Every walk (`locate`) goes forward from a pointer loaded from an end and checks each
+  successor it loads against the head pointer: one the head pointer passed may be retired, and
+  the walk goes on from the head pointer instead (a segment the head pointer passed is gone).
+- kovan's reclamation as its protection works ([the reclamation family](../reclaim/README.md)
+  proves the protection; `kovan/src/atomic.rs` documents it on `Atomic::load`): an operation
+  holds a segment it loaded while the segment was reachable, from an end or by a checked walk
+  step, and a retired segment is freed once every operation that held it when it was retired has
+  ended. A segment reached any other way (through a link of a segment the head passed) is held
+  by nothing, and may be freed at once.
 
 What is left out or folded, and why it changes nothing:
 
@@ -39,8 +46,11 @@ What is left out or folded, and why it changes nothing:
 - A pop's `PATIENCE` re-reads of an `EMPTY` cell are folded into its swap, which may come at any
   moment after the claim, so every number of re-reads is covered.
 - A walk of pointers forward (`locate`, `catch_up_tail`) is one step, as the pointers only move
-  forward; the tail word's and the head word's compare-and-swap loops are one step each, the
-  step of the compare-and-swap that succeeds.
+  forward: the checked walk's steps all see the head pointer of that one step, and so does its
+  restart from it. The tail word's and the head word's compare-and-swap loops are one step
+  each, the step of the compare-and-swap that succeeds.
+- A pop's claim and its swap to `TAKEN` are one step: a push that writes the cell between the two
+  in the code ends the same as one that wrote it before the claim (the pop takes the value).
 - A step that touches only the thread's own state (a loop counter, a pin, an unpin, a check of
   its own answer) is folded into the shared step next to it, which no other thread can tell
   apart. `try_pop`'s read of a `FULL` cell and its claim by the head word's compare-and-swap are
@@ -54,8 +64,8 @@ Every check is made at the step it is about and recorded in `errs`; each invaria
 of check never failed.
 
 - `NoUseAfterFree`: no step reads or writes a segment kovan freed.
-- `NoUnlinkedClaim`: a claimed cell's segment is always reachable from the pointer loaded before
-  the claim, so the code's `debug_assert!` path is never taken.
+- `NoUnlinkedClaim`: a claimed cell's segment is never behind the pointer loaded before the
+  claim, and is linked to it.
 - `NoBound`: no push met the configuration's bound on segments, so the configurations are
   complete for their operations.
 - `EmptySound`: at the step that tells a pop or a `try_pop` the queue is empty, every push that
@@ -77,6 +87,19 @@ of check never failed.
   claims past the end and links the successor with its value, completing in that step, so a push
   and a pop cannot keep taking each other's cells forever.
 
+## Finding, and the fix
+
+In this queue as first written (unreleased; 0.1.22 has the earlier design) a walk stepped onto
+every successor it loaded, and a pop claimed its cell with a fetch-add before walking to it. kovan holds a
+segment for a guard only when the guard loaded it while it was reachable, and its reclamation
+leaves a batch out of a reservation older than every segment in it. So a thread that loaded the
+head pointer and was descheduled could walk, through the `next` of segments the head had passed,
+onto a segment retired and freed since; and a pop whose fetch-add claim named a segment the head
+moved past before the walk got there lost the value in that cell. The 32-bit CI job showed it as
+a hang of `seg_queue_order.rs`, and a check that marked freed segments found every hit reached by
+such a walk. The fix: the checked walk, and the pop's claim (a compare-and-swap, as `try_pop`'s)
+after the walk. `SQ_mut_walk_unchecked` and `SQ_mut_claim_before_find` put back each rule.
+
 ## Mutations and witnesses
 
 Each mutation puts back one wrong rule and lists its property first, the others after it, so
@@ -97,6 +120,8 @@ that went ahead, which breaks `NoUnlinkedClaim` in a shorter trace than the one 
 | `SQ_mut_store_tail_advance` | `advance_tail_word` checks the word's segment, then stores the successor's word instead of a compare-and-swap; three producers | `RealTimeOrder` broken |
 | `SQ_mut_load_after_claim` | a push loads the tail pointer after its claim | `NoUnlinkedClaim` broken |
 | `SQ_mut_retry_same_cell` | a push whose cell was taken out of play retries its compare-and-swap on that cell, forever | `Termination` broken |
+| `SQ_mut_walk_unchecked` | a walk steps onto every successor it loads, one a segment the head had passed names included (the code before the fix) | `NoUseAfterFree` broken |
+| `SQ_mut_claim_before_find` | a pop claims with a fetch-add of the head word, then walks to the cell (the code before the fix) | `NoLoss` broken |
 
 The witnesses each claim a case never happens, so their counterexamples show the passing
 configurations reach it: a push links a successor (`SQ_wit_link`, `NoLinkW`), a pop takes an
@@ -122,32 +147,32 @@ Segments of two cells and room for five segments (six in `SQ_push3`) in every on
 
 | label | function | code | step |
 |---|---|---|---|
-| `PU1` | `push` | `seg_queue.rs:475`, `seg_queue.rs:481` | the pin, then the tail pointer loaded |
-| `PU2` | `push` | `seg_queue.rs:481` | the tail pointer loaded again for a new claim |
-| `PU3` | `push` | `seg_queue.rs:482` | the tail word's fetch-add |
-| `PU4` | `push`, `locate` | `seg_queue.rs:485-492` | the walk to the claimed segment |
-| `PU4a` | `push`, `catch_up_tail` | `seg_queue.rs:493-496` | the lagging tail pointer moved on |
-| `PU4b` | `push` | `seg_queue.rs:502-514` | the value written, the cell's compare-and-swap |
-| `PU5` | `push`, `locate` | `seg_queue.rs:517-523` | segment full: the walk to it (or the word moved after a pointer a pop moved), its `next` loaded |
-| `PU6` | `push` | `seg_queue.rs:524-555` | the successor linked with the value in its first cell, or the one linked met |
-| `PU7` | `advance_tail_word` | `seg_queue.rs:590-602` | the tail word moved to the successor's second cell |
-| `PU8` | `advance_tail` | `seg_queue.rs:575-584` | the tail pointer's compare-and-swap, or `catch_up_tail`; a push that linked returns |
-| `PO1`, `PO2` | `pop`, `view` | `seg_queue.rs:710-713`, `seg_queue.rs:748` | the head word, then the tail word, classified |
-| `PO3` | `pop` | `seg_queue.rs:714-716` | the pin, the head pointer loaded |
-| `PO4` | `pop` | `seg_queue.rs:725` | the head word's fetch-add |
-| `PO5` | `pop`, `locate`, `take` | `seg_queue.rs:729-744` | the walk to the cell, the swap to `TAKEN` |
-| `PO6` | `pop` | `seg_queue.rs:719-723` | after `drained`: empty, or look again |
-| `DR1` | `drained` | `seg_queue.rs:639-649` | the walk to the head word's segment, its `next` loaded |
-| `DR2` | `drained` | `seg_queue.rs:650-661` | the head word moved to the successor's first cell |
-| `CH1`, `CH2` | `catch_up_head` | `seg_queue.rs:671-682` | the head pointer loaded, its id against the head word, its `next` loaded |
-| `CH3` | `catch_up_head` | `seg_queue.rs:683-688` | the tail pointer moved off the segment |
-| `CH4` | `catch_up_head` | `seg_queue.rs:689-700` | the head pointer's compare-and-swap; its winner retires the segment |
-| `TP1`, `TP2` | `try_pop`, `view` | `seg_queue.rs:771-773` | the first look at the two words |
-| `TP3`, `TP4`, `TP5` | `try_pop` | `seg_queue.rs:774-786` | the pin, the head pointer, the two words again |
-| `TP6` | `try_pop`, `locate` | `seg_queue.rs:788-804` | the cell read; `Busy`, or the head word's compare-and-swap |
-| `TP7` | `try_pop` | `seg_queue.rs:782-786` | after `drained` |
-| `TP8` | `try_pop`, `take` | `seg_queue.rs:805-807` | the swap to `TAKEN` |
-| `RC1` | kovan | `retire_reclaimable`, the guard's drop | a retired segment freed once its holders' operations ended |
+| `PU1` | `push` | `seg_queue.rs:463`, `seg_queue.rs:469` | the pin, then the tail pointer loaded |
+| `PU2` | `push` | `seg_queue.rs:469` | the tail pointer loaded again for a new claim |
+| `PU3` | `push` | `seg_queue.rs:470` | the tail word's fetch-add |
+| `PU4`, `PU4w` | `push`, `locate` | `seg_queue.rs:472-478`, `seg_queue.rs:623-650` | the checked walk to the claimed segment; past the head pointer, the claim again |
+| `PU4a` | `push`, `catch_up_tail` | `seg_queue.rs:479-482` | the lagging tail pointer moved on |
+| `PU4b` | `push` | `seg_queue.rs:486-500` | the value written, the cell's compare-and-swap |
+| `PU5` | `push`, `locate` | `seg_queue.rs:502-509` | segment full: the walk to it (or the word moved after a pointer a pop moved, or the head moved past it), its `next` loaded |
+| `PU6` | `push` | `seg_queue.rs:510-542` | the successor linked with the value in its first cell, or the one linked met |
+| `PU7` | `advance_tail_word` | `seg_queue.rs:576-588` | the tail word moved to the successor's second cell |
+| `PU8` | `advance_tail` | `seg_queue.rs:554-570` | the tail pointer's compare-and-swap, or `catch_up_tail`; a push that linked returns |
+| `PO1`, `PO2` | `pop`, `view` | `seg_queue.rs:739-741`, `seg_queue.rs:656-660` | the head word, then the tail word, classified |
+| `PO3`, `PO3w`, `PO3v` | `pop` | `seg_queue.rs:742-756` | the pin, the head pointer loaded, the two words again |
+| `PO7`, `PO8` | `pop`, `locate`, `take` | `seg_queue.rs:757-786` | the checked walk to the cell; the head word's compare-and-swap and the swap to `TAKEN` |
+| `PO4`, `PO5`, `PO5w` | (`claim_before_find`) | the code before the fix | the head word's fetch-add, then the walk to the cell and the swap |
+| `PO6` | `pop` | `seg_queue.rs:750-754` | after `drained`: empty, or look again |
+| `DR1` | `drained`, `locate` | `seg_queue.rs:668-675` | the checked walk to the head word's segment, its `next` loaded |
+| `DR2` | `drained` | `seg_queue.rs:676-690` | the head word moved to the successor's first cell |
+| `CH1`, `CH2` | `catch_up_head` | `seg_queue.rs:698-711` | the head pointer loaded, its id against the head word, its `next` loaded |
+| `CH3` | `catch_up_head` | `seg_queue.rs:712-717` | the tail pointer moved off the segment |
+| `CH4` | `catch_up_head` | `seg_queue.rs:718-729` | the head pointer's compare-and-swap; its winner retires the segment |
+| `TP1`, `TP2` | `try_pop`, `view` | `seg_queue.rs:807-810` | the first look at the two words |
+| `TP3`, `TP4`, `TP5` | `try_pop` | `seg_queue.rs:811-823` | the pin, the head pointer, the two words again |
+| `TP6` | `try_pop`, `locate` | `seg_queue.rs:824-842` | the checked walk, the cell read; `Busy`, or the head word's compare-and-swap |
+| `TP7` | `try_pop` | `seg_queue.rs:819-823` | after `drained` |
+| `TP8` | `try_pop`, `take` | `seg_queue.rs:843-845` | the swap to `TAKEN` |
+| `RC1` | kovan | `retire_reclaimable`, the guard's drop | a retired segment freed once the operations that held it ended |
 
 ## TLC results
 

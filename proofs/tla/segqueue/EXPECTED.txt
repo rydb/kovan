@@ -13,6 +13,8 @@ SQ_mut_link_then_retry             MC_SegQueue        violated:UniqueTake
 SQ_mut_store_tail_advance          MC_SegQueue        violated:RealTimeOrder
 SQ_mut_load_after_claim            MC_SegQueue        violated:NoUnlinkedClaim
 SQ_mut_retry_same_cell             MC_SegQueue        violated:Termination
+SQ_mut_walk_unchecked              MC_SegQueue        violated:NoUseAfterFree
+SQ_mut_claim_before_find           MC_SegQueue        violated:NoLoss
 SQ_wit_link                        MC_SegQueue        violated:NoLinkW
 SQ_wit_poison                      MC_SegQueue        violated:NoPoisonW
 SQ_wit_busy                        MC_SegQueue        violated:NoBusyW
