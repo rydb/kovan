@@ -571,7 +571,7 @@ dependencies = [
 
 [[package]]
 name = "kovan-mvcc"
-version = "0.1.22"
+version = "0.2.0"
 dependencies = [
  "kovan",
  "kovan-map",
