@@ -182,8 +182,12 @@ one call).
    `notify_one` wakes an entry with one compare-and-swap (`try_notify`), the owner withdraws its
    own with another (`cancel`, in `WaitList::abandon`), and a cancel that lost passes the wakeup
    on with a `notify_one`. `CH_recv_stale` (receivers), `CH_send_stale` (bounded senders);
-   `CH_mut_self_notify_after_take`, `CH_mut_self_notify_after_take_send`,
-   `CH_mut_check_then_notify`; shuttle (h), and (i) as coverage (no shuttle search reached it).
+   `CH_mut_self_notify_after_take`, `CH_mut_check_then_notify`; shuttle (h), and (i) as
+   coverage (no shuttle search reached it). Both lists withdraw an entry with the one
+   `WaitList::abandon` (`Abandon` here), so the rule before the fix is shown on the receivers'
+   list: on the senders' list it loses a wakeup only while a receiver still waits (the last
+   receiver's drop wakes every sender), which takes two senders of two values each and three
+   receives, a program too large to check within the CI job's hour.
 2. `select!`'s re-check found a value and looped with its signal still registered: the signal took
    a later send's wakeup, and the next `select!` parked with a value in the channel. Fix: the
    signal abandoned, a lost cancel passing the wakeup on with `wake_one_waiter` on every channel.
@@ -254,7 +258,6 @@ order broken. `CH_mut_retire_next` leaves it out too: the retired node is still 
 | `CH_mut_select_reuse_signal` | `select!` makes one `Signal` for every pass of its loop (the trap `select.rs`'s comment tells of) | `RegisterFresh` broken |
 | `CH_mut_select_no_break` | `select!` goes on trying the later arms after one gave a value | `SelectOnce` broken |
 | `CH_mut_self_notify_after_take` | a wait that does not wait after all notifies its own entry, after the take (finding 1) | `NoLostWakeup` broken |
-| `CH_mut_self_notify_after_take_send` | the same on the bounded senders' wait list | `NoLostWakeup` broken |
 | `CH_mut_check_then_notify` | `notify_one` asks `is_notified`, then notifies in a later step | `NoLostWakeup` broken |
 | `CH_mut_select_leaves_signal` | `select!` loops with its signal still registered (finding 2) | `NoLostWakeup` broken |
 | `CH_mut_select_asserts_fresh` | `register_signal` asserts that its signal is not notified (finding 3) | `RegisterFresh` broken |

@@ -51,7 +51,6 @@ CH_mut_select_reuse_signal         MC_Channel         violated:RegisterFresh
 CH_mut_select_no_break             MC_Channel         violated:SelectOnce
 CH_mut_self_notify_after_take      MC_Channel         violated:NoLostWakeup
 CH_mut_check_then_notify           MC_Channel         violated:NoLostWakeup
-CH_mut_self_notify_after_take_send MC_Channel         violated:NoLostWakeup
 CH_mut_select_leaves_signal        MC_Channel         violated:NoLostWakeup
 CH_mut_select_asserts_fresh        MC_Channel         violated:RegisterFresh
 CH_mut_future_keeps_entry          MC_Channel         violated:NoLostWakeup
