@@ -371,7 +371,11 @@ for the unbounded flavor, and the bounded flavor's same code is at the lines aft
 
 ## TLC results
 
-Not recorded for the fixed model yet: `tlc-run.txt` is written by a full local run, and CI's
-sharded run (`.github/workflows/tla.yml`) checks every configuration against `EXPECTED.txt`.
-Each new configuration and every finding's mutation was run locally and matched its expectation;
-the largest so far is `CH_mut_future_keeps_entry` (195,986 distinct states).
+The run recorded in `tlc-run.txt` (4 workers for a passing configuration, one for a violation, at
+the lowest priority on a 36-core machine shared with other heavy work): 83 of 83 configurations
+match `EXPECTED.txt`, in 1324 s of TLC time. The largest passing ones are `CH_send_stale`
+(14,798,865 distinct states, 516 s), `CH_live_bounded` (1,916,676, 294 s, with `Termination`),
+`CH_deadline` (1,765,129, 60 s), `CH_live_recv` (408,910, 87 s, with `Termination`) and
+`CH_async_repoll` (753,000, 30 s). The longest runs that break a property, on one worker, are
+`CH_mut_future_keeps_entry` (164,890 distinct states, 24 s) and `CH_mut_select_registers_dead`
+(123,863, 18 s).

@@ -193,7 +193,12 @@ bench-ab *args:
 tla family *configs:
     bash proofs/tla/run_tlc.sh {{ family }} {{ configs }}
 
-# Model-check every TLA+ family in one go (CI: tla.yml runs the same checks in 10 shares at once; reclaim alone takes 32 to 73 minutes here, by the machine's load)
+# Refresh proofs/tla/ci-seconds.txt, the seconds each configuration took on a CI runner, from a TLA+ run (the latest on master by default); CI's shares are dealt by them
+[group("proofs")]
+tla-ci-seconds *run:
+    bash tools/tla-ci-seconds.sh {{ run }}
+
+# Model-check every TLA+ family in one go (CI: tla.yml runs the same checks in 16 shares at once, within 20 minutes; reclaim alone takes 32 to 73 minutes here, by the machine's load)
 [group("proofs")]
 tla-all:
     bash proofs/tla/run_tlc.sh all

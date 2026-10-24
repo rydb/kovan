@@ -37,11 +37,14 @@ runs one worker, so the breadth-first trace is the shortest, and the trace is ke
 configuration must report, and a full run of a family rewrites its `tlc-run.txt`. CI runs the
 same checks: `.github/workflows/tla.yml` runs `.github/workflows/tla.sh` on every push to and pull
 request against `master`, which fetches tla2tools.jar v1.7.4, checks its SHA-256 and hands it to
-`proofs/tla/run_tlc.sh shard <k> 10` through `TLA2TOOLS`, in 10 jobs at once. `shard` deals every
-configuration of every family out to the 10 shares, longest first by the seconds its family's
-`tlc-run.txt` recorded (60 for one not recorded), so each share takes about a tenth of the whole;
-`bash proofs/tla/run_tlc.sh plan 10` prints the shares. A new push to a pull request cancels the
-run it supersedes.
+`proofs/tla/run_tlc.sh shard <k> 16` through `TLA2TOOLS`, in 16 jobs at once. `shard` deals every
+configuration of every family out to the 16 shares, longest first by the seconds it took on a CI
+runner as `ci-seconds.txt` records them (`tools/tla-ci-seconds.sh` writes it from a CI run; for a
+configuration it does not list, the seconds its family's `tlc-run.txt` recorded, or 60), so each
+share takes about a sixteenth of the whole; `bash proofs/tla/run_tlc.sh plan 16` prints the shares. The check stays within 20 minutes:
+a share job is stopped at 20, and a configuration that runs past 18 reports no verdict, so a
+model that outgrows the budget is cut down rather than given more time. A new push to a pull
+request cancels the run it supersedes.
 
 ## What the map models check
 

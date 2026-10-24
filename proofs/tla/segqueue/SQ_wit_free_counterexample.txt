@@ -12,6 +12,7 @@ State 1: <Initial predicate>
 /\ claimsP = {}
 /\ lp = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ lt = <<0, 0>>
+/\ prot = <<{}, {}, {}>>
 /\ before = <<{}, {}>>
 /\ hptr = 0
 /\ nx = <<-1, -1>>
@@ -65,7 +66,7 @@ State 1: <Initial predicate>
 /\ retired = {}
 /\ claimsC = {}
 
-State 2: <PU1 line 993, col 14 to line 1006, col 59 of module SegQueue>
+State 2: <PU1 line 1214, col 14 to line 1228, col 59 of module SegQueue>
 /\ done = {}
 /\ lh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ cst = ( 0 :> (0 :> "EMPTY" @@ 1 :> "EMPTY") @@
@@ -77,6 +78,7 @@ State 2: <PU1 line 993, col 14 to line 1006, col 59 of module SegQueue>
 /\ claimsP = {}
 /\ lp = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ lt = <<0, 0>>
+/\ prot = <<{0}, {}, {}>>
 /\ before = <<{}, {}>>
 /\ hptr = 0
 /\ nx = <<-1, -1>>
@@ -130,7 +132,7 @@ State 2: <PU1 line 993, col 14 to line 1006, col 59 of module SegQueue>
 /\ retired = {}
 /\ claimsC = {}
 
-State 3: <PU3 line 1020, col 14 to line 1033, col 64 of module SegQueue>
+State 3: <PU3 line 1243, col 14 to line 1256, col 68 of module SegQueue>
 /\ done = {}
 /\ lh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ cst = ( 0 :> (0 :> "EMPTY" @@ 1 :> "EMPTY") @@
@@ -142,6 +144,7 @@ State 3: <PU3 line 1020, col 14 to line 1033, col 64 of module SegQueue>
 /\ claimsP = {0}
 /\ lp = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ lt = <<0, 0>>
+/\ prot = <<{0}, {}, {}>>
 /\ before = <<{}, {}>>
 /\ hptr = 0
 /\ nx = <<-1, -1>>
@@ -195,7 +198,7 @@ State 3: <PU3 line 1020, col 14 to line 1033, col 64 of module SegQueue>
 /\ retired = {}
 /\ claimsC = {}
 
-State 4: <PU4 line 1046, col 14 to line 1059, col 76 of module SegQueue>
+State 4: <PU4 line 1270, col 14 to line 1287, col 76 of module SegQueue>
 /\ done = {}
 /\ lh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ cst = ( 0 :> (0 :> "EMPTY" @@ 1 :> "EMPTY") @@
@@ -207,6 +210,7 @@ State 4: <PU4 line 1046, col 14 to line 1059, col 76 of module SegQueue>
 /\ claimsP = {0}
 /\ lp = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ lt = <<0, 0>>
+/\ prot = <<{0}, {}, {}>>
 /\ before = <<{}, {}>>
 /\ hptr = 0
 /\ nx = <<-1, -1>>
@@ -260,7 +264,7 @@ State 4: <PU4 line 1046, col 14 to line 1059, col 76 of module SegQueue>
 /\ retired = {}
 /\ claimsC = {}
 
-State 5: <CO1 line 1207, col 14 to line 1251, col 45 of module SegQueue>
+State 5: <CO1 line 1439, col 14 to line 1483, col 45 of module SegQueue>
 /\ done = {}
 /\ lh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ cst = ( 0 :> (0 :> "EMPTY" @@ 1 :> "EMPTY") @@
@@ -272,6 +276,7 @@ State 5: <CO1 line 1207, col 14 to line 1251, col 45 of module SegQueue>
 /\ claimsP = {0}
 /\ lp = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ lt = <<0, 0>>
+/\ prot = <<{0}, {}, {}>>
 /\ before = <<{}, {}>>
 /\ hptr = 0
 /\ nx = <<-1, -1>>
@@ -325,7 +330,7 @@ State 5: <CO1 line 1207, col 14 to line 1251, col 45 of module SegQueue>
 /\ retired = {}
 /\ claimsC = {}
 
-State 6: <PO1 line 658, col 14 to line 671, col 48 of module SegQueue>
+State 6: <PO1 line 757, col 14 to line 770, col 48 of module SegQueue>
 /\ done = {}
 /\ lh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ cst = ( 0 :> (0 :> "EMPTY" @@ 1 :> "EMPTY") @@
@@ -337,6 +342,7 @@ State 6: <PO1 line 658, col 14 to line 671, col 48 of module SegQueue>
 /\ claimsP = {0}
 /\ lp = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ lt = <<0, 0>>
+/\ prot = <<{0}, {}, {}>>
 /\ before = <<{}, {}>>
 /\ hptr = 0
 /\ nx = <<-1, -1>>
@@ -390,7 +396,7 @@ State 6: <PO1 line 658, col 14 to line 671, col 48 of module SegQueue>
 /\ retired = {}
 /\ claimsC = {}
 
-State 7: <PO2 line 673, col 14 to line 697, col 52 of module SegQueue>
+State 7: <PO2 line 772, col 14 to line 796, col 52 of module SegQueue>
 /\ done = {}
 /\ lh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ cst = ( 0 :> (0 :> "EMPTY" @@ 1 :> "EMPTY") @@
@@ -402,6 +408,7 @@ State 7: <PO2 line 673, col 14 to line 697, col 52 of module SegQueue>
 /\ claimsP = {0}
 /\ lp = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ lt = <<0, 0>>
+/\ prot = <<{0}, {}, {}>>
 /\ before = <<{}, {}>>
 /\ hptr = 0
 /\ nx = <<-1, -1>>
@@ -455,7 +462,7 @@ State 7: <PO2 line 673, col 14 to line 697, col 52 of module SegQueue>
 /\ retired = {}
 /\ claimsC = {}
 
-State 8: <PO3 line 699, col 14 to line 721, col 55 of module SegQueue>
+State 8: <PO3 line 798, col 14 to line 823, col 55 of module SegQueue>
 /\ done = {}
 /\ lh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ cst = ( 0 :> (0 :> "EMPTY" @@ 1 :> "EMPTY") @@
@@ -467,6 +474,7 @@ State 8: <PO3 line 699, col 14 to line 721, col 55 of module SegQueue>
 /\ claimsP = {0}
 /\ lp = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ lt = <<0, 0>>
+/\ prot = <<{0}, {}, {0}>>
 /\ before = <<{}, {}>>
 /\ hptr = 0
 /\ nx = <<-1, -1>>
@@ -475,7 +483,7 @@ State 8: <PO3 line 699, col 14 to line 721, col 55 of module SegQueue>
 /\ n = (3 :> 1)
 /\ pos = (101 :> -1 @@ 102 :> -1 @@ 201 :> -1 @@ 202 :> -1)
 /\ w = <<[id |-> 0, ix |-> 0], [id |-> 0, ix |-> 0]>>
-/\ pc = (0 :> "RC1" @@ 1 :> "PU4b" @@ 2 :> "PU1" @@ 3 :> "PO4")
+/\ pc = (0 :> "RC1" @@ 1 :> "PU4b" @@ 2 :> "PU1" @@ 3 :> "PO3w")
 /\ cw = ( 0 :> [id |-> 0, ix |-> 0] @@
   1 :> [id |-> 0, ix |-> 0] @@
   2 :> [id |-> 0, ix |-> 0] @@
@@ -520,7 +528,7 @@ State 8: <PO3 line 699, col 14 to line 721, col 55 of module SegQueue>
 /\ retired = {}
 /\ claimsC = {}
 
-State 9: <PO4 line 723, col 14 to line 734, col 67 of module SegQueue>
+State 9: <PO3w line 825, col 15 to line 833, col 42 of module SegQueue>
 /\ done = {}
 /\ lh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ cst = ( 0 :> (0 :> "EMPTY" @@ 1 :> "EMPTY") @@
@@ -532,6 +540,7 @@ State 9: <PO4 line 723, col 14 to line 734, col 67 of module SegQueue>
 /\ claimsP = {0}
 /\ lp = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ lt = <<0, 0>>
+/\ prot = <<{0}, {}, {0}>>
 /\ before = <<{}, {}>>
 /\ hptr = 0
 /\ nx = <<-1, -1>>
@@ -540,7 +549,205 @@ State 9: <PO4 line 723, col 14 to line 734, col 67 of module SegQueue>
 /\ n = (3 :> 1)
 /\ pos = (101 :> -1 @@ 102 :> -1 @@ 201 :> -1 @@ 202 :> -1)
 /\ w = <<[id |-> 0, ix |-> 0], [id |-> 0, ix |-> 0]>>
-/\ pc = (0 :> "RC1" @@ 1 :> "PU4b" @@ 2 :> "PU1" @@ 3 :> "PO5")
+/\ pc = (0 :> "RC1" @@ 1 :> "PU4b" @@ 2 :> "PU1" @@ 3 :> "PO3v")
+/\ cw = ( 0 :> [id |-> 0, ix |-> 0] @@
+  1 :> [id |-> 0, ix |-> 0] @@
+  2 :> [id |-> 0, ix |-> 0] @@
+  3 :> [id |-> 0, ix |-> 0] )
+/\ view = (0 :> "" @@ 1 :> "" @@ 2 :> "" @@ 3 :> "claimed")
+/\ startTaken_ = (0 :> {} @@ 1 :> {} @@ 2 :> {} @@ 3 :> {})
+/\ holders = (0 :> {} @@ 1 :> {} @@ 2 :> {} @@ 3 :> {} @@ 4 :> {})
+/\ t0 = ( 0 :> [id |-> 0, ix |-> 0] @@
+  1 :> [id |-> 0, ix |-> 0] @@
+  2 :> [id |-> 0, ix |-> 0] @@
+  3 :> [id |-> 0, ix |-> 0] )
+/\ rv = <<FALSE, FALSE, FALSE>>
+/\ lh3 = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
+/\ lh4 = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
+/\ h0 = ( 0 :> [id |-> 0, ix |-> 0] @@
+  1 :> [id |-> 0, ix |-> 0] @@
+  2 :> [id |-> 0, ix |-> 0] @@
+  3 :> [id |-> 0, ix |-> 0] )
+/\ h1 = ( 0 :> [id |-> 0, ix |-> 0] @@
+  1 :> [id |-> 0, ix |-> 0] @@
+  2 :> [id |-> 0, ix |-> 0] @@
+  3 :> [id |-> 0, ix |-> 0] )
+/\ tptr = 0
+/\ scan = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
+/\ took = {}
+/\ errs = {}
+/\ tw = [id |-> 0, ix |-> 1]
+/\ hn = (0 :> -1 @@ 1 :> -1 @@ 2 :> -1 @@ 3 :> -1)
+/\ hs = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
+/\ hw = [id |-> 0, ix |-> 0]
+/\ cval = ( 0 :> (0 :> 0 @@ 1 :> 0) @@
+  1 :> (0 :> 0 @@ 1 :> 0) @@
+  2 :> (0 :> 0 @@ 1 :> 0) @@
+  3 :> (0 :> 0 @@ 1 :> 0) @@
+  4 :> (0 :> 0 @@ 1 :> 0) )
+/\ snapped = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE @@ 3 :> TRUE)
+/\ opn = <<1, 0, 1>>
+/\ freed = {}
+/\ startTaken = (0 :> {} @@ 1 :> {} @@ 2 :> {} @@ 3 :> {})
+/\ busy = <<TRUE, FALSE, TRUE>>
+/\ stack = (0 :> <<>> @@ 1 :> <<>> @@ 2 :> <<>> @@ 3 :> <<[pc |-> "CO1", h0 |-> [id |-> 0, ix |-> 0], t0 |-> [id |-> 0, ix |-> 0], view |-> "", lh3 |-> 0, cw |-> [id |-> 0, ix |-> 0], startTaken_ |-> {}, snapped |-> FALSE, scan |-> 0, procedure |-> "Pop"]>>)
+/\ retired = {}
+/\ claimsC = {}
+
+State 10: <PO3v line 835, col 15 to line 869, col 53 of module SegQueue>
+/\ done = {}
+/\ lh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
+/\ cst = ( 0 :> (0 :> "EMPTY" @@ 1 :> "EMPTY") @@
+  1 :> (0 :> "EMPTY" @@ 1 :> "EMPTY") @@
+  2 :> (0 :> "EMPTY" @@ 1 :> "EMPTY") @@
+  3 :> (0 :> "EMPTY" @@ 1 :> "EMPTY") @@
+  4 :> (0 :> "EMPTY" @@ 1 :> "EMPTY") )
+/\ nxt = (0 :> -1 @@ 1 :> -1 @@ 2 :> -1 @@ 3 :> -1 @@ 4 :> -1)
+/\ claimsP = {0}
+/\ lp = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
+/\ lt = <<0, 0>>
+/\ prot = <<{0}, {}, {0}>>
+/\ before = <<{}, {}>>
+/\ hptr = 0
+/\ nx = <<-1, -1>>
+/\ said = {}
+/\ k = <<1, 1>>
+/\ n = (3 :> 1)
+/\ pos = (101 :> -1 @@ 102 :> -1 @@ 201 :> -1 @@ 202 :> -1)
+/\ w = <<[id |-> 0, ix |-> 0], [id |-> 0, ix |-> 0]>>
+/\ pc = (0 :> "RC1" @@ 1 :> "PU4b" @@ 2 :> "PU1" @@ 3 :> "PO7")
+/\ cw = ( 0 :> [id |-> 0, ix |-> 0] @@
+  1 :> [id |-> 0, ix |-> 0] @@
+  2 :> [id |-> 0, ix |-> 0] @@
+  3 :> [id |-> 0, ix |-> 0] )
+/\ view = (0 :> "" @@ 1 :> "" @@ 2 :> "" @@ 3 :> "claimed")
+/\ startTaken_ = (0 :> {} @@ 1 :> {} @@ 2 :> {} @@ 3 :> {})
+/\ holders = (0 :> {} @@ 1 :> {} @@ 2 :> {} @@ 3 :> {} @@ 4 :> {})
+/\ t0 = ( 0 :> [id |-> 0, ix |-> 0] @@
+  1 :> [id |-> 0, ix |-> 0] @@
+  2 :> [id |-> 0, ix |-> 0] @@
+  3 :> [id |-> 0, ix |-> 0] )
+/\ rv = <<FALSE, FALSE, FALSE>>
+/\ lh3 = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
+/\ lh4 = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
+/\ h0 = ( 0 :> [id |-> 0, ix |-> 0] @@
+  1 :> [id |-> 0, ix |-> 0] @@
+  2 :> [id |-> 0, ix |-> 0] @@
+  3 :> [id |-> 0, ix |-> 0] )
+/\ h1 = ( 0 :> [id |-> 0, ix |-> 0] @@
+  1 :> [id |-> 0, ix |-> 0] @@
+  2 :> [id |-> 0, ix |-> 0] @@
+  3 :> [id |-> 0, ix |-> 0] )
+/\ tptr = 0
+/\ scan = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
+/\ took = {}
+/\ errs = {}
+/\ tw = [id |-> 0, ix |-> 1]
+/\ hn = (0 :> -1 @@ 1 :> -1 @@ 2 :> -1 @@ 3 :> -1)
+/\ hs = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
+/\ hw = [id |-> 0, ix |-> 0]
+/\ cval = ( 0 :> (0 :> 0 @@ 1 :> 0) @@
+  1 :> (0 :> 0 @@ 1 :> 0) @@
+  2 :> (0 :> 0 @@ 1 :> 0) @@
+  3 :> (0 :> 0 @@ 1 :> 0) @@
+  4 :> (0 :> 0 @@ 1 :> 0) )
+/\ snapped = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE @@ 3 :> TRUE)
+/\ opn = <<1, 0, 1>>
+/\ freed = {}
+/\ startTaken = (0 :> {} @@ 1 :> {} @@ 2 :> {} @@ 3 :> {})
+/\ busy = <<TRUE, FALSE, TRUE>>
+/\ stack = (0 :> <<>> @@ 1 :> <<>> @@ 2 :> <<>> @@ 3 :> <<[pc |-> "CO1", h0 |-> [id |-> 0, ix |-> 0], t0 |-> [id |-> 0, ix |-> 0], view |-> "", lh3 |-> 0, cw |-> [id |-> 0, ix |-> 0], startTaken_ |-> {}, snapped |-> FALSE, scan |-> 0, procedure |-> "Pop"]>>)
+/\ retired = {}
+/\ claimsC = {}
+
+State 11: <PO7 line 871, col 14 to line 882, col 76 of module SegQueue>
+/\ done = {}
+/\ lh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
+/\ cst = ( 0 :> (0 :> "EMPTY" @@ 1 :> "EMPTY") @@
+  1 :> (0 :> "EMPTY" @@ 1 :> "EMPTY") @@
+  2 :> (0 :> "EMPTY" @@ 1 :> "EMPTY") @@
+  3 :> (0 :> "EMPTY" @@ 1 :> "EMPTY") @@
+  4 :> (0 :> "EMPTY" @@ 1 :> "EMPTY") )
+/\ nxt = (0 :> -1 @@ 1 :> -1 @@ 2 :> -1 @@ 3 :> -1 @@ 4 :> -1)
+/\ claimsP = {0}
+/\ lp = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
+/\ lt = <<0, 0>>
+/\ prot = <<{0}, {}, {0}>>
+/\ before = <<{}, {}>>
+/\ hptr = 0
+/\ nx = <<-1, -1>>
+/\ said = {}
+/\ k = <<1, 1>>
+/\ n = (3 :> 1)
+/\ pos = (101 :> -1 @@ 102 :> -1 @@ 201 :> -1 @@ 202 :> -1)
+/\ w = <<[id |-> 0, ix |-> 0], [id |-> 0, ix |-> 0]>>
+/\ pc = (0 :> "RC1" @@ 1 :> "PU4b" @@ 2 :> "PU1" @@ 3 :> "PO8")
+/\ cw = ( 0 :> [id |-> 0, ix |-> 0] @@
+  1 :> [id |-> 0, ix |-> 0] @@
+  2 :> [id |-> 0, ix |-> 0] @@
+  3 :> [id |-> 0, ix |-> 0] )
+/\ view = (0 :> "" @@ 1 :> "" @@ 2 :> "" @@ 3 :> "claimed")
+/\ startTaken_ = (0 :> {} @@ 1 :> {} @@ 2 :> {} @@ 3 :> {})
+/\ holders = (0 :> {} @@ 1 :> {} @@ 2 :> {} @@ 3 :> {} @@ 4 :> {})
+/\ t0 = ( 0 :> [id |-> 0, ix |-> 0] @@
+  1 :> [id |-> 0, ix |-> 0] @@
+  2 :> [id |-> 0, ix |-> 0] @@
+  3 :> [id |-> 0, ix |-> 0] )
+/\ rv = <<FALSE, FALSE, FALSE>>
+/\ lh3 = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
+/\ lh4 = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
+/\ h0 = ( 0 :> [id |-> 0, ix |-> 0] @@
+  1 :> [id |-> 0, ix |-> 0] @@
+  2 :> [id |-> 0, ix |-> 0] @@
+  3 :> [id |-> 0, ix |-> 0] )
+/\ h1 = ( 0 :> [id |-> 0, ix |-> 0] @@
+  1 :> [id |-> 0, ix |-> 0] @@
+  2 :> [id |-> 0, ix |-> 0] @@
+  3 :> [id |-> 0, ix |-> 0] )
+/\ tptr = 0
+/\ scan = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
+/\ took = {}
+/\ errs = {}
+/\ tw = [id |-> 0, ix |-> 1]
+/\ hn = (0 :> -1 @@ 1 :> -1 @@ 2 :> -1 @@ 3 :> -1)
+/\ hs = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
+/\ hw = [id |-> 0, ix |-> 0]
+/\ cval = ( 0 :> (0 :> 0 @@ 1 :> 0) @@
+  1 :> (0 :> 0 @@ 1 :> 0) @@
+  2 :> (0 :> 0 @@ 1 :> 0) @@
+  3 :> (0 :> 0 @@ 1 :> 0) @@
+  4 :> (0 :> 0 @@ 1 :> 0) )
+/\ snapped = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE @@ 3 :> TRUE)
+/\ opn = <<1, 0, 1>>
+/\ freed = {}
+/\ startTaken = (0 :> {} @@ 1 :> {} @@ 2 :> {} @@ 3 :> {})
+/\ busy = <<TRUE, FALSE, TRUE>>
+/\ stack = (0 :> <<>> @@ 1 :> <<>> @@ 2 :> <<>> @@ 3 :> <<[pc |-> "CO1", h0 |-> [id |-> 0, ix |-> 0], t0 |-> [id |-> 0, ix |-> 0], view |-> "", lh3 |-> 0, cw |-> [id |-> 0, ix |-> 0], startTaken_ |-> {}, snapped |-> FALSE, scan |-> 0, procedure |-> "Pop"]>>)
+/\ retired = {}
+/\ claimsC = {}
+
+State 12: <PO8 line 884, col 14 to line 925, col 33 of module SegQueue>
+/\ done = {}
+/\ lh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
+/\ cst = ( 0 :> (0 :> "TAKEN" @@ 1 :> "EMPTY") @@
+  1 :> (0 :> "EMPTY" @@ 1 :> "EMPTY") @@
+  2 :> (0 :> "EMPTY" @@ 1 :> "EMPTY") @@
+  3 :> (0 :> "EMPTY" @@ 1 :> "EMPTY") @@
+  4 :> (0 :> "EMPTY" @@ 1 :> "EMPTY") )
+/\ nxt = (0 :> -1 @@ 1 :> -1 @@ 2 :> -1 @@ 3 :> -1 @@ 4 :> -1)
+/\ claimsP = {0}
+/\ lp = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
+/\ lt = <<0, 0>>
+/\ prot = <<{0}, {}, {0}>>
+/\ before = <<{}, {}>>
+/\ hptr = 0
+/\ nx = <<-1, -1>>
+/\ said = {}
+/\ k = <<1, 1>>
+/\ n = (3 :> 1)
+/\ pos = (101 :> -1 @@ 102 :> -1 @@ 201 :> -1 @@ 202 :> -1)
+/\ w = <<[id |-> 0, ix |-> 0], [id |-> 0, ix |-> 0]>>
+/\ pc = (0 :> "RC1" @@ 1 :> "PU4b" @@ 2 :> "PU1" @@ 3 :> "PO3")
 /\ cw = ( 0 :> [id |-> 0, ix |-> 0] @@
   1 :> [id |-> 0, ix |-> 0] @@
   2 :> [id |-> 0, ix |-> 0] @@
@@ -585,7 +792,7 @@ State 9: <PO4 line 723, col 14 to line 734, col 67 of module SegQueue>
 /\ retired = {}
 /\ claimsC = {0}
 
-State 10: <PO5 line 736, col 14 to line 766, col 41 of module SegQueue>
+State 13: <PO3 line 798, col 14 to line 823, col 55 of module SegQueue>
 /\ done = {}
 /\ lh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ cst = ( 0 :> (0 :> "TAKEN" @@ 1 :> "EMPTY") @@
@@ -597,6 +804,7 @@ State 10: <PO5 line 736, col 14 to line 766, col 41 of module SegQueue>
 /\ claimsP = {0}
 /\ lp = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ lt = <<0, 0>>
+/\ prot = <<{0}, {}, {0}>>
 /\ before = <<{}, {}>>
 /\ hptr = 0
 /\ nx = <<-1, -1>>
@@ -605,7 +813,7 @@ State 10: <PO5 line 736, col 14 to line 766, col 41 of module SegQueue>
 /\ n = (3 :> 1)
 /\ pos = (101 :> -1 @@ 102 :> -1 @@ 201 :> -1 @@ 202 :> -1)
 /\ w = <<[id |-> 0, ix |-> 0], [id |-> 0, ix |-> 0]>>
-/\ pc = (0 :> "RC1" @@ 1 :> "PU4b" @@ 2 :> "PU1" @@ 3 :> "PO1")
+/\ pc = (0 :> "RC1" @@ 1 :> "PU4b" @@ 2 :> "PU1" @@ 3 :> "PO3w")
 /\ cw = ( 0 :> [id |-> 0, ix |-> 0] @@
   1 :> [id |-> 0, ix |-> 0] @@
   2 :> [id |-> 0, ix |-> 0] @@
@@ -650,7 +858,7 @@ State 10: <PO5 line 736, col 14 to line 766, col 41 of module SegQueue>
 /\ retired = {}
 /\ claimsC = {0}
 
-State 11: <PO1 line 658, col 14 to line 671, col 48 of module SegQueue>
+State 14: <PO3w line 825, col 15 to line 833, col 42 of module SegQueue>
 /\ done = {}
 /\ lh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ cst = ( 0 :> (0 :> "TAKEN" @@ 1 :> "EMPTY") @@
@@ -662,6 +870,7 @@ State 11: <PO1 line 658, col 14 to line 671, col 48 of module SegQueue>
 /\ claimsP = {0}
 /\ lp = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ lt = <<0, 0>>
+/\ prot = <<{0}, {}, {0}>>
 /\ before = <<{}, {}>>
 /\ hptr = 0
 /\ nx = <<-1, -1>>
@@ -670,7 +879,7 @@ State 11: <PO1 line 658, col 14 to line 671, col 48 of module SegQueue>
 /\ n = (3 :> 1)
 /\ pos = (101 :> -1 @@ 102 :> -1 @@ 201 :> -1 @@ 202 :> -1)
 /\ w = <<[id |-> 0, ix |-> 0], [id |-> 0, ix |-> 0]>>
-/\ pc = (0 :> "RC1" @@ 1 :> "PU4b" @@ 2 :> "PU1" @@ 3 :> "PO2")
+/\ pc = (0 :> "RC1" @@ 1 :> "PU4b" @@ 2 :> "PU1" @@ 3 :> "PO3v")
 /\ cw = ( 0 :> [id |-> 0, ix |-> 0] @@
   1 :> [id |-> 0, ix |-> 0] @@
   2 :> [id |-> 0, ix |-> 0] @@
@@ -715,7 +924,7 @@ State 11: <PO1 line 658, col 14 to line 671, col 48 of module SegQueue>
 /\ retired = {}
 /\ claimsC = {0}
 
-State 12: <PU4b line 1073, col 15 to line 1097, col 70 of module SegQueue>
+State 15: <PU4b line 1302, col 15 to line 1327, col 34 of module SegQueue>
 /\ done = {}
 /\ lh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ cst = ( 0 :> (0 :> "TAKEN" @@ 1 :> "EMPTY") @@
@@ -727,6 +936,7 @@ State 12: <PU4b line 1073, col 15 to line 1097, col 70 of module SegQueue>
 /\ claimsP = {0}
 /\ lp = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ lt = <<0, 0>>
+/\ prot = <<{0}, {}, {0}>>
 /\ before = <<{}, {}>>
 /\ hptr = 0
 /\ nx = <<-1, -1>>
@@ -735,7 +945,7 @@ State 12: <PU4b line 1073, col 15 to line 1097, col 70 of module SegQueue>
 /\ n = (3 :> 1)
 /\ pos = (101 :> -1 @@ 102 :> -1 @@ 201 :> -1 @@ 202 :> -1)
 /\ w = <<[id |-> 0, ix |-> 0], [id |-> 0, ix |-> 0]>>
-/\ pc = (0 :> "RC1" @@ 1 :> "PU2" @@ 2 :> "PU1" @@ 3 :> "PO2")
+/\ pc = (0 :> "RC1" @@ 1 :> "PU2" @@ 2 :> "PU1" @@ 3 :> "PO3v")
 /\ cw = ( 0 :> [id |-> 0, ix |-> 0] @@
   1 :> [id |-> 0, ix |-> 0] @@
   2 :> [id |-> 0, ix |-> 0] @@
@@ -780,7 +990,7 @@ State 12: <PU4b line 1073, col 15 to line 1097, col 70 of module SegQueue>
 /\ retired = {}
 /\ claimsC = {0}
 
-State 13: <PU2 line 1008, col 14 to line 1018, col 72 of module SegQueue>
+State 16: <PU2 line 1230, col 14 to line 1241, col 72 of module SegQueue>
 /\ done = {}
 /\ lh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ cst = ( 0 :> (0 :> "TAKEN" @@ 1 :> "EMPTY") @@
@@ -792,6 +1002,7 @@ State 13: <PU2 line 1008, col 14 to line 1018, col 72 of module SegQueue>
 /\ claimsP = {0}
 /\ lp = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ lt = <<0, 0>>
+/\ prot = <<{0}, {}, {0}>>
 /\ before = <<{}, {}>>
 /\ hptr = 0
 /\ nx = <<-1, -1>>
@@ -800,7 +1011,7 @@ State 13: <PU2 line 1008, col 14 to line 1018, col 72 of module SegQueue>
 /\ n = (3 :> 1)
 /\ pos = (101 :> -1 @@ 102 :> -1 @@ 201 :> -1 @@ 202 :> -1)
 /\ w = <<[id |-> 0, ix |-> 0], [id |-> 0, ix |-> 0]>>
-/\ pc = (0 :> "RC1" @@ 1 :> "PU3" @@ 2 :> "PU1" @@ 3 :> "PO2")
+/\ pc = (0 :> "RC1" @@ 1 :> "PU3" @@ 2 :> "PU1" @@ 3 :> "PO3v")
 /\ cw = ( 0 :> [id |-> 0, ix |-> 0] @@
   1 :> [id |-> 0, ix |-> 0] @@
   2 :> [id |-> 0, ix |-> 0] @@
@@ -845,7 +1056,7 @@ State 13: <PU2 line 1008, col 14 to line 1018, col 72 of module SegQueue>
 /\ retired = {}
 /\ claimsC = {0}
 
-State 14: <PU3 line 1020, col 14 to line 1033, col 64 of module SegQueue>
+State 17: <PU3 line 1243, col 14 to line 1256, col 68 of module SegQueue>
 /\ done = {}
 /\ lh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ cst = ( 0 :> (0 :> "TAKEN" @@ 1 :> "EMPTY") @@
@@ -857,6 +1068,7 @@ State 14: <PU3 line 1020, col 14 to line 1033, col 64 of module SegQueue>
 /\ claimsP = {0, 1}
 /\ lp = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ lt = <<0, 0>>
+/\ prot = <<{0}, {}, {0}>>
 /\ before = <<{}, {}>>
 /\ hptr = 0
 /\ nx = <<-1, -1>>
@@ -865,7 +1077,7 @@ State 14: <PU3 line 1020, col 14 to line 1033, col 64 of module SegQueue>
 /\ n = (3 :> 1)
 /\ pos = (101 :> -1 @@ 102 :> -1 @@ 201 :> -1 @@ 202 :> -1)
 /\ w = <<[id |-> 0, ix |-> 1], [id |-> 0, ix |-> 0]>>
-/\ pc = (0 :> "RC1" @@ 1 :> "PU4" @@ 2 :> "PU1" @@ 3 :> "PO2")
+/\ pc = (0 :> "RC1" @@ 1 :> "PU4" @@ 2 :> "PU1" @@ 3 :> "PO3v")
 /\ cw = ( 0 :> [id |-> 0, ix |-> 0] @@
   1 :> [id |-> 0, ix |-> 0] @@
   2 :> [id |-> 0, ix |-> 0] @@
@@ -910,7 +1122,7 @@ State 14: <PU3 line 1020, col 14 to line 1033, col 64 of module SegQueue>
 /\ retired = {}
 /\ claimsC = {0}
 
-State 15: <PO2 line 673, col 14 to line 697, col 52 of module SegQueue>
+State 18: <PO3v line 835, col 15 to line 869, col 53 of module SegQueue>
 /\ done = {}
 /\ lh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ cst = ( 0 :> (0 :> "TAKEN" @@ 1 :> "EMPTY") @@
@@ -922,6 +1134,139 @@ State 15: <PO2 line 673, col 14 to line 697, col 52 of module SegQueue>
 /\ claimsP = {0, 1}
 /\ lp = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ lt = <<0, 0>>
+/\ prot = <<{0}, {}, {0}>>
+/\ before = <<{}, {}>>
+/\ hptr = 0
+/\ nx = <<-1, -1>>
+/\ said = {}
+/\ k = <<1, 1>>
+/\ n = (3 :> 1)
+/\ pos = (101 :> -1 @@ 102 :> -1 @@ 201 :> -1 @@ 202 :> -1)
+/\ w = <<[id |-> 0, ix |-> 1], [id |-> 0, ix |-> 0]>>
+/\ pc = (0 :> "RC1" @@ 1 :> "PU4" @@ 2 :> "PU1" @@ 3 :> "PO7")
+/\ cw = ( 0 :> [id |-> 0, ix |-> 0] @@
+  1 :> [id |-> 0, ix |-> 0] @@
+  2 :> [id |-> 0, ix |-> 0] @@
+  3 :> [id |-> 0, ix |-> 0] )
+/\ view = (0 :> "" @@ 1 :> "" @@ 2 :> "" @@ 3 :> "claimed")
+/\ startTaken_ = (0 :> {} @@ 1 :> {} @@ 2 :> {} @@ 3 :> {})
+/\ holders = (0 :> {} @@ 1 :> {} @@ 2 :> {} @@ 3 :> {} @@ 4 :> {})
+/\ t0 = ( 0 :> [id |-> 0, ix |-> 0] @@
+  1 :> [id |-> 0, ix |-> 0] @@
+  2 :> [id |-> 0, ix |-> 0] @@
+  3 :> [id |-> 0, ix |-> 0] )
+/\ rv = <<FALSE, FALSE, FALSE>>
+/\ lh3 = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
+/\ lh4 = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
+/\ h0 = ( 0 :> [id |-> 0, ix |-> 0] @@
+  1 :> [id |-> 0, ix |-> 0] @@
+  2 :> [id |-> 0, ix |-> 0] @@
+  3 :> [id |-> 0, ix |-> 1] )
+/\ h1 = ( 0 :> [id |-> 0, ix |-> 0] @@
+  1 :> [id |-> 0, ix |-> 0] @@
+  2 :> [id |-> 0, ix |-> 0] @@
+  3 :> [id |-> 0, ix |-> 0] )
+/\ tptr = 0
+/\ scan = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
+/\ took = {}
+/\ errs = {}
+/\ tw = [id |-> 0, ix |-> 2]
+/\ hn = (0 :> -1 @@ 1 :> -1 @@ 2 :> -1 @@ 3 :> -1)
+/\ hs = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
+/\ hw = [id |-> 0, ix |-> 1]
+/\ cval = ( 0 :> (0 :> 0 @@ 1 :> 0) @@
+  1 :> (0 :> 0 @@ 1 :> 0) @@
+  2 :> (0 :> 0 @@ 1 :> 0) @@
+  3 :> (0 :> 0 @@ 1 :> 0) @@
+  4 :> (0 :> 0 @@ 1 :> 0) )
+/\ snapped = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE @@ 3 :> TRUE)
+/\ opn = <<1, 0, 1>>
+/\ freed = {}
+/\ startTaken = (0 :> {} @@ 1 :> {} @@ 2 :> {} @@ 3 :> {})
+/\ busy = <<TRUE, FALSE, TRUE>>
+/\ stack = (0 :> <<>> @@ 1 :> <<>> @@ 2 :> <<>> @@ 3 :> <<[pc |-> "CO1", h0 |-> [id |-> 0, ix |-> 0], t0 |-> [id |-> 0, ix |-> 0], view |-> "", lh3 |-> 0, cw |-> [id |-> 0, ix |-> 0], startTaken_ |-> {}, snapped |-> FALSE, scan |-> 0, procedure |-> "Pop"]>>)
+/\ retired = {}
+/\ claimsC = {0}
+
+State 19: <PO7 line 871, col 14 to line 882, col 76 of module SegQueue>
+/\ done = {}
+/\ lh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
+/\ cst = ( 0 :> (0 :> "TAKEN" @@ 1 :> "EMPTY") @@
+  1 :> (0 :> "EMPTY" @@ 1 :> "EMPTY") @@
+  2 :> (0 :> "EMPTY" @@ 1 :> "EMPTY") @@
+  3 :> (0 :> "EMPTY" @@ 1 :> "EMPTY") @@
+  4 :> (0 :> "EMPTY" @@ 1 :> "EMPTY") )
+/\ nxt = (0 :> -1 @@ 1 :> -1 @@ 2 :> -1 @@ 3 :> -1 @@ 4 :> -1)
+/\ claimsP = {0, 1}
+/\ lp = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
+/\ lt = <<0, 0>>
+/\ prot = <<{0}, {}, {0}>>
+/\ before = <<{}, {}>>
+/\ hptr = 0
+/\ nx = <<-1, -1>>
+/\ said = {}
+/\ k = <<1, 1>>
+/\ n = (3 :> 1)
+/\ pos = (101 :> -1 @@ 102 :> -1 @@ 201 :> -1 @@ 202 :> -1)
+/\ w = <<[id |-> 0, ix |-> 1], [id |-> 0, ix |-> 0]>>
+/\ pc = (0 :> "RC1" @@ 1 :> "PU4" @@ 2 :> "PU1" @@ 3 :> "PO8")
+/\ cw = ( 0 :> [id |-> 0, ix |-> 0] @@
+  1 :> [id |-> 0, ix |-> 0] @@
+  2 :> [id |-> 0, ix |-> 0] @@
+  3 :> [id |-> 0, ix |-> 0] )
+/\ view = (0 :> "" @@ 1 :> "" @@ 2 :> "" @@ 3 :> "claimed")
+/\ startTaken_ = (0 :> {} @@ 1 :> {} @@ 2 :> {} @@ 3 :> {})
+/\ holders = (0 :> {} @@ 1 :> {} @@ 2 :> {} @@ 3 :> {} @@ 4 :> {})
+/\ t0 = ( 0 :> [id |-> 0, ix |-> 0] @@
+  1 :> [id |-> 0, ix |-> 0] @@
+  2 :> [id |-> 0, ix |-> 0] @@
+  3 :> [id |-> 0, ix |-> 0] )
+/\ rv = <<FALSE, FALSE, FALSE>>
+/\ lh3 = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
+/\ lh4 = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
+/\ h0 = ( 0 :> [id |-> 0, ix |-> 0] @@
+  1 :> [id |-> 0, ix |-> 0] @@
+  2 :> [id |-> 0, ix |-> 0] @@
+  3 :> [id |-> 0, ix |-> 1] )
+/\ h1 = ( 0 :> [id |-> 0, ix |-> 0] @@
+  1 :> [id |-> 0, ix |-> 0] @@
+  2 :> [id |-> 0, ix |-> 0] @@
+  3 :> [id |-> 0, ix |-> 0] )
+/\ tptr = 0
+/\ scan = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
+/\ took = {}
+/\ errs = {}
+/\ tw = [id |-> 0, ix |-> 2]
+/\ hn = (0 :> -1 @@ 1 :> -1 @@ 2 :> -1 @@ 3 :> -1)
+/\ hs = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
+/\ hw = [id |-> 0, ix |-> 1]
+/\ cval = ( 0 :> (0 :> 0 @@ 1 :> 0) @@
+  1 :> (0 :> 0 @@ 1 :> 0) @@
+  2 :> (0 :> 0 @@ 1 :> 0) @@
+  3 :> (0 :> 0 @@ 1 :> 0) @@
+  4 :> (0 :> 0 @@ 1 :> 0) )
+/\ snapped = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE @@ 3 :> TRUE)
+/\ opn = <<1, 0, 1>>
+/\ freed = {}
+/\ startTaken = (0 :> {} @@ 1 :> {} @@ 2 :> {} @@ 3 :> {})
+/\ busy = <<TRUE, FALSE, TRUE>>
+/\ stack = (0 :> <<>> @@ 1 :> <<>> @@ 2 :> <<>> @@ 3 :> <<[pc |-> "CO1", h0 |-> [id |-> 0, ix |-> 0], t0 |-> [id |-> 0, ix |-> 0], view |-> "", lh3 |-> 0, cw |-> [id |-> 0, ix |-> 0], startTaken_ |-> {}, snapped |-> FALSE, scan |-> 0, procedure |-> "Pop"]>>)
+/\ retired = {}
+/\ claimsC = {0}
+
+State 20: <PO8 line 884, col 14 to line 925, col 33 of module SegQueue>
+/\ done = {}
+/\ lh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
+/\ cst = ( 0 :> (0 :> "TAKEN" @@ 1 :> "TAKEN") @@
+  1 :> (0 :> "EMPTY" @@ 1 :> "EMPTY") @@
+  2 :> (0 :> "EMPTY" @@ 1 :> "EMPTY") @@
+  3 :> (0 :> "EMPTY" @@ 1 :> "EMPTY") @@
+  4 :> (0 :> "EMPTY" @@ 1 :> "EMPTY") )
+/\ nxt = (0 :> -1 @@ 1 :> -1 @@ 2 :> -1 @@ 3 :> -1 @@ 4 :> -1)
+/\ claimsP = {0, 1}
+/\ lp = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
+/\ lt = <<0, 0>>
+/\ prot = <<{0}, {}, {0}>>
 /\ before = <<{}, {}>>
 /\ hptr = 0
 /\ nx = <<-1, -1>>
@@ -960,7 +1305,7 @@ State 15: <PO2 line 673, col 14 to line 697, col 52 of module SegQueue>
 /\ tw = [id |-> 0, ix |-> 2]
 /\ hn = (0 :> -1 @@ 1 :> -1 @@ 2 :> -1 @@ 3 :> -1)
 /\ hs = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
-/\ hw = [id |-> 0, ix |-> 1]
+/\ hw = [id |-> 0, ix |-> 2]
 /\ cval = ( 0 :> (0 :> 0 @@ 1 :> 0) @@
   1 :> (0 :> 0 @@ 1 :> 0) @@
   2 :> (0 :> 0 @@ 1 :> 0) @@
@@ -973,12 +1318,12 @@ State 15: <PO2 line 673, col 14 to line 697, col 52 of module SegQueue>
 /\ busy = <<TRUE, FALSE, TRUE>>
 /\ stack = (0 :> <<>> @@ 1 :> <<>> @@ 2 :> <<>> @@ 3 :> <<[pc |-> "CO1", h0 |-> [id |-> 0, ix |-> 0], t0 |-> [id |-> 0, ix |-> 0], view |-> "", lh3 |-> 0, cw |-> [id |-> 0, ix |-> 0], startTaken_ |-> {}, snapped |-> FALSE, scan |-> 0, procedure |-> "Pop"]>>)
 /\ retired = {}
-/\ claimsC = {0}
+/\ claimsC = {0, 1}
 
-State 16: <PO3 line 699, col 14 to line 721, col 55 of module SegQueue>
+State 21: <PO3 line 798, col 14 to line 823, col 55 of module SegQueue>
 /\ done = {}
 /\ lh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
-/\ cst = ( 0 :> (0 :> "TAKEN" @@ 1 :> "EMPTY") @@
+/\ cst = ( 0 :> (0 :> "TAKEN" @@ 1 :> "TAKEN") @@
   1 :> (0 :> "EMPTY" @@ 1 :> "EMPTY") @@
   2 :> (0 :> "EMPTY" @@ 1 :> "EMPTY") @@
   3 :> (0 :> "EMPTY" @@ 1 :> "EMPTY") @@
@@ -987,6 +1332,7 @@ State 16: <PO3 line 699, col 14 to line 721, col 55 of module SegQueue>
 /\ claimsP = {0, 1}
 /\ lp = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ lt = <<0, 0>>
+/\ prot = <<{0}, {}, {0}>>
 /\ before = <<{}, {}>>
 /\ hptr = 0
 /\ nx = <<-1, -1>>
@@ -995,76 +1341,11 @@ State 16: <PO3 line 699, col 14 to line 721, col 55 of module SegQueue>
 /\ n = (3 :> 1)
 /\ pos = (101 :> -1 @@ 102 :> -1 @@ 201 :> -1 @@ 202 :> -1)
 /\ w = <<[id |-> 0, ix |-> 1], [id |-> 0, ix |-> 0]>>
-/\ pc = (0 :> "RC1" @@ 1 :> "PU4" @@ 2 :> "PU1" @@ 3 :> "PO4")
+/\ pc = (0 :> "RC1" @@ 1 :> "PU4" @@ 2 :> "PU1" @@ 3 :> "PO3w")
 /\ cw = ( 0 :> [id |-> 0, ix |-> 0] @@
   1 :> [id |-> 0, ix |-> 0] @@
   2 :> [id |-> 0, ix |-> 0] @@
   3 :> [id |-> 0, ix |-> 0] )
-/\ view = (0 :> "" @@ 1 :> "" @@ 2 :> "" @@ 3 :> "claimed")
-/\ startTaken_ = (0 :> {} @@ 1 :> {} @@ 2 :> {} @@ 3 :> {})
-/\ holders = (0 :> {} @@ 1 :> {} @@ 2 :> {} @@ 3 :> {} @@ 4 :> {})
-/\ t0 = ( 0 :> [id |-> 0, ix |-> 0] @@
-  1 :> [id |-> 0, ix |-> 0] @@
-  2 :> [id |-> 0, ix |-> 0] @@
-  3 :> [id |-> 0, ix |-> 0] )
-/\ rv = <<FALSE, FALSE, FALSE>>
-/\ lh3 = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
-/\ lh4 = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
-/\ h0 = ( 0 :> [id |-> 0, ix |-> 0] @@
-  1 :> [id |-> 0, ix |-> 0] @@
-  2 :> [id |-> 0, ix |-> 0] @@
-  3 :> [id |-> 0, ix |-> 1] )
-/\ h1 = ( 0 :> [id |-> 0, ix |-> 0] @@
-  1 :> [id |-> 0, ix |-> 0] @@
-  2 :> [id |-> 0, ix |-> 0] @@
-  3 :> [id |-> 0, ix |-> 0] )
-/\ tptr = 0
-/\ scan = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
-/\ took = {}
-/\ errs = {}
-/\ tw = [id |-> 0, ix |-> 2]
-/\ hn = (0 :> -1 @@ 1 :> -1 @@ 2 :> -1 @@ 3 :> -1)
-/\ hs = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
-/\ hw = [id |-> 0, ix |-> 1]
-/\ cval = ( 0 :> (0 :> 0 @@ 1 :> 0) @@
-  1 :> (0 :> 0 @@ 1 :> 0) @@
-  2 :> (0 :> 0 @@ 1 :> 0) @@
-  3 :> (0 :> 0 @@ 1 :> 0) @@
-  4 :> (0 :> 0 @@ 1 :> 0) )
-/\ snapped = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE @@ 3 :> TRUE)
-/\ opn = <<1, 0, 1>>
-/\ freed = {}
-/\ startTaken = (0 :> {} @@ 1 :> {} @@ 2 :> {} @@ 3 :> {})
-/\ busy = <<TRUE, FALSE, TRUE>>
-/\ stack = (0 :> <<>> @@ 1 :> <<>> @@ 2 :> <<>> @@ 3 :> <<[pc |-> "CO1", h0 |-> [id |-> 0, ix |-> 0], t0 |-> [id |-> 0, ix |-> 0], view |-> "", lh3 |-> 0, cw |-> [id |-> 0, ix |-> 0], startTaken_ |-> {}, snapped |-> FALSE, scan |-> 0, procedure |-> "Pop"]>>)
-/\ retired = {}
-/\ claimsC = {0}
-
-State 17: <PO4 line 723, col 14 to line 734, col 67 of module SegQueue>
-/\ done = {}
-/\ lh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
-/\ cst = ( 0 :> (0 :> "TAKEN" @@ 1 :> "EMPTY") @@
-  1 :> (0 :> "EMPTY" @@ 1 :> "EMPTY") @@
-  2 :> (0 :> "EMPTY" @@ 1 :> "EMPTY") @@
-  3 :> (0 :> "EMPTY" @@ 1 :> "EMPTY") @@
-  4 :> (0 :> "EMPTY" @@ 1 :> "EMPTY") )
-/\ nxt = (0 :> -1 @@ 1 :> -1 @@ 2 :> -1 @@ 3 :> -1 @@ 4 :> -1)
-/\ claimsP = {0, 1}
-/\ lp = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
-/\ lt = <<0, 0>>
-/\ before = <<{}, {}>>
-/\ hptr = 0
-/\ nx = <<-1, -1>>
-/\ said = {}
-/\ k = <<1, 1>>
-/\ n = (3 :> 1)
-/\ pos = (101 :> -1 @@ 102 :> -1 @@ 201 :> -1 @@ 202 :> -1)
-/\ w = <<[id |-> 0, ix |-> 1], [id |-> 0, ix |-> 0]>>
-/\ pc = (0 :> "RC1" @@ 1 :> "PU4" @@ 2 :> "PU1" @@ 3 :> "PO5")
-/\ cw = ( 0 :> [id |-> 0, ix |-> 0] @@
-  1 :> [id |-> 0, ix |-> 0] @@
-  2 :> [id |-> 0, ix |-> 0] @@
-  3 :> [id |-> 0, ix |-> 1] )
 /\ view = (0 :> "" @@ 1 :> "" @@ 2 :> "" @@ 3 :> "claimed")
 /\ startTaken_ = (0 :> {} @@ 1 :> {} @@ 2 :> {} @@ 3 :> {})
 /\ holders = (0 :> {} @@ 1 :> {} @@ 2 :> {} @@ 3 :> {} @@ 4 :> {})
@@ -1105,7 +1386,7 @@ State 17: <PO4 line 723, col 14 to line 734, col 67 of module SegQueue>
 /\ retired = {}
 /\ claimsC = {0, 1}
 
-State 18: <PO5 line 736, col 14 to line 766, col 41 of module SegQueue>
+State 22: <PO3w line 825, col 15 to line 833, col 42 of module SegQueue>
 /\ done = {}
 /\ lh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ cst = ( 0 :> (0 :> "TAKEN" @@ 1 :> "TAKEN") @@
@@ -1117,6 +1398,7 @@ State 18: <PO5 line 736, col 14 to line 766, col 41 of module SegQueue>
 /\ claimsP = {0, 1}
 /\ lp = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ lt = <<0, 0>>
+/\ prot = <<{0}, {}, {0}>>
 /\ before = <<{}, {}>>
 /\ hptr = 0
 /\ nx = <<-1, -1>>
@@ -1125,76 +1407,11 @@ State 18: <PO5 line 736, col 14 to line 766, col 41 of module SegQueue>
 /\ n = (3 :> 1)
 /\ pos = (101 :> -1 @@ 102 :> -1 @@ 201 :> -1 @@ 202 :> -1)
 /\ w = <<[id |-> 0, ix |-> 1], [id |-> 0, ix |-> 0]>>
-/\ pc = (0 :> "RC1" @@ 1 :> "PU4" @@ 2 :> "PU1" @@ 3 :> "PO1")
+/\ pc = (0 :> "RC1" @@ 1 :> "PU4" @@ 2 :> "PU1" @@ 3 :> "PO3v")
 /\ cw = ( 0 :> [id |-> 0, ix |-> 0] @@
   1 :> [id |-> 0, ix |-> 0] @@
   2 :> [id |-> 0, ix |-> 0] @@
-  3 :> [id |-> 0, ix |-> 1] )
-/\ view = (0 :> "" @@ 1 :> "" @@ 2 :> "" @@ 3 :> "claimed")
-/\ startTaken_ = (0 :> {} @@ 1 :> {} @@ 2 :> {} @@ 3 :> {})
-/\ holders = (0 :> {} @@ 1 :> {} @@ 2 :> {} @@ 3 :> {} @@ 4 :> {})
-/\ t0 = ( 0 :> [id |-> 0, ix |-> 0] @@
-  1 :> [id |-> 0, ix |-> 0] @@
-  2 :> [id |-> 0, ix |-> 0] @@
   3 :> [id |-> 0, ix |-> 0] )
-/\ rv = <<FALSE, FALSE, FALSE>>
-/\ lh3 = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
-/\ lh4 = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
-/\ h0 = ( 0 :> [id |-> 0, ix |-> 0] @@
-  1 :> [id |-> 0, ix |-> 0] @@
-  2 :> [id |-> 0, ix |-> 0] @@
-  3 :> [id |-> 0, ix |-> 1] )
-/\ h1 = ( 0 :> [id |-> 0, ix |-> 0] @@
-  1 :> [id |-> 0, ix |-> 0] @@
-  2 :> [id |-> 0, ix |-> 0] @@
-  3 :> [id |-> 0, ix |-> 0] )
-/\ tptr = 0
-/\ scan = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
-/\ took = {}
-/\ errs = {}
-/\ tw = [id |-> 0, ix |-> 2]
-/\ hn = (0 :> -1 @@ 1 :> -1 @@ 2 :> -1 @@ 3 :> -1)
-/\ hs = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
-/\ hw = [id |-> 0, ix |-> 2]
-/\ cval = ( 0 :> (0 :> 0 @@ 1 :> 0) @@
-  1 :> (0 :> 0 @@ 1 :> 0) @@
-  2 :> (0 :> 0 @@ 1 :> 0) @@
-  3 :> (0 :> 0 @@ 1 :> 0) @@
-  4 :> (0 :> 0 @@ 1 :> 0) )
-/\ snapped = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE @@ 3 :> TRUE)
-/\ opn = <<1, 0, 1>>
-/\ freed = {}
-/\ startTaken = (0 :> {} @@ 1 :> {} @@ 2 :> {} @@ 3 :> {})
-/\ busy = <<TRUE, FALSE, TRUE>>
-/\ stack = (0 :> <<>> @@ 1 :> <<>> @@ 2 :> <<>> @@ 3 :> <<[pc |-> "CO1", h0 |-> [id |-> 0, ix |-> 0], t0 |-> [id |-> 0, ix |-> 0], view |-> "", lh3 |-> 0, cw |-> [id |-> 0, ix |-> 0], startTaken_ |-> {}, snapped |-> FALSE, scan |-> 0, procedure |-> "Pop"]>>)
-/\ retired = {}
-/\ claimsC = {0, 1}
-
-State 19: <PO1 line 658, col 14 to line 671, col 48 of module SegQueue>
-/\ done = {}
-/\ lh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
-/\ cst = ( 0 :> (0 :> "TAKEN" @@ 1 :> "TAKEN") @@
-  1 :> (0 :> "EMPTY" @@ 1 :> "EMPTY") @@
-  2 :> (0 :> "EMPTY" @@ 1 :> "EMPTY") @@
-  3 :> (0 :> "EMPTY" @@ 1 :> "EMPTY") @@
-  4 :> (0 :> "EMPTY" @@ 1 :> "EMPTY") )
-/\ nxt = (0 :> -1 @@ 1 :> -1 @@ 2 :> -1 @@ 3 :> -1 @@ 4 :> -1)
-/\ claimsP = {0, 1}
-/\ lp = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
-/\ lt = <<0, 0>>
-/\ before = <<{}, {}>>
-/\ hptr = 0
-/\ nx = <<-1, -1>>
-/\ said = {}
-/\ k = <<1, 1>>
-/\ n = (3 :> 1)
-/\ pos = (101 :> -1 @@ 102 :> -1 @@ 201 :> -1 @@ 202 :> -1)
-/\ w = <<[id |-> 0, ix |-> 1], [id |-> 0, ix |-> 0]>>
-/\ pc = (0 :> "RC1" @@ 1 :> "PU4" @@ 2 :> "PU1" @@ 3 :> "PO2")
-/\ cw = ( 0 :> [id |-> 0, ix |-> 0] @@
-  1 :> [id |-> 0, ix |-> 0] @@
-  2 :> [id |-> 0, ix |-> 0] @@
-  3 :> [id |-> 0, ix |-> 1] )
 /\ view = (0 :> "" @@ 1 :> "" @@ 2 :> "" @@ 3 :> "claimed")
 /\ startTaken_ = (0 :> {} @@ 1 :> {} @@ 2 :> {} @@ 3 :> {})
 /\ holders = (0 :> {} @@ 1 :> {} @@ 2 :> {} @@ 3 :> {} @@ 4 :> {})
@@ -1235,7 +1452,7 @@ State 19: <PO1 line 658, col 14 to line 671, col 48 of module SegQueue>
 /\ retired = {}
 /\ claimsC = {0, 1}
 
-State 20: <PU4 line 1046, col 14 to line 1059, col 76 of module SegQueue>
+State 23: <PU4 line 1270, col 14 to line 1287, col 76 of module SegQueue>
 /\ done = {}
 /\ lh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ cst = ( 0 :> (0 :> "TAKEN" @@ 1 :> "TAKEN") @@
@@ -1247,6 +1464,7 @@ State 20: <PU4 line 1046, col 14 to line 1059, col 76 of module SegQueue>
 /\ claimsP = {0, 1}
 /\ lp = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ lt = <<0, 0>>
+/\ prot = <<{0}, {}, {0}>>
 /\ before = <<{}, {}>>
 /\ hptr = 0
 /\ nx = <<-1, -1>>
@@ -1255,11 +1473,11 @@ State 20: <PU4 line 1046, col 14 to line 1059, col 76 of module SegQueue>
 /\ n = (3 :> 1)
 /\ pos = (101 :> -1 @@ 102 :> -1 @@ 201 :> -1 @@ 202 :> -1)
 /\ w = <<[id |-> 0, ix |-> 1], [id |-> 0, ix |-> 0]>>
-/\ pc = (0 :> "RC1" @@ 1 :> "PU4b" @@ 2 :> "PU1" @@ 3 :> "PO2")
+/\ pc = (0 :> "RC1" @@ 1 :> "PU4b" @@ 2 :> "PU1" @@ 3 :> "PO3v")
 /\ cw = ( 0 :> [id |-> 0, ix |-> 0] @@
   1 :> [id |-> 0, ix |-> 0] @@
   2 :> [id |-> 0, ix |-> 0] @@
-  3 :> [id |-> 0, ix |-> 1] )
+  3 :> [id |-> 0, ix |-> 0] )
 /\ view = (0 :> "" @@ 1 :> "" @@ 2 :> "" @@ 3 :> "claimed")
 /\ startTaken_ = (0 :> {} @@ 1 :> {} @@ 2 :> {} @@ 3 :> {})
 /\ holders = (0 :> {} @@ 1 :> {} @@ 2 :> {} @@ 3 :> {} @@ 4 :> {})
@@ -1300,7 +1518,7 @@ State 20: <PU4 line 1046, col 14 to line 1059, col 76 of module SegQueue>
 /\ retired = {}
 /\ claimsC = {0, 1}
 
-State 21: <PU4b line 1073, col 15 to line 1097, col 70 of module SegQueue>
+State 24: <PU4b line 1302, col 15 to line 1327, col 34 of module SegQueue>
 /\ done = {}
 /\ lh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ cst = ( 0 :> (0 :> "TAKEN" @@ 1 :> "TAKEN") @@
@@ -1312,6 +1530,7 @@ State 21: <PU4b line 1073, col 15 to line 1097, col 70 of module SegQueue>
 /\ claimsP = {0, 1}
 /\ lp = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ lt = <<0, 0>>
+/\ prot = <<{0}, {}, {0}>>
 /\ before = <<{}, {}>>
 /\ hptr = 0
 /\ nx = <<-1, -1>>
@@ -1320,11 +1539,11 @@ State 21: <PU4b line 1073, col 15 to line 1097, col 70 of module SegQueue>
 /\ n = (3 :> 1)
 /\ pos = (101 :> -1 @@ 102 :> -1 @@ 201 :> -1 @@ 202 :> -1)
 /\ w = <<[id |-> 0, ix |-> 1], [id |-> 0, ix |-> 0]>>
-/\ pc = (0 :> "RC1" @@ 1 :> "PU2" @@ 2 :> "PU1" @@ 3 :> "PO2")
+/\ pc = (0 :> "RC1" @@ 1 :> "PU2" @@ 2 :> "PU1" @@ 3 :> "PO3v")
 /\ cw = ( 0 :> [id |-> 0, ix |-> 0] @@
   1 :> [id |-> 0, ix |-> 0] @@
   2 :> [id |-> 0, ix |-> 0] @@
-  3 :> [id |-> 0, ix |-> 1] )
+  3 :> [id |-> 0, ix |-> 0] )
 /\ view = (0 :> "" @@ 1 :> "" @@ 2 :> "" @@ 3 :> "claimed")
 /\ startTaken_ = (0 :> {} @@ 1 :> {} @@ 2 :> {} @@ 3 :> {})
 /\ holders = (0 :> {} @@ 1 :> {} @@ 2 :> {} @@ 3 :> {} @@ 4 :> {})
@@ -1365,7 +1584,7 @@ State 21: <PU4b line 1073, col 15 to line 1097, col 70 of module SegQueue>
 /\ retired = {}
 /\ claimsC = {0, 1}
 
-State 22: <PU2 line 1008, col 14 to line 1018, col 72 of module SegQueue>
+State 25: <PU2 line 1230, col 14 to line 1241, col 72 of module SegQueue>
 /\ done = {}
 /\ lh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ cst = ( 0 :> (0 :> "TAKEN" @@ 1 :> "TAKEN") @@
@@ -1377,6 +1596,7 @@ State 22: <PU2 line 1008, col 14 to line 1018, col 72 of module SegQueue>
 /\ claimsP = {0, 1}
 /\ lp = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ lt = <<0, 0>>
+/\ prot = <<{0}, {}, {0}>>
 /\ before = <<{}, {}>>
 /\ hptr = 0
 /\ nx = <<-1, -1>>
@@ -1385,11 +1605,11 @@ State 22: <PU2 line 1008, col 14 to line 1018, col 72 of module SegQueue>
 /\ n = (3 :> 1)
 /\ pos = (101 :> -1 @@ 102 :> -1 @@ 201 :> -1 @@ 202 :> -1)
 /\ w = <<[id |-> 0, ix |-> 1], [id |-> 0, ix |-> 0]>>
-/\ pc = (0 :> "RC1" @@ 1 :> "PU3" @@ 2 :> "PU1" @@ 3 :> "PO2")
+/\ pc = (0 :> "RC1" @@ 1 :> "PU3" @@ 2 :> "PU1" @@ 3 :> "PO3v")
 /\ cw = ( 0 :> [id |-> 0, ix |-> 0] @@
   1 :> [id |-> 0, ix |-> 0] @@
   2 :> [id |-> 0, ix |-> 0] @@
-  3 :> [id |-> 0, ix |-> 1] )
+  3 :> [id |-> 0, ix |-> 0] )
 /\ view = (0 :> "" @@ 1 :> "" @@ 2 :> "" @@ 3 :> "claimed")
 /\ startTaken_ = (0 :> {} @@ 1 :> {} @@ 2 :> {} @@ 3 :> {})
 /\ holders = (0 :> {} @@ 1 :> {} @@ 2 :> {} @@ 3 :> {} @@ 4 :> {})
@@ -1430,7 +1650,7 @@ State 22: <PU2 line 1008, col 14 to line 1018, col 72 of module SegQueue>
 /\ retired = {}
 /\ claimsC = {0, 1}
 
-State 23: <PU3 line 1020, col 14 to line 1033, col 64 of module SegQueue>
+State 26: <PU3 line 1243, col 14 to line 1256, col 68 of module SegQueue>
 /\ done = {}
 /\ lh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ cst = ( 0 :> (0 :> "TAKEN" @@ 1 :> "TAKEN") @@
@@ -1442,6 +1662,7 @@ State 23: <PU3 line 1020, col 14 to line 1033, col 64 of module SegQueue>
 /\ claimsP = {0, 1}
 /\ lp = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ lt = <<0, 0>>
+/\ prot = <<{0}, {}, {0}>>
 /\ before = <<{}, {}>>
 /\ hptr = 0
 /\ nx = <<-1, -1>>
@@ -1450,11 +1671,11 @@ State 23: <PU3 line 1020, col 14 to line 1033, col 64 of module SegQueue>
 /\ n = (3 :> 1)
 /\ pos = (101 :> -1 @@ 102 :> -1 @@ 201 :> -1 @@ 202 :> -1)
 /\ w = <<[id |-> 0, ix |-> 2], [id |-> 0, ix |-> 0]>>
-/\ pc = (0 :> "RC1" @@ 1 :> "PU5" @@ 2 :> "PU1" @@ 3 :> "PO2")
+/\ pc = (0 :> "RC1" @@ 1 :> "PU5" @@ 2 :> "PU1" @@ 3 :> "PO3v")
 /\ cw = ( 0 :> [id |-> 0, ix |-> 0] @@
   1 :> [id |-> 0, ix |-> 0] @@
   2 :> [id |-> 0, ix |-> 0] @@
-  3 :> [id |-> 0, ix |-> 1] )
+  3 :> [id |-> 0, ix |-> 0] )
 /\ view = (0 :> "" @@ 1 :> "" @@ 2 :> "" @@ 3 :> "claimed")
 /\ startTaken_ = (0 :> {} @@ 1 :> {} @@ 2 :> {} @@ 3 :> {})
 /\ holders = (0 :> {} @@ 1 :> {} @@ 2 :> {} @@ 3 :> {} @@ 4 :> {})
@@ -1495,7 +1716,7 @@ State 23: <PU3 line 1020, col 14 to line 1033, col 64 of module SegQueue>
 /\ retired = {}
 /\ claimsC = {0, 1}
 
-State 24: <PO2 line 673, col 14 to line 697, col 52 of module SegQueue>
+State 27: <PO3v line 835, col 15 to line 869, col 53 of module SegQueue>
 /\ done = {}
 /\ lh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ cst = ( 0 :> (0 :> "TAKEN" @@ 1 :> "TAKEN") @@
@@ -1507,71 +1728,7 @@ State 24: <PO2 line 673, col 14 to line 697, col 52 of module SegQueue>
 /\ claimsP = {0, 1}
 /\ lp = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ lt = <<0, 0>>
-/\ before = <<{}, {}>>
-/\ hptr = 0
-/\ nx = <<-1, -1>>
-/\ said = {}
-/\ k = <<1, 1>>
-/\ n = (3 :> 1)
-/\ pos = (101 :> -1 @@ 102 :> -1 @@ 201 :> -1 @@ 202 :> -1)
-/\ w = <<[id |-> 0, ix |-> 2], [id |-> 0, ix |-> 0]>>
-/\ pc = (0 :> "RC1" @@ 1 :> "PU5" @@ 2 :> "PU1" @@ 3 :> "PO3")
-/\ cw = ( 0 :> [id |-> 0, ix |-> 0] @@
-  1 :> [id |-> 0, ix |-> 0] @@
-  2 :> [id |-> 0, ix |-> 0] @@
-  3 :> [id |-> 0, ix |-> 1] )
-/\ view = (0 :> "" @@ 1 :> "" @@ 2 :> "" @@ 3 :> "drained")
-/\ startTaken_ = (0 :> {} @@ 1 :> {} @@ 2 :> {} @@ 3 :> {})
-/\ holders = (0 :> {} @@ 1 :> {} @@ 2 :> {} @@ 3 :> {} @@ 4 :> {})
-/\ t0 = ( 0 :> [id |-> 0, ix |-> 0] @@
-  1 :> [id |-> 0, ix |-> 0] @@
-  2 :> [id |-> 0, ix |-> 0] @@
-  3 :> [id |-> 0, ix |-> 0] )
-/\ rv = <<FALSE, FALSE, FALSE>>
-/\ lh3 = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
-/\ lh4 = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
-/\ h0 = ( 0 :> [id |-> 0, ix |-> 0] @@
-  1 :> [id |-> 0, ix |-> 0] @@
-  2 :> [id |-> 0, ix |-> 0] @@
-  3 :> [id |-> 0, ix |-> 2] )
-/\ h1 = ( 0 :> [id |-> 0, ix |-> 0] @@
-  1 :> [id |-> 0, ix |-> 0] @@
-  2 :> [id |-> 0, ix |-> 0] @@
-  3 :> [id |-> 0, ix |-> 0] )
-/\ tptr = 0
-/\ scan = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
-/\ took = {}
-/\ errs = {}
-/\ tw = [id |-> 0, ix |-> 3]
-/\ hn = (0 :> -1 @@ 1 :> -1 @@ 2 :> -1 @@ 3 :> -1)
-/\ hs = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
-/\ hw = [id |-> 0, ix |-> 2]
-/\ cval = ( 0 :> (0 :> 0 @@ 1 :> 0) @@
-  1 :> (0 :> 0 @@ 1 :> 0) @@
-  2 :> (0 :> 0 @@ 1 :> 0) @@
-  3 :> (0 :> 0 @@ 1 :> 0) @@
-  4 :> (0 :> 0 @@ 1 :> 0) )
-/\ snapped = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE @@ 3 :> TRUE)
-/\ opn = <<1, 0, 1>>
-/\ freed = {}
-/\ startTaken = (0 :> {} @@ 1 :> {} @@ 2 :> {} @@ 3 :> {})
-/\ busy = <<TRUE, FALSE, TRUE>>
-/\ stack = (0 :> <<>> @@ 1 :> <<>> @@ 2 :> <<>> @@ 3 :> <<[pc |-> "CO1", h0 |-> [id |-> 0, ix |-> 0], t0 |-> [id |-> 0, ix |-> 0], view |-> "", lh3 |-> 0, cw |-> [id |-> 0, ix |-> 0], startTaken_ |-> {}, snapped |-> FALSE, scan |-> 0, procedure |-> "Pop"]>>)
-/\ retired = {}
-/\ claimsC = {0, 1}
-
-State 25: <PO3 line 699, col 14 to line 721, col 55 of module SegQueue>
-/\ done = {}
-/\ lh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
-/\ cst = ( 0 :> (0 :> "TAKEN" @@ 1 :> "TAKEN") @@
-  1 :> (0 :> "EMPTY" @@ 1 :> "EMPTY") @@
-  2 :> (0 :> "EMPTY" @@ 1 :> "EMPTY") @@
-  3 :> (0 :> "EMPTY" @@ 1 :> "EMPTY") @@
-  4 :> (0 :> "EMPTY" @@ 1 :> "EMPTY") )
-/\ nxt = (0 :> -1 @@ 1 :> -1 @@ 2 :> -1 @@ 3 :> -1 @@ 4 :> -1)
-/\ claimsP = {0, 1}
-/\ lp = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
-/\ lt = <<0, 0>>
+/\ prot = <<{0}, {}, {0}>>
 /\ before = <<{}, {}>>
 /\ hptr = 0
 /\ nx = <<-1, -1>>
@@ -1584,8 +1741,8 @@ State 25: <PO3 line 699, col 14 to line 721, col 55 of module SegQueue>
 /\ cw = ( 0 :> [id |-> 0, ix |-> 0] @@
   1 :> [id |-> 0, ix |-> 0] @@
   2 :> [id |-> 0, ix |-> 0] @@
-  3 :> [id |-> 0, ix |-> 1] )
-/\ view = (0 :> "" @@ 1 :> "" @@ 2 :> "" @@ 3 :> "drained")
+  3 :> [id |-> 0, ix |-> 0] )
+/\ view = (0 :> "" @@ 1 :> "" @@ 2 :> "" @@ 3 :> "claimed")
 /\ startTaken_ = (0 :> {} @@ 1 :> {} @@ 2 :> {} @@ 3 :> {})
 /\ holders = (0 :> {} @@ 1 :> {} @@ 2 :> {} @@ 3 :> {} @@ 4 :> {})
 /\ t0 = ( 0 :> [id |-> 0, ix |-> 0] @@
@@ -1625,7 +1782,7 @@ State 25: <PO3 line 699, col 14 to line 721, col 55 of module SegQueue>
 /\ retired = {}
 /\ claimsC = {0, 1}
 
-State 26: <PU5 line 1099, col 14 to line 1115, col 67 of module SegQueue>
+State 28: <PU5 line 1329, col 14 to line 1346, col 67 of module SegQueue>
 /\ done = {}
 /\ lh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ cst = ( 0 :> (0 :> "TAKEN" @@ 1 :> "TAKEN") @@
@@ -1637,6 +1794,7 @@ State 26: <PU5 line 1099, col 14 to line 1115, col 67 of module SegQueue>
 /\ claimsP = {0, 1}
 /\ lp = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ lt = <<0, 0>>
+/\ prot = <<{0}, {}, {0}>>
 /\ before = <<{}, {}>>
 /\ hptr = 0
 /\ nx = <<-1, -1>>
@@ -1649,8 +1807,8 @@ State 26: <PU5 line 1099, col 14 to line 1115, col 67 of module SegQueue>
 /\ cw = ( 0 :> [id |-> 0, ix |-> 0] @@
   1 :> [id |-> 0, ix |-> 0] @@
   2 :> [id |-> 0, ix |-> 0] @@
-  3 :> [id |-> 0, ix |-> 1] )
-/\ view = (0 :> "" @@ 1 :> "" @@ 2 :> "" @@ 3 :> "drained")
+  3 :> [id |-> 0, ix |-> 0] )
+/\ view = (0 :> "" @@ 1 :> "" @@ 2 :> "" @@ 3 :> "claimed")
 /\ startTaken_ = (0 :> {} @@ 1 :> {} @@ 2 :> {} @@ 3 :> {})
 /\ holders = (0 :> {} @@ 1 :> {} @@ 2 :> {} @@ 3 :> {} @@ 4 :> {})
 /\ t0 = ( 0 :> [id |-> 0, ix |-> 0] @@
@@ -1690,7 +1848,7 @@ State 26: <PU5 line 1099, col 14 to line 1115, col 67 of module SegQueue>
 /\ retired = {}
 /\ claimsC = {0, 1}
 
-State 27: <PU6 line 1117, col 14 to line 1148, col 60 of module SegQueue>
+State 29: <PU6 line 1348, col 14 to line 1379, col 69 of module SegQueue>
 /\ done = {}
 /\ lh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ cst = ( 0 :> (0 :> "TAKEN" @@ 1 :> "TAKEN") @@
@@ -1702,6 +1860,7 @@ State 27: <PU6 line 1117, col 14 to line 1148, col 60 of module SegQueue>
 /\ claimsP = {0, 1, 2}
 /\ lp = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ lt = <<0, 0>>
+/\ prot = <<{0}, {}, {0}>>
 /\ before = <<{}, {}>>
 /\ hptr = 0
 /\ nx = <<1, -1>>
@@ -1714,8 +1873,8 @@ State 27: <PU6 line 1117, col 14 to line 1148, col 60 of module SegQueue>
 /\ cw = ( 0 :> [id |-> 0, ix |-> 0] @@
   1 :> [id |-> 0, ix |-> 0] @@
   2 :> [id |-> 0, ix |-> 0] @@
-  3 :> [id |-> 0, ix |-> 1] )
-/\ view = (0 :> "" @@ 1 :> "" @@ 2 :> "" @@ 3 :> "drained")
+  3 :> [id |-> 0, ix |-> 0] )
+/\ view = (0 :> "" @@ 1 :> "" @@ 2 :> "" @@ 3 :> "claimed")
 /\ startTaken_ = (0 :> {} @@ 1 :> {} @@ 2 :> {} @@ 3 :> {})
 /\ holders = (0 :> {} @@ 1 :> {} @@ 2 :> {} @@ 3 :> {} @@ 4 :> {})
 /\ t0 = ( 0 :> [id |-> 0, ix |-> 0] @@
@@ -1755,7 +1914,7 @@ State 27: <PU6 line 1117, col 14 to line 1148, col 60 of module SegQueue>
 /\ retired = {}
 /\ claimsC = {0, 1}
 
-State 28: <DR1 line 612, col 14 to line 634, col 55 of module SegQueue>
+State 30: <DR1 line 709, col 14 to line 733, col 55 of module SegQueue>
 /\ done = {}
 /\ lh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ cst = ( 0 :> (0 :> "TAKEN" @@ 1 :> "TAKEN") @@
@@ -1767,6 +1926,7 @@ State 28: <DR1 line 612, col 14 to line 634, col 55 of module SegQueue>
 /\ claimsP = {0, 1, 2}
 /\ lp = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ lt = <<0, 0>>
+/\ prot = <<{0}, {}, {0}>>
 /\ before = <<{}, {}>>
 /\ hptr = 0
 /\ nx = <<1, -1>>
@@ -1779,8 +1939,8 @@ State 28: <DR1 line 612, col 14 to line 634, col 55 of module SegQueue>
 /\ cw = ( 0 :> [id |-> 0, ix |-> 0] @@
   1 :> [id |-> 0, ix |-> 0] @@
   2 :> [id |-> 0, ix |-> 0] @@
-  3 :> [id |-> 0, ix |-> 1] )
-/\ view = (0 :> "" @@ 1 :> "" @@ 2 :> "" @@ 3 :> "drained")
+  3 :> [id |-> 0, ix |-> 0] )
+/\ view = (0 :> "" @@ 1 :> "" @@ 2 :> "" @@ 3 :> "claimed")
 /\ startTaken_ = (0 :> {} @@ 1 :> {} @@ 2 :> {} @@ 3 :> {})
 /\ holders = (0 :> {} @@ 1 :> {} @@ 2 :> {} @@ 3 :> {} @@ 4 :> {})
 /\ t0 = ( 0 :> [id |-> 0, ix |-> 0] @@
@@ -1820,7 +1980,7 @@ State 28: <DR1 line 612, col 14 to line 634, col 55 of module SegQueue>
 /\ retired = {}
 /\ claimsC = {0, 1}
 
-State 29: <DR2 line 636, col 14 to line 654, col 55 of module SegQueue>
+State 31: <DR2 line 735, col 14 to line 753, col 67 of module SegQueue>
 /\ done = {}
 /\ lh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ cst = ( 0 :> (0 :> "TAKEN" @@ 1 :> "TAKEN") @@
@@ -1832,6 +1992,7 @@ State 29: <DR2 line 636, col 14 to line 654, col 55 of module SegQueue>
 /\ claimsP = {0, 1, 2}
 /\ lp = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ lt = <<0, 0>>
+/\ prot = <<{0}, {}, {0}>>
 /\ before = <<{}, {}>>
 /\ hptr = 0
 /\ nx = <<1, -1>>
@@ -1844,8 +2005,8 @@ State 29: <DR2 line 636, col 14 to line 654, col 55 of module SegQueue>
 /\ cw = ( 0 :> [id |-> 0, ix |-> 0] @@
   1 :> [id |-> 0, ix |-> 0] @@
   2 :> [id |-> 0, ix |-> 0] @@
-  3 :> [id |-> 0, ix |-> 1] )
-/\ view = (0 :> "" @@ 1 :> "" @@ 2 :> "" @@ 3 :> "drained")
+  3 :> [id |-> 0, ix |-> 0] )
+/\ view = (0 :> "" @@ 1 :> "" @@ 2 :> "" @@ 3 :> "claimed")
 /\ startTaken_ = (0 :> {} @@ 1 :> {} @@ 2 :> {} @@ 3 :> {})
 /\ holders = (0 :> {} @@ 1 :> {} @@ 2 :> {} @@ 3 :> {} @@ 4 :> {})
 /\ t0 = ( 0 :> [id |-> 0, ix |-> 0] @@
@@ -1885,7 +2046,7 @@ State 29: <DR2 line 636, col 14 to line 654, col 55 of module SegQueue>
 /\ retired = {}
 /\ claimsC = {0, 1}
 
-State 30: <CH1 line 559, col 14 to line 566, col 76 of module SegQueue>
+State 32: <CH1 line 655, col 14 to line 663, col 76 of module SegQueue>
 /\ done = {}
 /\ lh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ cst = ( 0 :> (0 :> "TAKEN" @@ 1 :> "TAKEN") @@
@@ -1897,6 +2058,7 @@ State 30: <CH1 line 559, col 14 to line 566, col 76 of module SegQueue>
 /\ claimsP = {0, 1, 2}
 /\ lp = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ lt = <<0, 0>>
+/\ prot = <<{0}, {}, {0}>>
 /\ before = <<{}, {}>>
 /\ hptr = 0
 /\ nx = <<1, -1>>
@@ -1909,8 +2071,8 @@ State 30: <CH1 line 559, col 14 to line 566, col 76 of module SegQueue>
 /\ cw = ( 0 :> [id |-> 0, ix |-> 0] @@
   1 :> [id |-> 0, ix |-> 0] @@
   2 :> [id |-> 0, ix |-> 0] @@
-  3 :> [id |-> 0, ix |-> 1] )
-/\ view = (0 :> "" @@ 1 :> "" @@ 2 :> "" @@ 3 :> "drained")
+  3 :> [id |-> 0, ix |-> 0] )
+/\ view = (0 :> "" @@ 1 :> "" @@ 2 :> "" @@ 3 :> "claimed")
 /\ startTaken_ = (0 :> {} @@ 1 :> {} @@ 2 :> {} @@ 3 :> {})
 /\ holders = (0 :> {} @@ 1 :> {} @@ 2 :> {} @@ 3 :> {} @@ 4 :> {})
 /\ t0 = ( 0 :> [id |-> 0, ix |-> 0] @@
@@ -1950,7 +2112,7 @@ State 30: <CH1 line 559, col 14 to line 566, col 76 of module SegQueue>
 /\ retired = {}
 /\ claimsC = {0, 1}
 
-State 31: <CH2 line 568, col 14 to line 582, col 67 of module SegQueue>
+State 33: <CH2 line 665, col 14 to line 679, col 67 of module SegQueue>
 /\ done = {}
 /\ lh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ cst = ( 0 :> (0 :> "TAKEN" @@ 1 :> "TAKEN") @@
@@ -1962,6 +2124,7 @@ State 31: <CH2 line 568, col 14 to line 582, col 67 of module SegQueue>
 /\ claimsP = {0, 1, 2}
 /\ lp = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ lt = <<0, 0>>
+/\ prot = <<{0}, {}, {0}>>
 /\ before = <<{}, {}>>
 /\ hptr = 0
 /\ nx = <<1, -1>>
@@ -1974,8 +2137,8 @@ State 31: <CH2 line 568, col 14 to line 582, col 67 of module SegQueue>
 /\ cw = ( 0 :> [id |-> 0, ix |-> 0] @@
   1 :> [id |-> 0, ix |-> 0] @@
   2 :> [id |-> 0, ix |-> 0] @@
-  3 :> [id |-> 0, ix |-> 1] )
-/\ view = (0 :> "" @@ 1 :> "" @@ 2 :> "" @@ 3 :> "drained")
+  3 :> [id |-> 0, ix |-> 0] )
+/\ view = (0 :> "" @@ 1 :> "" @@ 2 :> "" @@ 3 :> "claimed")
 /\ startTaken_ = (0 :> {} @@ 1 :> {} @@ 2 :> {} @@ 3 :> {})
 /\ holders = (0 :> {} @@ 1 :> {} @@ 2 :> {} @@ 3 :> {} @@ 4 :> {})
 /\ t0 = ( 0 :> [id |-> 0, ix |-> 0] @@
@@ -2015,7 +2178,7 @@ State 31: <CH2 line 568, col 14 to line 582, col 67 of module SegQueue>
 /\ retired = {}
 /\ claimsC = {0, 1}
 
-State 32: <CH3 line 584, col 14 to line 594, col 76 of module SegQueue>
+State 34: <CH3 line 681, col 14 to line 691, col 76 of module SegQueue>
 /\ done = {}
 /\ lh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ cst = ( 0 :> (0 :> "TAKEN" @@ 1 :> "TAKEN") @@
@@ -2027,6 +2190,7 @@ State 32: <CH3 line 584, col 14 to line 594, col 76 of module SegQueue>
 /\ claimsP = {0, 1, 2}
 /\ lp = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ lt = <<0, 0>>
+/\ prot = <<{0}, {}, {0}>>
 /\ before = <<{}, {}>>
 /\ hptr = 0
 /\ nx = <<1, -1>>
@@ -2039,8 +2203,8 @@ State 32: <CH3 line 584, col 14 to line 594, col 76 of module SegQueue>
 /\ cw = ( 0 :> [id |-> 0, ix |-> 0] @@
   1 :> [id |-> 0, ix |-> 0] @@
   2 :> [id |-> 0, ix |-> 0] @@
-  3 :> [id |-> 0, ix |-> 1] )
-/\ view = (0 :> "" @@ 1 :> "" @@ 2 :> "" @@ 3 :> "drained")
+  3 :> [id |-> 0, ix |-> 0] )
+/\ view = (0 :> "" @@ 1 :> "" @@ 2 :> "" @@ 3 :> "claimed")
 /\ startTaken_ = (0 :> {} @@ 1 :> {} @@ 2 :> {} @@ 3 :> {})
 /\ holders = (0 :> {} @@ 1 :> {} @@ 2 :> {} @@ 3 :> {} @@ 4 :> {})
 /\ t0 = ( 0 :> [id |-> 0, ix |-> 0] @@
@@ -2080,7 +2244,7 @@ State 32: <CH3 line 584, col 14 to line 594, col 76 of module SegQueue>
 /\ retired = {}
 /\ claimsC = {0, 1}
 
-State 33: <CH4 line 596, col 14 to line 608, col 55 of module SegQueue>
+State 35: <CH4 line 693, col 14 to line 705, col 67 of module SegQueue>
 /\ done = {}
 /\ lh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ cst = ( 0 :> (0 :> "TAKEN" @@ 1 :> "TAKEN") @@
@@ -2092,6 +2256,7 @@ State 33: <CH4 line 596, col 14 to line 608, col 55 of module SegQueue>
 /\ claimsP = {0, 1, 2}
 /\ lp = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ lt = <<0, 0>>
+/\ prot = <<{0}, {}, {0}>>
 /\ before = <<{}, {}>>
 /\ hptr = 1
 /\ nx = <<1, -1>>
@@ -2104,8 +2269,8 @@ State 33: <CH4 line 596, col 14 to line 608, col 55 of module SegQueue>
 /\ cw = ( 0 :> [id |-> 0, ix |-> 0] @@
   1 :> [id |-> 0, ix |-> 0] @@
   2 :> [id |-> 0, ix |-> 0] @@
-  3 :> [id |-> 0, ix |-> 1] )
-/\ view = (0 :> "" @@ 1 :> "" @@ 2 :> "" @@ 3 :> "drained")
+  3 :> [id |-> 0, ix |-> 0] )
+/\ view = (0 :> "" @@ 1 :> "" @@ 2 :> "" @@ 3 :> "claimed")
 /\ startTaken_ = (0 :> {} @@ 1 :> {} @@ 2 :> {} @@ 3 :> {})
 /\ holders = (0 :> {<<1, 1>>, <<3, 1>>} @@ 1 :> {} @@ 2 :> {} @@ 3 :> {} @@ 4 :> {})
 /\ t0 = ( 0 :> [id |-> 0, ix |-> 0] @@
@@ -2145,7 +2310,7 @@ State 33: <CH4 line 596, col 14 to line 608, col 55 of module SegQueue>
 /\ retired = {0}
 /\ claimsC = {0, 1}
 
-State 34: <CH1 line 559, col 14 to line 566, col 76 of module SegQueue>
+State 36: <CH1 line 655, col 14 to line 663, col 76 of module SegQueue>
 /\ done = {}
 /\ lh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 1)
 /\ cst = ( 0 :> (0 :> "TAKEN" @@ 1 :> "TAKEN") @@
@@ -2157,6 +2322,7 @@ State 34: <CH1 line 559, col 14 to line 566, col 76 of module SegQueue>
 /\ claimsP = {0, 1, 2}
 /\ lp = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ lt = <<0, 0>>
+/\ prot = <<{0}, {}, {0, 1}>>
 /\ before = <<{}, {}>>
 /\ hptr = 1
 /\ nx = <<1, -1>>
@@ -2169,8 +2335,8 @@ State 34: <CH1 line 559, col 14 to line 566, col 76 of module SegQueue>
 /\ cw = ( 0 :> [id |-> 0, ix |-> 0] @@
   1 :> [id |-> 0, ix |-> 0] @@
   2 :> [id |-> 0, ix |-> 0] @@
-  3 :> [id |-> 0, ix |-> 1] )
-/\ view = (0 :> "" @@ 1 :> "" @@ 2 :> "" @@ 3 :> "drained")
+  3 :> [id |-> 0, ix |-> 0] )
+/\ view = (0 :> "" @@ 1 :> "" @@ 2 :> "" @@ 3 :> "claimed")
 /\ startTaken_ = (0 :> {} @@ 1 :> {} @@ 2 :> {} @@ 3 :> {})
 /\ holders = (0 :> {<<1, 1>>, <<3, 1>>} @@ 1 :> {} @@ 2 :> {} @@ 3 :> {} @@ 4 :> {})
 /\ t0 = ( 0 :> [id |-> 0, ix |-> 0] @@
@@ -2210,7 +2376,7 @@ State 34: <CH1 line 559, col 14 to line 566, col 76 of module SegQueue>
 /\ retired = {0}
 /\ claimsC = {0, 1}
 
-State 35: <CH2 line 568, col 14 to line 582, col 67 of module SegQueue>
+State 37: <CH2 line 665, col 14 to line 679, col 67 of module SegQueue>
 /\ done = {}
 /\ lh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ cst = ( 0 :> (0 :> "TAKEN" @@ 1 :> "TAKEN") @@
@@ -2222,6 +2388,7 @@ State 35: <CH2 line 568, col 14 to line 582, col 67 of module SegQueue>
 /\ claimsP = {0, 1, 2}
 /\ lp = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ lt = <<0, 0>>
+/\ prot = <<{0}, {}, {0, 1}>>
 /\ before = <<{}, {}>>
 /\ hptr = 1
 /\ nx = <<1, -1>>
@@ -2234,8 +2401,8 @@ State 35: <CH2 line 568, col 14 to line 582, col 67 of module SegQueue>
 /\ cw = ( 0 :> [id |-> 0, ix |-> 0] @@
   1 :> [id |-> 0, ix |-> 0] @@
   2 :> [id |-> 0, ix |-> 0] @@
-  3 :> [id |-> 0, ix |-> 1] )
-/\ view = (0 :> "" @@ 1 :> "" @@ 2 :> "" @@ 3 :> "drained")
+  3 :> [id |-> 0, ix |-> 0] )
+/\ view = (0 :> "" @@ 1 :> "" @@ 2 :> "" @@ 3 :> "claimed")
 /\ startTaken_ = (0 :> {} @@ 1 :> {} @@ 2 :> {} @@ 3 :> {})
 /\ holders = (0 :> {<<1, 1>>, <<3, 1>>} @@ 1 :> {} @@ 2 :> {} @@ 3 :> {} @@ 4 :> {})
 /\ t0 = ( 0 :> [id |-> 0, ix |-> 0] @@
@@ -2275,7 +2442,7 @@ State 35: <CH2 line 568, col 14 to line 582, col 67 of module SegQueue>
 /\ retired = {0}
 /\ claimsC = {0, 1}
 
-State 36: <PO6 line 768, col 14 to line 789, col 55 of module SegQueue>
+State 38: <PO6 line 978, col 14 to line 999, col 55 of module SegQueue>
 /\ done = {}
 /\ lh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ cst = ( 0 :> (0 :> "TAKEN" @@ 1 :> "TAKEN") @@
@@ -2287,6 +2454,7 @@ State 36: <PO6 line 768, col 14 to line 789, col 55 of module SegQueue>
 /\ claimsP = {0, 1, 2}
 /\ lp = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ lt = <<0, 0>>
+/\ prot = <<{0}, {}, {0, 1}>>
 /\ before = <<{}, {}>>
 /\ hptr = 1
 /\ nx = <<1, -1>>
@@ -2299,8 +2467,8 @@ State 36: <PO6 line 768, col 14 to line 789, col 55 of module SegQueue>
 /\ cw = ( 0 :> [id |-> 0, ix |-> 0] @@
   1 :> [id |-> 0, ix |-> 0] @@
   2 :> [id |-> 0, ix |-> 0] @@
-  3 :> [id |-> 0, ix |-> 1] )
-/\ view = (0 :> "" @@ 1 :> "" @@ 2 :> "" @@ 3 :> "drained")
+  3 :> [id |-> 0, ix |-> 0] )
+/\ view = (0 :> "" @@ 1 :> "" @@ 2 :> "" @@ 3 :> "claimed")
 /\ startTaken_ = (0 :> {} @@ 1 :> {} @@ 2 :> {} @@ 3 :> {})
 /\ holders = (0 :> {<<1, 1>>, <<3, 1>>} @@ 1 :> {} @@ 2 :> {} @@ 3 :> {} @@ 4 :> {})
 /\ t0 = ( 0 :> [id |-> 0, ix |-> 0] @@
@@ -2340,7 +2508,7 @@ State 36: <PO6 line 768, col 14 to line 789, col 55 of module SegQueue>
 /\ retired = {0}
 /\ claimsC = {0, 1}
 
-State 37: <PO1 line 658, col 14 to line 671, col 48 of module SegQueue>
+State 39: <PO1 line 757, col 14 to line 770, col 48 of module SegQueue>
 /\ done = {}
 /\ lh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ cst = ( 0 :> (0 :> "TAKEN" @@ 1 :> "TAKEN") @@
@@ -2352,6 +2520,7 @@ State 37: <PO1 line 658, col 14 to line 671, col 48 of module SegQueue>
 /\ claimsP = {0, 1, 2}
 /\ lp = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ lt = <<0, 0>>
+/\ prot = <<{0}, {}, {0, 1}>>
 /\ before = <<{}, {}>>
 /\ hptr = 1
 /\ nx = <<1, -1>>
@@ -2364,8 +2533,8 @@ State 37: <PO1 line 658, col 14 to line 671, col 48 of module SegQueue>
 /\ cw = ( 0 :> [id |-> 0, ix |-> 0] @@
   1 :> [id |-> 0, ix |-> 0] @@
   2 :> [id |-> 0, ix |-> 0] @@
-  3 :> [id |-> 0, ix |-> 1] )
-/\ view = (0 :> "" @@ 1 :> "" @@ 2 :> "" @@ 3 :> "drained")
+  3 :> [id |-> 0, ix |-> 0] )
+/\ view = (0 :> "" @@ 1 :> "" @@ 2 :> "" @@ 3 :> "claimed")
 /\ startTaken_ = (0 :> {} @@ 1 :> {} @@ 2 :> {} @@ 3 :> {})
 /\ holders = (0 :> {<<1, 1>>, <<3, 1>>} @@ 1 :> {} @@ 2 :> {} @@ 3 :> {} @@ 4 :> {})
 /\ t0 = ( 0 :> [id |-> 0, ix |-> 0] @@
@@ -2405,7 +2574,7 @@ State 37: <PO1 line 658, col 14 to line 671, col 48 of module SegQueue>
 /\ retired = {0}
 /\ claimsC = {0, 1}
 
-State 38: <PO2 line 673, col 14 to line 697, col 52 of module SegQueue>
+State 40: <PO2 line 772, col 14 to line 796, col 52 of module SegQueue>
 /\ done = {}
 /\ lh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ cst = ( 0 :> (0 :> "TAKEN" @@ 1 :> "TAKEN") @@
@@ -2417,6 +2586,7 @@ State 38: <PO2 line 673, col 14 to line 697, col 52 of module SegQueue>
 /\ claimsP = {0, 1, 2}
 /\ lp = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ lt = <<0, 0>>
+/\ prot = <<{0}, {}, {0, 1}>>
 /\ before = <<{}, {}>>
 /\ hptr = 1
 /\ nx = <<1, -1>>
@@ -2429,7 +2599,7 @@ State 38: <PO2 line 673, col 14 to line 697, col 52 of module SegQueue>
 /\ cw = ( 0 :> [id |-> 0, ix |-> 0] @@
   1 :> [id |-> 0, ix |-> 0] @@
   2 :> [id |-> 0, ix |-> 0] @@
-  3 :> [id |-> 0, ix |-> 1] )
+  3 :> [id |-> 0, ix |-> 0] )
 /\ view = (0 :> "" @@ 1 :> "" @@ 2 :> "" @@ 3 :> "claimed")
 /\ startTaken_ = (0 :> {} @@ 1 :> {} @@ 2 :> {} @@ 3 :> {})
 /\ holders = (0 :> {<<1, 1>>, <<3, 1>>} @@ 1 :> {} @@ 2 :> {} @@ 3 :> {} @@ 4 :> {})
@@ -2470,7 +2640,7 @@ State 38: <PO2 line 673, col 14 to line 697, col 52 of module SegQueue>
 /\ retired = {0}
 /\ claimsC = {0, 1}
 
-State 39: <PO3 line 699, col 14 to line 721, col 55 of module SegQueue>
+State 41: <PO3 line 798, col 14 to line 823, col 55 of module SegQueue>
 /\ done = {}
 /\ lh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ cst = ( 0 :> (0 :> "TAKEN" @@ 1 :> "TAKEN") @@
@@ -2482,6 +2652,7 @@ State 39: <PO3 line 699, col 14 to line 721, col 55 of module SegQueue>
 /\ claimsP = {0, 1, 2}
 /\ lp = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ lt = <<0, 0>>
+/\ prot = <<{0}, {}, {0, 1}>>
 /\ before = <<{}, {}>>
 /\ hptr = 1
 /\ nx = <<1, -1>>
@@ -2490,11 +2661,11 @@ State 39: <PO3 line 699, col 14 to line 721, col 55 of module SegQueue>
 /\ n = (3 :> 1)
 /\ pos = (101 :> 2 @@ 102 :> -1 @@ 201 :> -1 @@ 202 :> -1)
 /\ w = <<[id |-> 0, ix |-> 2], [id |-> 0, ix |-> 0]>>
-/\ pc = (0 :> "RC1" @@ 1 :> "PU7" @@ 2 :> "PU1" @@ 3 :> "PO4")
+/\ pc = (0 :> "RC1" @@ 1 :> "PU7" @@ 2 :> "PU1" @@ 3 :> "PO3w")
 /\ cw = ( 0 :> [id |-> 0, ix |-> 0] @@
   1 :> [id |-> 0, ix |-> 0] @@
   2 :> [id |-> 0, ix |-> 0] @@
-  3 :> [id |-> 0, ix |-> 1] )
+  3 :> [id |-> 0, ix |-> 0] )
 /\ view = (0 :> "" @@ 1 :> "" @@ 2 :> "" @@ 3 :> "claimed")
 /\ startTaken_ = (0 :> {} @@ 1 :> {} @@ 2 :> {} @@ 3 :> {})
 /\ holders = (0 :> {<<1, 1>>, <<3, 1>>} @@ 1 :> {} @@ 2 :> {} @@ 3 :> {} @@ 4 :> {})
@@ -2535,7 +2706,7 @@ State 39: <PO3 line 699, col 14 to line 721, col 55 of module SegQueue>
 /\ retired = {0}
 /\ claimsC = {0, 1}
 
-State 40: <PO4 line 723, col 14 to line 734, col 67 of module SegQueue>
+State 42: <PO3w line 825, col 15 to line 833, col 42 of module SegQueue>
 /\ done = {}
 /\ lh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ cst = ( 0 :> (0 :> "TAKEN" @@ 1 :> "TAKEN") @@
@@ -2547,6 +2718,7 @@ State 40: <PO4 line 723, col 14 to line 734, col 67 of module SegQueue>
 /\ claimsP = {0, 1, 2}
 /\ lp = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ lt = <<0, 0>>
+/\ prot = <<{0}, {}, {0, 1}>>
 /\ before = <<{}, {}>>
 /\ hptr = 1
 /\ nx = <<1, -1>>
@@ -2555,11 +2727,11 @@ State 40: <PO4 line 723, col 14 to line 734, col 67 of module SegQueue>
 /\ n = (3 :> 1)
 /\ pos = (101 :> 2 @@ 102 :> -1 @@ 201 :> -1 @@ 202 :> -1)
 /\ w = <<[id |-> 0, ix |-> 2], [id |-> 0, ix |-> 0]>>
-/\ pc = (0 :> "RC1" @@ 1 :> "PU7" @@ 2 :> "PU1" @@ 3 :> "PO5")
+/\ pc = (0 :> "RC1" @@ 1 :> "PU7" @@ 2 :> "PU1" @@ 3 :> "PO3v")
 /\ cw = ( 0 :> [id |-> 0, ix |-> 0] @@
   1 :> [id |-> 0, ix |-> 0] @@
   2 :> [id |-> 0, ix |-> 0] @@
-  3 :> [id |-> 1, ix |-> 0] )
+  3 :> [id |-> 0, ix |-> 0] )
 /\ view = (0 :> "" @@ 1 :> "" @@ 2 :> "" @@ 3 :> "claimed")
 /\ startTaken_ = (0 :> {} @@ 1 :> {} @@ 2 :> {} @@ 3 :> {})
 /\ holders = (0 :> {<<1, 1>>, <<3, 1>>} @@ 1 :> {} @@ 2 :> {} @@ 3 :> {} @@ 4 :> {})
@@ -2585,7 +2757,7 @@ State 40: <PO4 line 723, col 14 to line 734, col 67 of module SegQueue>
 /\ tw = [id |-> 0, ix |-> 3]
 /\ hn = (0 :> -1 @@ 1 :> -1 @@ 2 :> -1 @@ 3 :> -1)
 /\ hs = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
-/\ hw = [id |-> 1, ix |-> 1]
+/\ hw = [id |-> 1, ix |-> 0]
 /\ cval = ( 0 :> (0 :> 0 @@ 1 :> 0) @@
   1 :> (0 :> 101 @@ 1 :> 0) @@
   2 :> (0 :> 0 @@ 1 :> 0) @@
@@ -2598,9 +2770,141 @@ State 40: <PO4 line 723, col 14 to line 734, col 67 of module SegQueue>
 /\ busy = <<TRUE, FALSE, TRUE>>
 /\ stack = (0 :> <<>> @@ 1 :> <<>> @@ 2 :> <<>> @@ 3 :> <<[pc |-> "CO1", h0 |-> [id |-> 0, ix |-> 0], t0 |-> [id |-> 0, ix |-> 0], view |-> "", lh3 |-> 0, cw |-> [id |-> 0, ix |-> 0], startTaken_ |-> {}, snapped |-> FALSE, scan |-> 0, procedure |-> "Pop"]>>)
 /\ retired = {0}
-/\ claimsC = {0, 1, 2}
+/\ claimsC = {0, 1}
 
-State 41: <PO5 line 736, col 14 to line 766, col 41 of module SegQueue>
+State 43: <PO3v line 835, col 15 to line 869, col 53 of module SegQueue>
+/\ done = {}
+/\ lh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
+/\ cst = ( 0 :> (0 :> "TAKEN" @@ 1 :> "TAKEN") @@
+  1 :> (0 :> "FULL" @@ 1 :> "EMPTY") @@
+  2 :> (0 :> "EMPTY" @@ 1 :> "EMPTY") @@
+  3 :> (0 :> "EMPTY" @@ 1 :> "EMPTY") @@
+  4 :> (0 :> "EMPTY" @@ 1 :> "EMPTY") )
+/\ nxt = (0 :> 1 @@ 1 :> -1 @@ 2 :> -1 @@ 3 :> -1 @@ 4 :> -1)
+/\ claimsP = {0, 1, 2}
+/\ lp = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
+/\ lt = <<0, 0>>
+/\ prot = <<{0}, {}, {0, 1}>>
+/\ before = <<{}, {}>>
+/\ hptr = 1
+/\ nx = <<1, -1>>
+/\ said = {}
+/\ k = <<1, 1>>
+/\ n = (3 :> 1)
+/\ pos = (101 :> 2 @@ 102 :> -1 @@ 201 :> -1 @@ 202 :> -1)
+/\ w = <<[id |-> 0, ix |-> 2], [id |-> 0, ix |-> 0]>>
+/\ pc = (0 :> "RC1" @@ 1 :> "PU7" @@ 2 :> "PU1" @@ 3 :> "PO7")
+/\ cw = ( 0 :> [id |-> 0, ix |-> 0] @@
+  1 :> [id |-> 0, ix |-> 0] @@
+  2 :> [id |-> 0, ix |-> 0] @@
+  3 :> [id |-> 0, ix |-> 0] )
+/\ view = (0 :> "" @@ 1 :> "" @@ 2 :> "" @@ 3 :> "claimed")
+/\ startTaken_ = (0 :> {} @@ 1 :> {} @@ 2 :> {} @@ 3 :> {})
+/\ holders = (0 :> {<<1, 1>>, <<3, 1>>} @@ 1 :> {} @@ 2 :> {} @@ 3 :> {} @@ 4 :> {})
+/\ t0 = ( 0 :> [id |-> 0, ix |-> 0] @@
+  1 :> [id |-> 0, ix |-> 0] @@
+  2 :> [id |-> 0, ix |-> 0] @@
+  3 :> [id |-> 0, ix |-> 0] )
+/\ rv = <<FALSE, FALSE, FALSE>>
+/\ lh3 = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 1)
+/\ lh4 = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
+/\ h0 = ( 0 :> [id |-> 0, ix |-> 0] @@
+  1 :> [id |-> 0, ix |-> 0] @@
+  2 :> [id |-> 0, ix |-> 0] @@
+  3 :> [id |-> 1, ix |-> 0] )
+/\ h1 = ( 0 :> [id |-> 0, ix |-> 0] @@
+  1 :> [id |-> 0, ix |-> 0] @@
+  2 :> [id |-> 0, ix |-> 0] @@
+  3 :> [id |-> 0, ix |-> 0] )
+/\ tptr = 1
+/\ scan = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
+/\ took = {}
+/\ errs = {}
+/\ tw = [id |-> 0, ix |-> 3]
+/\ hn = (0 :> -1 @@ 1 :> -1 @@ 2 :> -1 @@ 3 :> -1)
+/\ hs = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
+/\ hw = [id |-> 1, ix |-> 0]
+/\ cval = ( 0 :> (0 :> 0 @@ 1 :> 0) @@
+  1 :> (0 :> 101 @@ 1 :> 0) @@
+  2 :> (0 :> 0 @@ 1 :> 0) @@
+  3 :> (0 :> 0 @@ 1 :> 0) @@
+  4 :> (0 :> 0 @@ 1 :> 0) )
+/\ snapped = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE @@ 3 :> TRUE)
+/\ opn = <<1, 0, 1>>
+/\ freed = {}
+/\ startTaken = (0 :> {} @@ 1 :> {} @@ 2 :> {} @@ 3 :> {})
+/\ busy = <<TRUE, FALSE, TRUE>>
+/\ stack = (0 :> <<>> @@ 1 :> <<>> @@ 2 :> <<>> @@ 3 :> <<[pc |-> "CO1", h0 |-> [id |-> 0, ix |-> 0], t0 |-> [id |-> 0, ix |-> 0], view |-> "", lh3 |-> 0, cw |-> [id |-> 0, ix |-> 0], startTaken_ |-> {}, snapped |-> FALSE, scan |-> 0, procedure |-> "Pop"]>>)
+/\ retired = {0}
+/\ claimsC = {0, 1}
+
+State 44: <PO7 line 871, col 14 to line 882, col 76 of module SegQueue>
+/\ done = {}
+/\ lh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
+/\ cst = ( 0 :> (0 :> "TAKEN" @@ 1 :> "TAKEN") @@
+  1 :> (0 :> "FULL" @@ 1 :> "EMPTY") @@
+  2 :> (0 :> "EMPTY" @@ 1 :> "EMPTY") @@
+  3 :> (0 :> "EMPTY" @@ 1 :> "EMPTY") @@
+  4 :> (0 :> "EMPTY" @@ 1 :> "EMPTY") )
+/\ nxt = (0 :> 1 @@ 1 :> -1 @@ 2 :> -1 @@ 3 :> -1 @@ 4 :> -1)
+/\ claimsP = {0, 1, 2}
+/\ lp = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
+/\ lt = <<0, 0>>
+/\ prot = <<{0}, {}, {0, 1}>>
+/\ before = <<{}, {}>>
+/\ hptr = 1
+/\ nx = <<1, -1>>
+/\ said = {}
+/\ k = <<1, 1>>
+/\ n = (3 :> 1)
+/\ pos = (101 :> 2 @@ 102 :> -1 @@ 201 :> -1 @@ 202 :> -1)
+/\ w = <<[id |-> 0, ix |-> 2], [id |-> 0, ix |-> 0]>>
+/\ pc = (0 :> "RC1" @@ 1 :> "PU7" @@ 2 :> "PU1" @@ 3 :> "PO8")
+/\ cw = ( 0 :> [id |-> 0, ix |-> 0] @@
+  1 :> [id |-> 0, ix |-> 0] @@
+  2 :> [id |-> 0, ix |-> 0] @@
+  3 :> [id |-> 0, ix |-> 0] )
+/\ view = (0 :> "" @@ 1 :> "" @@ 2 :> "" @@ 3 :> "claimed")
+/\ startTaken_ = (0 :> {} @@ 1 :> {} @@ 2 :> {} @@ 3 :> {})
+/\ holders = (0 :> {<<1, 1>>, <<3, 1>>} @@ 1 :> {} @@ 2 :> {} @@ 3 :> {} @@ 4 :> {})
+/\ t0 = ( 0 :> [id |-> 0, ix |-> 0] @@
+  1 :> [id |-> 0, ix |-> 0] @@
+  2 :> [id |-> 0, ix |-> 0] @@
+  3 :> [id |-> 0, ix |-> 0] )
+/\ rv = <<FALSE, FALSE, FALSE>>
+/\ lh3 = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 1)
+/\ lh4 = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
+/\ h0 = ( 0 :> [id |-> 0, ix |-> 0] @@
+  1 :> [id |-> 0, ix |-> 0] @@
+  2 :> [id |-> 0, ix |-> 0] @@
+  3 :> [id |-> 1, ix |-> 0] )
+/\ h1 = ( 0 :> [id |-> 0, ix |-> 0] @@
+  1 :> [id |-> 0, ix |-> 0] @@
+  2 :> [id |-> 0, ix |-> 0] @@
+  3 :> [id |-> 0, ix |-> 0] )
+/\ tptr = 1
+/\ scan = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
+/\ took = {}
+/\ errs = {}
+/\ tw = [id |-> 0, ix |-> 3]
+/\ hn = (0 :> -1 @@ 1 :> -1 @@ 2 :> -1 @@ 3 :> -1)
+/\ hs = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
+/\ hw = [id |-> 1, ix |-> 0]
+/\ cval = ( 0 :> (0 :> 0 @@ 1 :> 0) @@
+  1 :> (0 :> 101 @@ 1 :> 0) @@
+  2 :> (0 :> 0 @@ 1 :> 0) @@
+  3 :> (0 :> 0 @@ 1 :> 0) @@
+  4 :> (0 :> 0 @@ 1 :> 0) )
+/\ snapped = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE @@ 3 :> TRUE)
+/\ opn = <<1, 0, 1>>
+/\ freed = {}
+/\ startTaken = (0 :> {} @@ 1 :> {} @@ 2 :> {} @@ 3 :> {})
+/\ busy = <<TRUE, FALSE, TRUE>>
+/\ stack = (0 :> <<>> @@ 1 :> <<>> @@ 2 :> <<>> @@ 3 :> <<[pc |-> "CO1", h0 |-> [id |-> 0, ix |-> 0], t0 |-> [id |-> 0, ix |-> 0], view |-> "", lh3 |-> 0, cw |-> [id |-> 0, ix |-> 0], startTaken_ |-> {}, snapped |-> FALSE, scan |-> 0, procedure |-> "Pop"]>>)
+/\ retired = {0}
+/\ claimsC = {0, 1}
+
+State 45: <PO8 line 884, col 14 to line 925, col 33 of module SegQueue>
 /\ done = {}
 /\ lh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ cst = ( 0 :> (0 :> "TAKEN" @@ 1 :> "TAKEN") @@
@@ -2612,6 +2916,7 @@ State 41: <PO5 line 736, col 14 to line 766, col 41 of module SegQueue>
 /\ claimsP = {0, 1, 2}
 /\ lp = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ lt = <<0, 0>>
+/\ prot = <<{0}, {}, {0, 1}>>
 /\ before = <<{}, {}>>
 /\ hptr = 1
 /\ nx = <<1, -1>>
@@ -2665,7 +2970,7 @@ State 41: <PO5 line 736, col 14 to line 766, col 41 of module SegQueue>
 /\ retired = {0}
 /\ claimsC = {0, 1, 2}
 
-State 42: <PU7 line 1150, col 14 to line 1163, col 76 of module SegQueue>
+State 46: <PU7 line 1381, col 14 to line 1394, col 76 of module SegQueue>
 /\ done = {}
 /\ lh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ cst = ( 0 :> (0 :> "TAKEN" @@ 1 :> "TAKEN") @@
@@ -2677,6 +2982,7 @@ State 42: <PU7 line 1150, col 14 to line 1163, col 76 of module SegQueue>
 /\ claimsP = {0, 1, 2}
 /\ lp = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ lt = <<0, 0>>
+/\ prot = <<{0}, {}, {0, 1}>>
 /\ before = <<{}, {}>>
 /\ hptr = 1
 /\ nx = <<1, -1>>
@@ -2730,7 +3036,7 @@ State 42: <PU7 line 1150, col 14 to line 1163, col 76 of module SegQueue>
 /\ retired = {0}
 /\ claimsC = {0, 1, 2}
 
-State 43: <PU8 line 1175, col 14 to line 1201, col 33 of module SegQueue>
+State 47: <PU8 line 1406, col 14 to line 1433, col 33 of module SegQueue>
 /\ done = {101}
 /\ lh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ cst = ( 0 :> (0 :> "TAKEN" @@ 1 :> "TAKEN") @@
@@ -2742,6 +3048,7 @@ State 43: <PU8 line 1175, col 14 to line 1201, col 33 of module SegQueue>
 /\ claimsP = {0, 1, 2}
 /\ lp = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ lt = <<0, 0>>
+/\ prot = <<{0}, {}, {0, 1}>>
 /\ before = <<{}, {}>>
 /\ hptr = 1
 /\ nx = <<-1, -1>>
@@ -2795,7 +3102,7 @@ State 43: <PU8 line 1175, col 14 to line 1201, col 33 of module SegQueue>
 /\ retired = {0}
 /\ claimsC = {0, 1, 2}
 
-State 44: <RC1 line 1255, col 8 to line 1267, col 42 of module SegQueue>
+State 48: <RC1 line 1487, col 8 to line 1499, col 61 of module SegQueue>
 /\ done = {101}
 /\ lh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ cst = ( 0 :> (0 :> "TAKEN" @@ 1 :> "TAKEN") @@
@@ -2807,6 +3114,7 @@ State 44: <RC1 line 1255, col 8 to line 1267, col 42 of module SegQueue>
 /\ claimsP = {0, 1, 2}
 /\ lp = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ lt = <<0, 0>>
+/\ prot = <<{0}, {}, {0, 1}>>
 /\ before = <<{}, {}>>
 /\ hptr = 1
 /\ nx = <<-1, -1>>
@@ -2860,4 +3168,4 @@ State 44: <RC1 line 1255, col 8 to line 1267, col 42 of module SegQueue>
 /\ retired = {0}
 /\ claimsC = {0, 1, 2}
 
-1211223 states generated, 485189 distinct states found, 54953 states left on queue.
+1303898 states generated, 516230 distinct states found, 51733 states left on queue.

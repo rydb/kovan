@@ -177,12 +177,17 @@ Segments of two cells and room for five segments (six in `SQ_push3`) in every on
 ## TLC results
 
 The run recorded in `tlc-run.txt` (4 workers for a passing configuration, one for a
-violation, at the lowest priority on a 36-core machine shared with other heavy work): 21 of 21
-configurations match `EXPECTED.txt`, in 1514 s of wall time. The passing ones are `SQ_mpmc`
-(72,271,075 distinct states, 788 s), `SQ_mpsc` (34,816,107, 383 s), `SQ_push3` (2,399,746, 31 s),
-`SQ_try` (345,338, 7 s) and `SQ_live` (50,897, 6 s, with `Termination`). The longest runs that
-break a property, on one worker, are `SQ_mut_store_tail_advance` (3,842,091 distinct states,
-151 s) and `SQ_mut_link_then_retry` (2,149,256, 74 s). The counterexample of
+violation, at the lowest priority on a 36-core machine shared with other heavy work): 23 of 23
+configurations match `EXPECTED.txt`, in 1387 s of TLC time. The passing ones are `SQ_mpsc`
+(28,733,201 distinct states, 359 s), `SQ_mpmc` (21,415,165, 261 s), `SQ_push3` (2,937,562, 41 s),
+`SQ_try` (361,522, 9 s) and `SQ_live` (60,151, 8 s, with `Termination`). The longest runs that
+break a property, on one worker, are `SQ_mut_walk_unchecked` (6,213,507 distinct states, 257 s),
+`SQ_mut_store_tail_advance` (4,250,123, 187 s) and `SQ_mut_link_then_retry` (3,204,946, 128 s).
+The counterexample of `SQ_mut_walk_unchecked` is the one the fix is for: a pop loads the head
+pointer (segment 0, which it then holds) and reads the head word (in segment 1), and is
+descheduled before its walk; the head moves on to segment 2, segments 0 and 1 are retired, and
+segment 1, which nothing holds for the pop, is freed; the pop's walk then steps through segment
+0's link onto segment 1. The counterexample of
 `SQ_mut_store_tail_advance` needs three producers: one links the next segment, checks the tail
 word's segment and is descheduled before its store; a second claims a cell of that next segment
 and is descheduled before writing it; the third links the segment after that and returns, and

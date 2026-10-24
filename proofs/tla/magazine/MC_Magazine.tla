@@ -76,9 +76,9 @@ ProgOpen == (1 :> <<>>) @@ (2 :> <<"alloc", "free">>)
 \* while two others allocate, so two pops can race for one magazine.
 ProgFill3 == (1 :> <<"alloc", "alloc", "alloc", "free", "free", "free">>)
     @@ (2 :> <<"alloc">>) @@ (3 :> <<"alloc">>)
-\* One thread fills the depot at its exit (two full magazines) while two others allocate, so two
-\* pops can race for one magazine.
-ProgRace == (1 :> <<"alloc", "alloc", "free", "free">>) @@ (2 :> <<"alloc">>) @@ (3 :> <<"alloc">>)
+\* One thread fills the depot at its exit (one full magazine) while two others allocate, so the two
+\* pops race for that one magazine.
+ProgRace == (1 :> <<"alloc", "free">>) @@ (2 :> <<"alloc">>) @@ (3 :> <<"alloc">>)
 \* One thread fills the depot while another allocates from it.
 ProgFill2 == (1 :> <<"alloc", "alloc", "alloc", "free", "free", "free">>) @@ (2 :> <<"alloc">>)
 \* A producer hands its nodes to a consumer, which frees them: blocks cross threads.

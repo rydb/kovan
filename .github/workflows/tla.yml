@@ -1,10 +1,13 @@
 name: TLA+
 
 # Models are never hand-listed here: `tla.sh` hands a verified tla2tools.jar to
-# `proofs/tla/run_tlc.sh shard <k> 10`, which deals every configuration of every family under
-# proofs/tla/ (a directory with an EXPECTED.txt) out to 10 shares by the seconds its family's
-# tlc-run.txt recorded, and checks share k against EXPECTED.txt. The 10 jobs run at once, so a
-# new model needs no change to this workflow.
+# `proofs/tla/run_tlc.sh shard <k> 16`, which deals every configuration of every family under
+# proofs/tla/ (a directory with an EXPECTED.txt) out to 16 shares by the seconds it took on a CI
+# runner (proofs/tla/ci-seconds.txt, or its family's tlc-run.txt), and checks share k against
+# EXPECTED.txt. The 16 jobs run at once, so a
+# new model needs no change to this workflow. The whole check stays within 20 minutes: a share
+# job is stopped at 20, and a configuration that runs past 18 is reported as having no verdict
+# (a model that outgrows the budget is cut down, not given more time).
 
 on:
   push:
@@ -22,12 +25,13 @@ env:
 
 jobs:
   share:
-    name: TLA+ share ${{ matrix.shard }} of 10
+    name: TLA+ share ${{ matrix.shard }} of 16
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
-        shard: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+        shard: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
@@ -39,7 +43,8 @@ jobs:
         run: .github/workflows/tla.sh
         env:
           TLC_SHARD: ${{ matrix.shard }}
-          TLC_SHARDS: 10
+          TLC_SHARDS: 16
+          TLC_LIMIT: 1080
 
   tla:
     name: TLA+ model checking
