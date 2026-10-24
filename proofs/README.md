@@ -100,6 +100,9 @@ Lean: install elan once (`proofs/lean/README.md` says how). The recipes run
 - `tla/stm/`: `kovan_stm` (loads and their validation, a repeat load too, the commit's locking,
   clock, validation and publication, hooks, drops and retires), 38 configurations: 12 that must
   pass and 26 that must fail.
+- `tla/mvcc/`: `kovan_mvcc`'s Percolator transactions (registration, reads that meet locks, the
+  three prewrite passes, SSI, commit, rollback, the in-flight registry and `safe_read_ts`, the GC
+  and its watermark), 53 configurations: 17 that must pass and 36 that must fail.
 - `lean/Kovan/HopscotchShrink.lean`: the hopscotch map's shrink threshold, for one thread and
   every sequence of operations: a successful resize and a clear erase it; after a failed shrink
   at `c` entries, until the next erasure, no shrink is asked for while `max (c / 2) 1` entries
@@ -134,6 +137,9 @@ Lean: install elan once (`proofs/lean/README.md` says how). The recipes run
   one magazine class), the value-pointer compare as a compare of nodes, and the birth-epoch rule:
   a batch's birth is the least of its nodes', and neither a reader of a node, nor the node a
   `Removed` retires, nor `compare_and_swap`'s success guard is skipped for it.
+- `lean/Kovan/Mvcc.lean`: the MVCC store's oracle (unique and increasing for `2^64 - 1` calls),
+  `DefaultBackoff`'s schedule, `safe_read_ts`'s pin, and the version chains: prewrite's and the
+  SSI validation's checks exact, and both GC passes keep every read at or above the watermark.
 - `lean/Kovan/Stm.lean`: the STM's lock word (the lock in bit 0, the version in the rest, packed
   and unpacked exactly by the code's masks), the clock (even, growing, no wrap before `2^63`
   commit attempts), a load's retry as a later commit, and the rank renaming the TLA+ model uses.
