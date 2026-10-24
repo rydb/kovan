@@ -61,8 +61,9 @@
 //! batches a walk frees); each kovan call a destructor makes is an
 //! operation of its own, with the same bounds.
 //!
-//! `Atom::rcu` and `Atom::compare_and_swap` re-apply user closures on
-//! contention as read-copy-update semantics require; the kovan primitives
+//! `Atom::rcu` re-applies its closure on contention, as read-copy-update
+//! requires, so it is lock-free: an attempt fails only after another thread's
+//! write. `Atom::compare_and_swap` makes one attempt. The kovan primitives
 //! they compose (load, store, retire) are individually wait-free.
 //!
 //! # Key Properties

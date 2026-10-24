@@ -1,4 +1,4 @@
-//! `Atom<T>` — a wait-free single-value container with safe memory reclamation.
+//! `Atom<T>`: a single-value container with safe memory reclamation.
 //!
 //! This is a high-level wrapper around [`Atomic<T>`] that provides a safe API
 //! for atomically swapping heap-allocated values with automatic reclamation.
@@ -9,7 +9,7 @@
 //! # Key Properties
 //!
 //! - **Near-zero read overhead**: `load()` is one atomic pointer load plus
-//!   an epoch check against a thread-local cache — **wait-free** with a
+//!   an epoch check against a thread-local cache: **wait-free** with a
 //!   fixed iteration bound (see crate docs)
 //! - **Safe API**: No `unsafe` at call sites
 //! - **Automatic reclamation**: Old values are retired and reclaimed safely
@@ -22,12 +22,12 @@
 //!
 //! let atom = Atom::new(42);
 //!
-//! // Zero-cost read — returns a guard that derefs to &T
+//! // A cheap read: returns a guard that derefs to &T
 //! let guard = atom.load();
 //! assert_eq!(*guard, 42);
 //! drop(guard);
 //!
-//! // Atomic swap — old value is safely retired
+//! // Atomic swap: the old value is safely retired
 //! atom.store(99);
 //! assert_eq!(*atom.load(), 99);
 //! ```
@@ -43,7 +43,7 @@ use core::ops::Deref;
 use core::sync::atomic::Ordering;
 
 // ---------------------------------------------------------------------------
-// AtomNode<T> — internal storage wrapper
+// AtomNode<T>: internal storage wrapper
 // ---------------------------------------------------------------------------
 //
 // `guard::retire()` casts the incoming pointer to `*mut RetiredNode` and
@@ -101,7 +101,7 @@ impl<T> AtomNode<T> {
 }
 
 // ---------------------------------------------------------------------------
-// AtomGuard — RAII borrow returned by Atom::load()
+// AtomGuard: RAII borrow returned by Atom::load()
 // ---------------------------------------------------------------------------
 
 /// RAII guard returned by [`Atom::load()`].
@@ -109,7 +109,7 @@ impl<T> AtomNode<T> {
 /// Dereferences to `&T`. The referenced value is guaranteed to remain valid
 /// (not reclaimed) for the lifetime of this guard.
 ///
-/// This is the cheapest way to read from an `Atom` — it avoids cloning
+/// This is the cheapest way to read from an `Atom`: it avoids cloning
 /// and holds a kovan critical-section guard internally.
 pub struct AtomGuard<'a, T> {
     _guard: Guard,
@@ -145,13 +145,13 @@ impl<T: fmt::Display> fmt::Display for AtomGuard<'_, T> {
 // same thread that created it.
 
 // ---------------------------------------------------------------------------
-// Removed<T> — deferred-drop wrapper from swap/take
+// Removed<T>: deferred-drop wrapper from swap/take
 // ---------------------------------------------------------------------------
 
 /// A value removed from an [`Atom`] or [`AtomOption`].
 ///
 /// The value can be read via [`Deref`]. When this wrapper is dropped,
-/// `T`'s destructor is **deferred** through the reclamation system —
+/// `T`'s destructor is **deferred** through the reclamation system:
 /// it will only run once all concurrent readers have moved on.
 ///
 /// This prevents use-after-free when concurrent readers hold an
@@ -252,17 +252,19 @@ unsafe impl<T: Send + Sync + 'static> Send for Removed<T> {}
 unsafe impl<T: Send + Sync + 'static> Sync for Removed<T> {}
 
 // ---------------------------------------------------------------------------
-// Atom<T> — the main container
+// Atom<T>: the main container
 // ---------------------------------------------------------------------------
 
-/// A wait-free single-value container with safe memory reclamation.
+/// A single-value container with safe memory reclamation: loads, stores and
+/// swaps are wait-free, and [`rcu()`](Atom::rcu) is lock-free (it retries only
+/// after another thread's write).
 ///
-/// Provides zero-overhead reads via [`load()`](Atom::load) and atomic writes
+/// Provides cheap reads via [`load()`](Atom::load) and atomic writes
 /// via [`store()`](Atom::store), [`swap()`](Atom::swap), and
 /// [`rcu()`](Atom::rcu). Old values are automatically retired through
 /// kovan's wait-free reclamation.
 ///
-/// Unlike `ArcSwap`, `Atom<T>` works with any `T: Send + Sync + 'static` —
+/// Unlike `ArcSwap`, `Atom<T>` works with any `T: Send + Sync + 'static`:
 /// there is no requirement to wrap values in `Arc`.
 ///
 /// # Examples
@@ -274,7 +276,7 @@ unsafe impl<T: Send + Sync + 'static> Sync for Removed<T> {}
 /// let config = Atom::new(vec![1, 2, 3]);
 /// assert_eq!(config.load().len(), 3);
 ///
-/// // Atomic update — readers see old or new, never torn
+/// // Atomic update: readers see old or new, never torn
 /// config.store(vec![4, 5, 6, 7]);
 /// assert_eq!(config.load().len(), 4);
 /// ```
@@ -331,8 +333,8 @@ impl<T: Send + Sync + 'static> Atom<T> {
 
     /// Loads the current value, returning a guard that dereferences to `&T`.
     ///
-    /// This is the cheapest read operation — a single atomic load with
-    /// zero overhead. The returned [`AtomGuard`] keeps the value alive;
+    /// This is the cheapest read operation: a pin, one atomic load and an
+    /// epoch check against the pin's cache. The returned [`AtomGuard`] keeps the value alive;
     /// it will not be reclaimed until the guard is dropped.
     ///
     /// # Consistency
@@ -409,7 +411,7 @@ impl<T: Send + Sync + 'static> Atom<T> {
 
     /// Atomically replaces the current value.
     ///
-    /// The old value is retired for safe reclamation — it will be freed
+    /// The old value is retired for safe reclamation: it will be freed
     /// once no reader holds a guard referencing it.
     ///
     /// # Examples
@@ -445,7 +447,7 @@ impl<T: Send + Sync + 'static> Atom<T> {
     /// can be read via `Deref`.
     ///
     /// Unlike [`store()`](Atom::store), the old value is **not** retired
-    /// immediately — ownership is transferred to the caller via `Removed<T>`.
+    /// immediately: ownership is transferred to the caller via `Removed<T>`.
     /// The memory backing the old node is retired for deallocation only.
     ///
     /// # Examples
@@ -512,7 +514,7 @@ impl<T: Send + Sync + 'static> Atom<T> {
         // inside an AtomNode. current_shared.as_raw() points to the AtomNode.
         let current_val_ptr = unsafe { AtomNode::val_ptr(current_shared.as_raw()) };
         if current_val_ptr != current.ptr {
-            // Current has changed — CAS fails
+            // Current has changed: CAS fails
             // Reclaim the node we just allocated
             // SAFETY: never published.
             return Err(unsafe { AtomNode::into_val(new_ptr) });
@@ -541,7 +543,7 @@ impl<T: Send + Sync + 'static> Atom<T> {
                 })
             }
             Err(_) => {
-                // CAS failed — someone else changed it between our load and CAS
+                // CAS failed: someone else changed it between our load and CAS
                 // SAFETY: the failed CAS never published it.
                 Err(unsafe { AtomNode::into_val(new_ptr) })
             }
@@ -555,7 +557,7 @@ impl<T: Send + Sync + 'static> Atom<T> {
     /// the load and CAS, the operation retries automatically.
     ///
     /// The closure `f` may be called multiple times on contention.
-    /// Keep it cheap — do expensive work before calling `rcu`.
+    /// Keep it cheap: do expensive work before calling `rcu`.
     ///
     /// # Examples
     ///
@@ -598,7 +600,7 @@ impl<T: Send + Sync + 'static> Atom<T> {
                     return;
                 }
                 Err(_) => {
-                    // CAS failed — reclaim the allocation we made and retry
+                    // CAS failed: reclaim the allocation we made and retry
                     unsafe { drop_node(new_ptr) };
                     // Loop and try again
                 }
@@ -614,7 +616,7 @@ impl<T: Send + Sync + 'static> Atom<T> {
     /// into a sub-field. Useful for passing configuration sub-sections
     /// to components without exposing the full `T`.
     ///
-    /// **Keep `f` cheap** — it runs on every `load`.
+    /// **Keep `f` cheap**: it runs on every `load`.
     ///
     /// # Examples
     ///
@@ -641,7 +643,7 @@ impl<T: Send + Sync + 'static> Atom<T> {
 
 impl<T: Send + Sync + 'static> Drop for Atom<T> {
     fn drop(&mut self) {
-        // &mut self guarantees exclusive access — no concurrent readers.
+        // &mut self guarantees exclusive access: no concurrent readers.
         // No pin() needed; load directly from the underlying atomic.
         let ptr = self.inner.load_raw();
         if !ptr.is_null() {
@@ -649,7 +651,8 @@ impl<T: Send + Sync + 'static> Drop for Atom<T> {
             // was allocated via AtomNode::boxed.
             unsafe { drop_node(ptr) };
         }
-        // Flush nodes previously retired by store()/rcu() operations.
+        // Submit this thread's batch of retired nodes (other threads' nodes
+        // wait for their own threads' submissions).
         crate::flush();
     }
 }
@@ -683,7 +686,7 @@ unsafe impl<T: Send + Sync + 'static> Send for Atom<T> {}
 unsafe impl<T: Send + Sync + 'static> Sync for Atom<T> {}
 
 // ---------------------------------------------------------------------------
-// AtomOption<T> — nullable variant
+// AtomOption<T>: nullable variant
 // ---------------------------------------------------------------------------
 
 /// Like [`Atom<T>`] but allows a null/empty state.
@@ -817,13 +820,14 @@ impl<T: Send + Sync + 'static> AtomOption<T> {
 
 impl<T: Send + Sync + 'static> Drop for AtomOption<T> {
     fn drop(&mut self) {
-        // &mut self guarantees exclusive access — no concurrent readers.
+        // &mut self guarantees exclusive access: no concurrent readers.
         // No pin() needed; load directly from the underlying atomic.
         let ptr = self.inner.load_raw();
         if !ptr.is_null() {
             unsafe { drop_node(ptr) };
         }
-        // Flush nodes previously retired by store() operations.
+        // Submit this thread's batch of retired nodes (other threads' nodes
+        // wait for their own threads' submissions).
         crate::flush();
     }
 }
@@ -847,7 +851,7 @@ unsafe impl<T: Send + Sync + 'static> Send for AtomOption<T> {}
 unsafe impl<T: Send + Sync + 'static> Sync for AtomOption<T> {}
 
 // ---------------------------------------------------------------------------
-// AtomMap — projected view
+// AtomMap: projected view
 // ---------------------------------------------------------------------------
 
 /// A projected view into an [`Atom<T>`], created by [`Atom::map()`].
