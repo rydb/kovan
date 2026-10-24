@@ -52,7 +52,7 @@ const MAX_LOAD_ATTEMPTS: usize = 16;
 ///
 /// # Garbage retention by idle threads
 ///
-/// Dropping the last Guard does **not** deactivate the thread's slot —
+/// Dropping the last Guard does **not** deactivate the thread's slot -
 /// deactivation is deferred to the next `pin()` (after an epoch change),
 /// `flush()`, or thread exit, keeping Guard drop free of atomic
 /// operations. Consequently, a thread that pins once and then idles
@@ -238,7 +238,7 @@ impl Handle {
         tid
     }
 
-    /// Protect: era tracking on load — **wait-free**, bounded at
+    /// Protect: era tracking on load - **wait-free**, bounded at
     /// `MAX_LOAD_ATTEMPTS` convergence iterations plus one escalated load.
     ///
     /// Invariant on return (convergence case): the returned pointer was
@@ -248,7 +248,7 @@ impl Handle {
     /// `slot_epoch >= cached_epoch == observed_epoch >= birth_epoch(ptr)`,
     /// so `try_retire()` of any batch that could contain the pointer inserts
     /// into this thread's slot and the batch is deferred until the slot's
-    /// next traversal (which only happens at `pin()` boundaries — protection
+    /// next traversal (which only happens at `pin()` boundaries - protection
     /// is guard-wide, so this loop never traverses, it only *raises* the
     /// published epoch; the raise leaves `drained_epoch` behind the global
     /// epoch, so the next outermost `pin()` traverses).
@@ -264,7 +264,7 @@ impl Handle {
     /// retired after the reservation became visible inserts into this slot
     /// and is deferred. The Dekker pairing below covers the remaining case:
     /// a scan that did NOT see the reservation completed before our fence,
-    /// which forces our post-fence load to observe that batch's unlinks —
+    /// which forces our post-fence load to observe that batch's unlinks -
     /// we can never read a pointer whose batch skipped us. The reservation
     /// is replaced by a real epoch (and the slot list drained) at the next
     /// `pin()` or at the outermost guard drop.
@@ -273,7 +273,7 @@ impl Handle {
     /// `fence(SeqCst)` in `try_retire()`'s scan phase (store-buffering /
     /// Dekker pairing): either the scanner observes our published value, or
     /// our subsequent pointer load observes the retirer's unlink. A SeqCst
-    /// store alone is not sufficient — a later non-SeqCst load may be
+    /// store alone is not sufficient - a later non-SeqCst load may be
     /// reordered above it in the C++/Rust model (and concretely on ARMv8.3+
     /// where acquire loads lower to LDAPR, which may pass an earlier STLR).
     ///
@@ -392,8 +392,8 @@ impl Handle {
     /// If the critical section escalated to the unconditional reservation
     /// (`cached_epoch == EPOCH_UNCONDITIONAL`), replace it with the real
     /// current epoch and drain the slot list now, instead of waiting for
-    /// the next pin(). This bounds the unconditional window — during which
-    /// the slot defers every batch retired system-wide — to the critical
+    /// the next pin(). This bounds the unconditional window - during which
+    /// the slot defers every batch retired system-wide - to the critical
     /// section itself. Ordinary (non-escalated) guard drops stay free of
     /// atomic operations (the escalation check is one thread-local compare).
     ///
@@ -420,7 +420,7 @@ impl Handle {
     /// The exchange is a single atomic instruction (on native platforms)
     /// and captures the list atomically, so traversal terminates in finitely
     /// many steps. The list length is bounded by the number of `try_retire`
-    /// calls (one node each) since this slot's previous transition — not by
+    /// calls (one node each) since this slot's previous transition - not by
     /// the thread count. See `reclaim::traverse`.
     ///
     /// Divergence from C++ reference: uses `exchange_lo(0)` in a single step
@@ -517,7 +517,7 @@ impl Handle {
     ///
     /// # Wait-free bound: O(T) where T = number of active threads
     ///
-    /// Fast path: at most 16 iterations (fixed). Slow path: O(T) —
+    /// Fast path: at most 16 iterations (fixed). Slow path: O(T) -
     /// bounded by Crystalline-W helping. Every `advance_epoch()` call is preceded
     /// by `help_read()`, so at most T concurrent epoch advances can
     /// occur during the slow path loop. The helpee can also self-complete when
@@ -1156,7 +1156,7 @@ impl Handle {
     /// batch's min birth-epoch; the stale RNODE batch_link from the failed
     /// finalization is rewritten at the next finalization). Otherwise the
     /// chain's nodes are re-pointed at the current refs-node and the old
-    /// refs-node becomes a regular node — its bias word is reused as the
+    /// refs-node becomes a regular node - its bias word is reused as the
     /// batch_next link, exactly as for any non-refs node.
     fn merge_batch(&self, first: *mut RetiredNode, refs: *mut RetiredNode) {
         // Count the chain (first -> ... -> refs): this thread's own,
@@ -1243,10 +1243,10 @@ impl Handle {
     /// # Wait-free bound: O(T + batch_size) where T = number of active threads
     ///
     /// Two phases, both bounded:
-    /// - **Scan phase**: O(T * SLOTS_PER_THREAD) — iterates all active thread
+    /// - **Scan phase**: O(T * SLOTS_PER_THREAD) - iterates all active thread
     ///   slots once, assigning batch nodes to active slots with epoch ≥ min_epoch.
-    ///   No loops within — each slot is visited exactly once.
-    /// - **Insert phase**: O(batch_size) — iterates batch nodes, exchanging each
+    ///   No loops within - each slot is visited exactly once.
+    /// - **Insert phase**: O(batch_size) - iterates batch nodes, exchanging each
     ///   into its assigned slot. The exchange is a single atomic instruction (on
     ///   native platforms). Contention handling (INVPTR rollback, list tainting)
     ///   is O(1) per node.
@@ -1371,18 +1371,18 @@ impl Handle {
             if prev != 0 {
                 if prev == INVPTR as u64 {
                     // Slot was inactive (helper cleanup / thread exit sets
-                    // INVPTR) — undo by restoring the INVPTR sentinel, as in
+                    // INVPTR) - undo by restoring the INVPTR sentinel, as in
                     // the reference try_retire rollback. Restoring 0 here
                     // would resurrect a dead slot as active-empty and break
                     // the `INVPTR == inactive` invariant.
                     // [InsertRollback] A compare-exchange of the list word
                     // alone: the node still heads the list or it does not.
                     if slot_first_ref.compare_exchange_lo(curr as u64, INVPTR as u64) {
-                        // Undo succeeded — node removed from slot.
+                        // Undo succeeded - node removed from slot.
                         curr = unsafe { (*curr).batch_next() };
                         continue;
                     }
-                    // Undo failed — node was captured by a concurrent
+                    // Undo failed - node was captured by a concurrent
                     // exchange. Count as inserted to balance refs, matching
                     // Crystalline's cnt++ on CAS failure (Figure 9, line 66).
                     adjs = adjs.wrapping_add(1);
@@ -1418,7 +1418,7 @@ impl Handle {
         // Adjust reference count
         let old = unsafe { (*refs).refs_or_next.fetch_add(adjs, Ordering::AcqRel) };
         if old == adjs.wrapping_neg() {
-            // refs reached 0 — free immediately
+            // refs reached 0 - free immediately
             unsafe {
                 (*refs).next.store(core::ptr::null_mut(), Ordering::Relaxed);
                 crate::reclaim::free_batch_list(refs);
@@ -1507,7 +1507,7 @@ impl Handle {
     /// 2. Advance global epoch to make all submitted batches eligible
     /// 3. Traverse own slots to process and free eligible nodes
     ///
-    /// This does NOT guarantee that nodes retired by OTHER threads are freed —
+    /// This does NOT guarantee that nodes retired by OTHER threads are freed -
     /// those threads must flush themselves or exit. But it does guarantee that
     /// all nodes retired by THIS thread are submitted and that this thread's
     /// slots are drained.
@@ -1579,7 +1579,7 @@ impl Handle {
         }
 
         // Adopt any orphaned batch, then finalize and submit the partial
-        // batch. On failure, keep accumulating — never leaked.
+        // batch. On failure, keep accumulating - never leaked.
         self.adopt_orphans();
         if let Some((first, last)) = self.take_batch() {
             let own = (saved_pin == 0).then_some(tid);
@@ -1942,7 +1942,7 @@ pub fn pin() -> Guard {
         //
         // unwrap_or_else (lazy), NOT unwrap_or: unwrap_or evaluates its
         // argument eagerly, constructing a dummy Guard on every successful
-        // call whose immediate Drop decremented pin_count right back —
+        // call whose immediate Drop decremented pin_count right back -
         // silently cancelling the pin and disabling nested-pin /
         // critical-section tracking on stable builds.
         HANDLE.try_with(|handle| handle.pin()).unwrap_or_else(|_| {
@@ -1986,7 +1986,7 @@ pub fn pin() -> Guard {
 /// - **Cross-thread drop:** `T`'s destructor runs whenever the containing
 ///   batch's reference count reaches zero, which is driven by whichever
 ///   thread happens to traverse the slot the batch landed in (or an orphan
-///   adopter) — typically **not** the retiring thread. The caller must
+///   adopter) - typically **not** the retiring thread. The caller must
 ///   ensure this is sound for `T`. For multi-threaded reclamation that
 ///   effectively means `T: Send`; retiring a type with thread-affine
 ///   contents (`Rc`, lock guards, thread-bound FFI handles) is only sound

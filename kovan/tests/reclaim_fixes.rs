@@ -74,7 +74,7 @@ fn run_pinned_scenario(n_pinned: usize) -> (usize, usize) {
 
 /// Regression for the whole-batch leak: with >= 64 eligible slots the scan
 /// phase cannot place the batch. The batch must be kept (accumulated) and
-/// submitted later — never dropped.
+/// submitted later - never dropped.
 #[test]
 #[cfg_attr(miri, ignore)] // multi-threaded: hits the intentional mixed-size DCAS, outside Miri's model
 fn no_batch_leak_with_many_pinned_threads() {
@@ -283,7 +283,7 @@ fn loads_remain_valid_under_epoch_churn() {
             let mut i = 0u64;
             while !stop.load(Ordering::Relaxed) {
                 atom.store(Payload { a: i, b: !i });
-                // flush() advances the epoch every call — maximum churn for
+                // flush() advances the epoch every call - maximum churn for
                 // the readers' convergence loops.
                 if i.is_multiple_of(16) {
                     kovan::flush();

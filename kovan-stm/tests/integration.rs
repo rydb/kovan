@@ -103,7 +103,7 @@ fn test_isolation() {
         thread::yield_now();
     }
 
-    // Read while T1 is mid-transaction — should NOT see uncommitted write
+    // Read while T1 is mid-transaction - should NOT see uncommitted write
     let val = stm.atomically(|tx| tx.load(&var));
     assert_eq!(val, 0);
 

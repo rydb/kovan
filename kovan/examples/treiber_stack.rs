@@ -16,7 +16,7 @@ struct Node<T> {
 }
 
 // SAFETY (kovan retirement rule): a retired Node's destructor may run on
-// any thread, and nodes (with the T inside) move between threads — hence
+// any thread, and nodes (with the T inside) move between threads - hence
 // `T: Send` for both impls. `Sync` does not require `T: Sync` because no
 // `&T` is ever produced from a shared `&Node`: `value` is taken exclusively
 // (ptr::read) by the single popper that won the head CAS, and the only

@@ -146,11 +146,11 @@ fn test_drop_after_partial_pop() {
         for _ in 0..n {
             q.push(Counted(Arc::clone(&drop_count)));
         }
-        // Pop half — these trigger retire() on consumed segments
+        // Pop half - these trigger retire() on consumed segments
         for _ in 0..n / 2 {
             q.pop();
         }
-        // q dropped here — remaining n/2 values must also be dropped
+        // q dropped here - remaining n/2 values must also be dropped
         // Not exactly a test that tests this correctly.
     }
 

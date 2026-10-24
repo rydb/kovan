@@ -5,29 +5,29 @@
 //! *distinct* threads hold guards at once. kovan's slot model gives each
 //! OS thread exactly one slot (confirmed in `src/guard.rs`/`src/slot.rs`:
 //! `pin_count` is a per-thread reentrant counter, not a counter of distinct
-//! slots) — so "N threads simultaneously pinned" cannot be reproduced by
+//! slots) - so "N threads simultaneously pinned" cannot be reproduced by
 //! one thread calling `pin()` N times. 5 of the original's 8 tests are
 //! exactly that kind of test and are not ported; the 3 that survive are
 //! adapted with an honest doc comment.
 //!
 //! Not ported (race-only):
-//! - `no_batch_leak_with_many_pinned_threads` — requires 80 *distinct*
+//! - `no_batch_leak_with_many_pinned_threads` - requires 80 *distinct*
 //!   simultaneously-pinned slots so `try_retire`'s scan phase cannot place
 //!   a batch; unreproducible with one thread (one slot).
-//! - `no_batch_leak_with_few_pinned_threads` — the control case for the
+//! - `no_batch_leak_with_few_pinned_threads` - the control case for the
 //!   above (8 distinct simultaneously-pinned slots, well under the
 //!   threshold); same reason.
-//! - `orphaned_partial_batch_is_adopted` — requires 80 distinct pinned
+//! - `orphaned_partial_batch_is_adopted` - requires 80 distinct pinned
 //!   slots *and* a genuine thread-exit orphan-adoption event; neither
 //!   exists with one persistent thread.
-//! - `pin_completes_under_flush_storm` — a starvation/fairness regression
+//! - `pin_completes_under_flush_storm` - a starvation/fairness regression
 //!   that only manifests under real concurrent contention between an
 //!   antagonist thread's flush() storm and this thread's pin() calls.
 //!   Sequential execution cannot starve itself: whichever operation runs
 //!   "first" always completes, so a single-threaded version would trivially
 //!   always pass regardless of whether the underlying starvation bug
 //!   exists, providing zero regression protection.
-//! - `thread_churn_frees_everything` — requires 32+ real OS threads
+//! - `thread_churn_frees_everything` - requires 32+ real OS threads
 //!   exiting and having their tids recycled after `deactivate_slots`'
 //!   exchange-based deactivation; no analogous event without real threads.
 //!
@@ -35,7 +35,7 @@
 //! threads to be true; each says exactly what cross-thread coverage it no
 //! longer has.
 //!
-//! `TEST_LOCK` below is not a concurrency test fixture — it's the same
+//! `TEST_LOCK` below is not a concurrency test fixture - it's the same
 //! cross-test serialization the original file used, kept for the same
 //! reason: kovan's reclamation state (epoch, slots, orphans) is
 //! process-global, and Rust's native test harness still runs the functions
@@ -80,7 +80,7 @@ impl Drop for Counted {
 /// the value and drove a full batch through `try_retire`, then checked that
 /// `flush()` on the reader thread didn't release the reader's own
 /// protection. This performs the replace-and-drive-a-batch step on the SAME
-/// thread, with the outer guard still held (a nested/reentrant pin — kovan's
+/// thread, with the outer guard still held (a nested/reentrant pin - kovan's
 /// `pin_count` is a per-thread reentrant counter, so this is a legitimate
 /// in-API scenario, not a hack), and checks the same safety invariant:
 /// `flush()` must never drop a value that a live guard, pinned before the
@@ -185,8 +185,8 @@ fn reentrant_destructor_chains_drop_exactly_once() {
 /// whole pointer, a torn read was never possible even in the original; what
 /// that test actually verified was that a concurrently-freed payload is
 /// never observed. This sequential version can't reproduce that race at
-/// all — every load here is trivially either the just-stored value or the
-/// previous one, both alive — so it validates only that the store/load/
+/// all - every load here is trivially either the just-stored value or the
+/// previous one, both alive - so it validates only that the store/load/
 /// flush sequence stays internally consistent (the invariant never breaks,
 /// no crash) across many epoch transitions, not concurrent reclamation
 /// safety. The threaded original remains the real coverage on native.
@@ -203,7 +203,7 @@ fn payload_remains_valid_across_epoch_churn_sequential() {
 
     for i in 0..20_000u64 {
         atom.store(Payload { a: i, b: !i });
-        // flush() advances the epoch every call — maximum churn.
+        // flush() advances the epoch every call - maximum churn.
         if i.is_multiple_of(16) {
             kovan::flush();
         }

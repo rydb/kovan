@@ -1,6 +1,6 @@
 //! Single-threaded, wasm-capable adaptation of `tests/cache_padded.rs`.
 //!
-//! The original has no threading at all — `CachePadded<T>` is a pure layout
+//! The original has no threading at all - `CachePadded<T>` is a pure layout
 //! type (alignment/size/deref), so every test here is a byte-for-byte port.
 //!
 //! Not ported (race-only): none.

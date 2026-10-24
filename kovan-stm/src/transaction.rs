@@ -169,7 +169,7 @@ impl<'a> Transaction<'a> {
     /// The `TVar` wrapper contains an `Arc<TVarInner<T>>`. This method clones the Arc
     /// into the read entry (`_keep_alive`), so the `version_lock` pointer stored in
     /// `ReadEntry.lock_atomic` remains valid even if the `TVar` handle is dropped before
-    /// `commit()` runs.  The stable identity key is `Arc::as_ptr(&tvar.0)` — the address
+    /// `commit()` runs.  The stable identity key is `Arc::as_ptr(&tvar.0)` - the address
     /// of the heap-allocated `TVarInner`, which is invariant across `TVar` clones.
     pub fn load<T: Any + Send + Sync + Clone>(&mut self, tvar: &TVar<T>) -> Result<T, StmError> {
         // Use the address of the heap-allocated TVarInner as the stable id,
@@ -312,7 +312,7 @@ impl<'a> Transaction<'a> {
         //
         // Clock is advanced HERE, *before* read-set validation.
         // If validation subsequently fails and the transaction aborts, this
-        // increment is NOT rolled back — the global clock advances permanently.
+        // increment is NOT rolled back - the global clock advances permanently.
         // Under heavy contention this creates a feedback loop: aborts push the
         // clock forward, causing other concurrent transactions to see version
         // mismatches and also abort.  This is a performance degradation, not a
@@ -325,7 +325,7 @@ impl<'a> Transaction<'a> {
 
         // 3. Validate Read Set
         //
-        // `ReadEntry` stores `lock_atomic: *const AtomicU64` — a direct pointer
+        // `ReadEntry` stores `lock_atomic: *const AtomicU64` - a direct pointer
         // to the `version_lock` field captured at read time. We load the atomic directly,
         // decode the (locked, version) pair, and validate without any TVar pointer cast.
         let mut valid = true;

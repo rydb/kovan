@@ -171,7 +171,7 @@ fn test_drop_calls_destructor() {
         // Pop 2, leaving 2 still in the queue
         q.pop();
         q.pop();
-        // q dropped here — remaining 2 values must be dropped
+        // q dropped here - remaining 2 values must be dropped
     }
 
     // 4 total values were created; all 4 must be dropped (2 from pop, 2 from Drop impl)

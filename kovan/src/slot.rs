@@ -90,7 +90,7 @@ mod native {
             self.lo.store(lo, order);
         }
 
-        /// Single atomic swap — replaces the CAS loop in the fallback path.
+        /// Single atomic swap - replaces the CAS loop in the fallback path.
         #[inline]
         pub(crate) fn exchange_lo(&self, new_lo: u64, order: Ordering) -> u64 {
             self.lo.swap(new_lo, order)
@@ -332,10 +332,10 @@ pub(crate) const SLOTS_PER_THREAD: usize = HR_NUM + 2;
 /// Number of thread slots per page (power of 2 for shift/mask indexing).
 const SLOTS_PER_PAGE: usize = 128;
 
-/// log2(SLOTS_PER_PAGE) — used for tid >> PAGE_SHIFT.
+/// log2(SLOTS_PER_PAGE) - used for tid >> PAGE_SHIFT.
 const PAGE_SHIFT: usize = 7;
 
-/// SLOTS_PER_PAGE - 1 — used for tid & PAGE_MASK.
+/// SLOTS_PER_PAGE - 1 - used for tid & PAGE_MASK.
 const PAGE_MASK: usize = 127;
 
 /// Maximum number of pages in the page table. Supports up to 65,536 threads.
@@ -378,7 +378,7 @@ pub(crate) const EPOCH_FREQ: usize = 128;
 /// completion path for protected loads: when the global epoch keeps
 /// advancing during a load's bounded convergence attempts, the loader
 /// escalates to an unconditional reservation and finishes with one more
-/// pointer load — protected regardless of birth epochs.
+/// pointer load - protected regardless of birth epochs.
 ///
 /// The marker is cleared (replaced by the real current epoch, with the
 /// slot's list traversed) at the next `pin()` boundary or outermost guard
@@ -532,7 +532,7 @@ impl ASMRState {
                 )
                 .is_err()
             {
-                // Another thread allocated this page first — free ours.
+                // Another thread allocated this page first - free ours.
                 unsafe {
                     drop(Box::from_raw(page));
                 }
@@ -635,7 +635,7 @@ impl ASMRState {
     ///
     /// Deactivation must be race-aware: a concurrent `try_retire` may insert
     /// a node into a slot at any time before the slot reads INVPTR. A blind
-    /// `store(INVPTR)` would obliterate such a node — its refs-decrement
+    /// `store(INVPTR)` would obliterate such a node - its refs-decrement
     /// would never happen and the whole batch would leak. So the list word
     /// is *exchanged* to INVPTR and any captured list is returned to the
     /// caller for traversal.
@@ -643,7 +643,7 @@ impl ASMRState {
     /// Seqnos (the `hi` halves) are deliberately preserved: the slow-path
     /// parity protocol relies on seqnos never repeating for a slot, even
     /// across tid recycling. Only the epoch `lo` is cleared (lowering an
-    /// epoch is the safe direction — the slot merely stops being eligible).
+    /// epoch is the safe direction - the slot merely stops being eligible).
     ///
     /// Returns up to SLOTS_PER_THREAD captured list heads that the caller
     /// must traverse (entries are null when there was nothing to capture).

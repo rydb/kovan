@@ -1,6 +1,6 @@
 //! Single-threaded, wasm-capable adaptation of `tests/large_payloads.rs`.
 //!
-//! The original has no threading at all — it is a straight copy, unchanged.
+//! The original has no threading at all - it is a straight copy, unchanged.
 //!
 //! Not ported (race-only): none.
 

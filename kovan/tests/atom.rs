@@ -31,7 +31,7 @@ impl Drop for DropCounter {
 }
 
 // ============================================================================
-// Atom<T> — basic operations
+// Atom<T> - basic operations
 // ============================================================================
 
 #[test]
@@ -141,7 +141,7 @@ fn atom_peek_with_store() {
 }
 
 // ============================================================================
-// Atom<T> — compare-and-swap
+// Atom<T> - compare-and-swap
 // ============================================================================
 
 #[test]
@@ -203,7 +203,7 @@ fn atom_cas_retry_pattern() {
 }
 
 // ============================================================================
-// Atom<T> — RCU
+// Atom<T> - RCU
 // ============================================================================
 
 #[test]
@@ -272,7 +272,7 @@ fn atom_rcu_concurrent_increments() {
 }
 
 // ============================================================================
-// Atom<T> — trait implementations
+// Atom<T> - trait implementations
 // ============================================================================
 
 #[test]
@@ -430,7 +430,7 @@ fn atom_option_roundtrip() {
 }
 
 // ============================================================================
-// AtomMap — projections
+// AtomMap - projections
 // ============================================================================
 
 #[derive(Debug, Clone)]
@@ -507,11 +507,11 @@ fn atom_map_multiple_projections() {
 // ============================================================================
 // Concurrent / stress tests
 //
-// Thread counts are kept to 2–4 per test because the test harness runs
+// Thread counts are kept to 2-4 per test because the test harness runs
 // tests in parallel (default = num_cpus).  With 14 cores, 14 tests run
 // simultaneously; each spawning 4 threads = 56 threads against kovan's
 // 64 slot system.  Instead of artificially low iteration counts, we
-// keep threads bounded and increase iterations — this mirrors real
+// keep threads bounded and increase iterations - this mirrors real
 // production: bounded thread pool, many operations.
 // ============================================================================
 
@@ -715,7 +715,7 @@ fn atom_sustained_heavy_load() {
 }
 
 /// RCU under heavy contention: multiple threads doing read-modify-write
-/// on a shared vector — every RCU call clones and pushes (realistic workload).
+/// on a shared vector - every RCU call clones and pushes (realistic workload).
 #[test]
 #[cfg_attr(miri, ignore)]
 fn atom_rcu_heavy_contention() {
@@ -786,7 +786,7 @@ fn atom_option_take_no_double_drop() {
     let taken = opt.take();
     assert!(taken.is_some());
 
-    // XXX: Extract via into_inner_unchecked for immediate drop —
+    // XXX: Extract via into_inner_unchecked for immediate drop -
     // safe in this single-threaded test with no concurrent readers.
     // Removed<T>::drop would defer through reclamation, making the
     // count non-deterministic. We want to verify no double-drop.
@@ -823,7 +823,7 @@ fn atom_swap_no_double_drop() {
 
     // Swap returns the old value wrapped in Removed<T>
     let old = atom.swap(DropCounter::new(2, drop_count.clone()));
-    // XXX: Extract via into_inner_unchecked for immediate drop —
+    // XXX: Extract via into_inner_unchecked for immediate drop -
     // safe in this single-threaded test with no concurrent readers.
     let old_val = unsafe { old.into_inner_unchecked() };
     drop(old_val);
@@ -932,7 +932,7 @@ fn atom_guard_survives_store() {
     let guard = atom.load();
     assert_eq!(&*guard, "original");
 
-    // Store a new value — old guard should still be valid
+    // Store a new value - old guard should still be valid
     atom.store(String::from("updated"));
 
     // Guard still references the old value (snapshot semantics)
@@ -994,7 +994,7 @@ fn atom_cas_with_concurrent_modification() {
         }
     });
 
-    // Try CAS in a loop — some will fail, some may succeed
+    // Try CAS in a loop - some will fail, some may succeed
     let mut successes = 0;
     let mut failures = 0;
     for _ in 0..200 {

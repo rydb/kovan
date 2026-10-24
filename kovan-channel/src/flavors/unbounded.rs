@@ -120,7 +120,7 @@ impl<T: 'static> Clone for Sender<T> {
 impl<T: 'static> Drop for Sender<T> {
     fn drop(&mut self) {
         if self.inner.sender_count.fetch_sub(1, Ordering::AcqRel) == 1 {
-            // Last sender dropped — mark channel as disconnected and wake all receivers.
+            // Last sender dropped - mark channel as disconnected and wake all receivers.
             self.inner.disconnected.store(true, Ordering::Release);
             self.inner.wake_all_receivers();
         }
@@ -269,7 +269,7 @@ impl<T: 'static> Receiver<T> {
                         // the source field. `ptr::read` leaves the bit pattern
                         // intact, so when this node is later retired and freed by
                         // kovan, `Node::drop` would drop `data: Option<T>` again
-                        // — a double-free. Writing `None` ensures the destructor
+                        // - a double-free. Writing `None` ensures the destructor
                         // sees an empty Option and skips the inner drop.
                         let data = unsafe { ptr::replace(data_ptr, None) };
                         return data;
@@ -316,7 +316,7 @@ impl<T: 'static> Receiver<T> {
 
             signal.wait();
 
-            // Woken up — either a message arrived or senders disconnected
+            // Woken up - either a message arrived or senders disconnected
             if let Some(msg) = self.try_recv() {
                 return Some(msg);
             }
@@ -494,7 +494,7 @@ impl<T: 'static> Receiver<T> {
                     return Poll::Ready(Some(msg));
                 }
 
-                // Disconnected and empty — done
+                // Disconnected and empty - done
                 if this.receiver.is_disconnected() {
                     this.wait.finish(list);
                     return Poll::Ready(this.receiver.try_recv());

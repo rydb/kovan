@@ -93,7 +93,7 @@ fn test_protect_prevents_uaf_across_epochs() {
     let writer_done = Arc::new(AtomicBool::new(false));
     let writer_done1 = writer_done.clone();
 
-    // Thread A: reader — pins, loads, holds guard across epoch changes
+    // Thread A: reader - pins, loads, holds guard across epoch changes
     let reader = thread::spawn(move || {
         let guard = pin();
         // First load: get initial pointer (born at current epoch)
@@ -114,7 +114,7 @@ fn test_protect_prevents_uaf_across_epochs() {
         }
 
         // Retire the new node (simulating another thread swapping it out)
-        // But we still hold a guard that loaded it — it must NOT be freed.
+        // But we still hold a guard that loaded it - it must NOT be freed.
         // Note: we can't retire ptr2 directly since we still hold guard.
         // Instead, just verify that the freed flag is still false.
 

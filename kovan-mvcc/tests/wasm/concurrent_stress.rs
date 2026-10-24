@@ -1,11 +1,11 @@
 //! Single-threaded, wasm-capable adaptation of `tests/concurrent_stress.rs`.
 //!
-//! 4 of the original's 6 tests are adapted below (unchanged in substance —
+//! 4 of the original's 6 tests are adapted below (unchanged in substance -
 //! none of them actually depend on threading, only on the sequence of
 //! operations). 2 are not ported.
 //!
 //! Not ported (race-only):
-//! - `test_concurrent_writes_different_keys` — 4 threads each writing 200
+//! - `test_concurrent_writes_different_keys` - 4 threads each writing 200
 //!   disjoint keys, then verifying every key. Because the keys never
 //!   overlap there is no lock contention and no conflict to resolve: the
 //!   entire value of the original is proving that concurrent access from
@@ -14,7 +14,7 @@
 //!   the operations reduce to "write N keys, read them back", which is
 //!   already covered by `test_many_keys_single_txn` in this same file and
 //!   by `tests/wasm/basic_ops.rs`; porting it would just pad the suite.
-//! - `test_concurrent_readers` — 8 threads concurrently reading 50
+//! - `test_concurrent_readers` - 8 threads concurrently reading 50
 //!   pre-populated (already-committed) keys. With no concurrent writer,
 //!   the only thing under test is that parallel *reads* from real threads
 //!   don't race each other on the read path. Sequentially that is just

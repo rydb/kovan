@@ -1,7 +1,7 @@
 //! Single-threaded, wasm-capable adaptation of `tests/reclaim.rs`.
 //!
 //! 7 of the original's 9 tests port or adapt cleanly: 4 were already
-//! single-threaded (no `thread::spawn` at all — `test_guard_protects_from_reclamation`,
+//! single-threaded (no `thread::spawn` at all - `test_guard_protects_from_reclamation`,
 //! `test_pin_unpin_rapid`, `test_multiple_guards_sequential`,
 //! `test_reentrant_destructor_flush`) and are ported verbatim; 3 threaded
 //! ones (`test_retire_eventually_frees`, `test_concurrent_retire`,
@@ -11,7 +11,7 @@
 //! double-drop) doesn't depend on multiple threads to be true.
 //!
 //! Not ported (race-only):
-//! - `test_reentrant_destructor_thread_exit` — exercises
+//! - `test_reentrant_destructor_thread_exit` - exercises
 //!   `Handle::cleanup()` / `drain_free_list` on a real OS thread's exit
 //!   (the TLS-destructor path). There is no analogous event on wasm's
 //!   single persistent thread: a thread that never exits never triggers
@@ -63,8 +63,8 @@ impl Drop for CountedNode {
 /// original split 2048 retires across 4 threads specifically to force
 /// multiple epoch transitions (the file's own comment: single-threaded
 /// retire only advances the epoch every EPOCH_FREQ = 128 retires). This
-/// performs the same total number of retires from one thread instead —
-/// still far more than 128, so the epoch still advances repeatedly — and
+/// performs the same total number of retires from one thread instead -
+/// still far more than 128, so the epoch still advances repeatedly - and
 /// checks the liveness property (some nodes get freed), not exact timing.
 /// The threaded original remains the real coverage on native.
 #[test]
@@ -174,7 +174,7 @@ fn test_multiple_guards_sequential() {
 //
 // `drop_count: Arc<AtomicUsize>` stays `Arc` here (not `Rc<Cell<_>>`):
 // `ReentrantDrop` is stored inside `Atom<T>`/`AtomOption<T>`, which require
-// `T: Send + Sync` unconditionally — that's an API bound, not a concurrency
+// `T: Send + Sync` unconditionally - that's an API bound, not a concurrency
 // choice made by these tests.
 // ============================================================================
 
@@ -228,7 +228,7 @@ fn test_reentrant_destructor_flush() {
 /// Sequential adaptation of `reclaim::test_reentrant_destructor_concurrent`.
 /// The original ran 4 threads each doing 200 stores against a shared `Atom`
 /// whose value's destructor re-enters kovan. This performs the same total
-/// number of stores (4 * 200 = 800) from one thread — it still exercises
+/// number of stores (4 * 200 = 800) from one thread - it still exercises
 /// the re-entrant destructor path (`Atom::drop` -> `flush()` ->
 /// `free_batch_list` -> `ReentrantDrop::drop` -> `Atom::drop` -> `flush()`
 /// again) under sustained load, just not concurrent contention on the same

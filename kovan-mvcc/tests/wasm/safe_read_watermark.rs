@@ -18,7 +18,7 @@
 //! `atomics` target feature.
 //!
 //! Not ported (race-only):
-//! - `min_ts_never_misses_a_live_writer_under_register_churn` — the entire
+//! - `min_ts_never_misses_a_live_writer_under_register_churn` - the entire
 //!   point is proving `InflightWriteRegistry::min_ts` never misses a live
 //!   writer while OTHER threads concurrently `register`/`unregister` and
 //!   relocate hopscotch-map entries mid-scan (the "torn read under churn"

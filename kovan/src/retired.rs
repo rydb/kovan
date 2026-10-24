@@ -1,9 +1,9 @@
 //! Retired node structures for ASMR batch-based memory reclamation.
 //!
 //! Node layout for the ASMR algorithm:
-//! - `next`: AtomicPtr — list link in slot (exchanged with INVPTR during traverse)
-//! - `batch_link`: AtomicPtr — points to refs-node; on refs-node: RNODE(batch_first)
-//! - `refs_or_next`: union — atomic refs counter on refs-node, batch_next on others
+//! - `next`: AtomicPtr - list link in slot (exchanged with INVPTR during traverse)
+//! - `batch_link`: AtomicPtr - points to refs-node; on refs-node: RNODE(batch_first)
+//! - `refs_or_next`: union - atomic refs counter on refs-node, batch_next on others
 //! - `birth_epoch`: epoch at which this node was allocated (on refs-node: min of batch)
 //! - `destructor`: type-erased destructor for deallocation
 
@@ -63,7 +63,7 @@ pub(crate) fn rnode_unmask(ptr: *mut RetiredNode) -> *mut RetiredNode {
 /// Layout for ASMR:
 /// - `next`: atomic next pointer in slot's retirement list; exchanged with INVPTR during traverse
 /// - `batch_link`: points to refs-node for non-refs nodes; on refs-node: RNODE(batch_first)
-/// - `refs_or_next`: union — atomic refs counter on refs-node, batch_next pointer on others
+/// - `refs_or_next`: union - atomic refs counter on refs-node, batch_next pointer on others
 /// - `birth_epoch`: allocation epoch; on refs-node: minimum birth epoch of entire batch
 /// - `destructor`: type-erased destructor for deallocation
 ///
@@ -72,7 +72,7 @@ pub(crate) fn rnode_unmask(ptr: *mut RetiredNode) -> *mut RetiredNode {
 /// to the outer struct (whose layout starts with this RetiredNode). Without `UnsafeCell`,
 #[repr(C, align(8))]
 pub struct RetiredNode {
-    /// Next node in slot's retirement list (atomic — exchanged during traverse).
+    /// Next node in slot's retirement list (atomic - exchanged during traverse).
     /// Also used as slot pointer during try_retire preparation phase,
     /// and as free-list link after refs reach 0.
     pub(crate) next: AtomicPtr<RetiredNode>,
@@ -92,7 +92,7 @@ pub struct RetiredNode {
     /// UnsafeCell: written during retire() while readers may hold &T to the outer struct.
     pub(crate) birth_epoch: UnsafeCell<u64>,
 
-    /// Type-erased destructor — set during retire().
+    /// Type-erased destructor - set during retire().
     /// Used by free_list to deallocate each node in a batch.
     /// UnsafeCell: written during retire() while readers may hold &T to the outer struct.
     pub(crate) destructor: UnsafeCell<Option<DestructorFn>>,

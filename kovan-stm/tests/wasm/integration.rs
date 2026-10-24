@@ -14,20 +14,20 @@
 //! transaction validates its read set against the version lock only when
 //! `atomically`'s closure returns, and a single-threaded caller can never
 //! observe another writer's commit landing between its own read and its own
-//! commit — so on one thread `atomically` always succeeds on the first
+//! commit - so on one thread `atomically` always succeeds on the first
 //! attempt. That's a real, permanent gap versus native: conflict detection
 //! and retry are simply not exercised by anything in this file. The
 //! threaded originals remain the only coverage of that path.
 //!
 //! Not ported (race-only):
-//! - `test_isolation` — proves a reader on one thread does NOT see a write
+//! - `test_isolation` - proves a reader on one thread does NOT see a write
 //!   from an in-progress (not yet committed) transaction on another thread,
 //!   using an `AtomicBool` handshake to force the interleaving
 //!   deterministically. A single-threaded `atomically` call runs its
 //!   closure to completion (write and all) before any other code can run,
 //!   so there is no way to observe "mid-transaction" state from outside it
 //!   without a second real thread.
-//! - `test_conflict_retry` — 2 threads each incrementing the same `TVar`
+//! - `test_conflict_retry` - 2 threads each incrementing the same `TVar`
 //!   100 times, relying on genuine contention to force retries; the
 //!   property under test (concurrent increments are never lost to a stale
 //!   commit) requires real conflicts, which per the above cannot occur on
@@ -116,13 +116,13 @@ fn test_multiple_vars_atomic_swap() {
 /// Sequential half of `integration::test_side_effects`: a single
 /// transaction's `on_commit` hook must fire exactly once on success, and
 /// `on_rollback` must not fire at all. This part of the original never
-/// depended on threading. The original's second half — forcing a conflict
-/// via 2 threads to prove `on_rollback` fires before a successful retry —
+/// depended on threading. The original's second half - forcing a conflict
+/// via 2 threads to prove `on_rollback` fires before a successful retry -
 /// is not ported; see this file's header.
 ///
 /// `commits`/`rollbacks` stay `Arc<AtomicUsize>` (not `Rc<Cell<_>>`):
 /// `Transaction::on_commit`/`on_rollback` require `F: Send + 'static`
-/// unconditionally (see `kovan-stm/src/transaction.rs`) — that's an API
+/// unconditionally (see `kovan-stm/src/transaction.rs`) - that's an API
 /// bound, not a concurrency choice made by this test.
 #[test]
 fn commit_hook_fires_on_success_single_threaded() {
@@ -138,7 +138,7 @@ fn commit_hook_fires_on_success_single_threaded() {
         tx.store(&var, 1)?;
         // `atomically`'s closure is `FnMut` (it may run more than once on a
         // conflict retry), so each invocation needs its own owned clone to
-        // move into the one-shot `on_commit`/`on_rollback` hooks — matching
+        // move into the one-shot `on_commit`/`on_rollback` hooks - matching
         // `tests/integration.rs`'s original pattern.
         let c = c.clone();
         let r = r.clone();
