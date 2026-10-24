@@ -135,7 +135,10 @@ macro_rules! select {
                     }
                 )*
 
-                if ready || live_now < live {
+                // No channel registered on: each disconnected after the
+                // check above, and nothing is left to end the wait, so that
+                // check runs again.
+                if ready || live == 0 || live_now < live {
                     // Not going to wait: withdraw the signal, and pass on a
                     // wakeup a channel delivered to it first.
                     if !signal.cancel() {

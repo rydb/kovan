@@ -399,3 +399,27 @@ fn select_stale_signal_does_not_take_a_wakeup() {
 fn shuttle_channel_select_stale_signal_does_not_take_a_wakeup() {
     shuttle::check_pct(select_stale_signal_does_not_take_a_wakeup, WINDOW_RUNS, 3);
 }
+
+/// (k) `select!` racing the last sender's drop (`CH_select_disconnected`,
+/// the model's program): the drop lands between `select!`'s check that
+/// every channel is disconnected and its registration, which then finds no
+/// channel to register on. It must go back to that check, not wait for good.
+fn select_sees_a_disconnect_during_its_registration() {
+    let (tx, rx) = unbounded::<u64>();
+    let dropper = shuttle::thread::spawn(move || drop(tx));
+    let got = kovan_channel::select! {
+        v = rx => Some(v);
+        disconnected => None,
+    };
+    assert_eq!(got, None);
+    dropper.join().unwrap();
+}
+
+#[test]
+fn shuttle_channel_select_sees_a_disconnect_during_its_registration() {
+    shuttle::check_pct(
+        select_sees_a_disconnect_during_its_registration,
+        WINDOW_RUNS,
+        3,
+    );
+}
