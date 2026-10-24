@@ -298,6 +298,18 @@ batch birth, `try_retire`'s skip, `current_birth_epoch`).
 | `reader_not_skipped`, `removed_node_not_skipped`, `cas_guard_not_skipped` | a reader of a node, the node a `Removed`'s drop retires, and `compare_and_swap`'s success guard are never skipped |
 | `fresh_stamp_skipped` | a stamp above a reader's epoch skips it (the rule before 6b1cb09): why the node keeps its own birth |
 
+`Kovan/Channel.lean`, a model of `kovan-channel/src/signal.rs` (the `AtomicWaker` word, the
+signal's word), `flavors/bounded.rs` (`len` against the capacity, the receiver count) and the
+sender count of both flavors.
+
+| theorem | what it says |
+|---------|--------------|
+| `fetchOr_model`, `fetchAnd_model`, `word_closed`, `bits`, `raced`, `take_round_trip` | the `AtomicWaker` word's `fetch_or` and `fetch_and` are the model's, and keep it among its four values |
+| `register_against_take` | one register and one take, interleaved every way: never in the cell at once, the waker never lost |
+| `reach_inv`, `capacity`, `reserve_fits`, `release_positive` | the bounded count: the messages never exceed `len`, nor `len` the capacity, the reserve never overflows, the release never goes below zero |
+| `run_from_zero`, `one_disconnect`, `disconnect_once` | a handle count (the senders', the bounded receivers'): exactly one drop sees one, and it is the last event |
+| `wins_from_set`, `one_winner`, `cancel_lost` | the signal's word: once it left waiting no `try_notify` or `cancel` wins; from a fresh signal the first wins and every later loses; a cancel that lost found it woken |
+
 `Kovan/Mvcc.lean`, a model of `kovan-mvcc/src/timestamp_oracle.rs` (`get_timestamp`),
 `backoff.rs` (`DefaultBackoff`), `percolator.rs` (`safe_read_ts`, prewrite's pass 2, the SSI
 validation) and `storage.rs` (the version chains, `gc_writes`, `gc_data`).
