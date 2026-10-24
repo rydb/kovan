@@ -174,7 +174,9 @@ end define;
 \* links go); a pop may have put it one past the word already.
 macro CatchUpTail()
 begin
-    errs := errs \cup Touch(tptr, Min2(tw.id, MaxSegs - 1));
+    \* each segment it reads is the tail pointer loaded from the end at that moment
+    errs := errs \cup Touch(tptr, Min2(tw.id, MaxSegs - 1))
+        || prot[self] := Reached(self, tptr .. Min2(tw.id, MaxSegs - 1));
     tptr := IF tptr >= tw.id THEN tptr
             ELSE LET reach == {x \in tptr .. Min2(tw.id, MaxSegs - 1) : Linked(tptr, x)}
                  IN CHOOSE x \in reach : \A y \in reach : y <= x;
@@ -199,8 +201,8 @@ end macro;
 procedure CatchUpHead()
 variables lh = 0, hn = NULL;
 begin
-CH1: \* the head pointer
-    lh := hptr;
+CH1: \* the head pointer, loaded from the end
+    lh := hptr || prot[self] := Reached(self, {hptr});
 CH2: \* the segment's id against the head word, then its link
     errs := errs \cup Touch(lh, lh);
     if lh = hw.id \/ nxt[lh] = NULL then
@@ -544,8 +546,8 @@ RC1:
     end while;
 end process;
 end algorithm; *)
-\* BEGIN TRANSLATION (chksum(pcal) = "bf84f72b" /\ chksum(tla) = "80f0bda3")
-\* Procedure variable startTaken of procedure Pop at line 247 col 32 changed to startTaken_
+\* BEGIN TRANSLATION (chksum(pcal) = "6acbee1d" /\ chksum(tla) = "ddfaea3c")
+\* Procedure variable startTaken of procedure Pop at line 249 col 32 changed to startTaken_
 CONSTANT defaultInitValue
 VARIABLES cst, cval, nxt, retired, freed, holders, prot, tw, hw, tptr, hptr, 
           opn, busy, pos, claimsP, claimsC, took, done, said, errs, rv, pc, 
@@ -645,10 +647,11 @@ Init == (* Global variables *)
                                         [] self = 0 -> "RC1"]
 
 CH1(self) == /\ pc[self] = "CH1"
-             /\ lh' = [lh EXCEPT ![self] = hptr]
+             /\ /\ lh' = [lh EXCEPT ![self] = hptr]
+                /\ prot' = [prot EXCEPT ![self] = Reached(self, {hptr})]
              /\ pc' = [pc EXCEPT ![self] = "CH2"]
-             /\ UNCHANGED << cst, cval, nxt, retired, freed, holders, prot, tw, 
-                             hw, tptr, hptr, opn, busy, pos, claimsP, claimsC, 
+             /\ UNCHANGED << cst, cval, nxt, retired, freed, holders, tw, hw, 
+                             tptr, hptr, opn, busy, pos, claimsP, claimsC, 
                              took, done, said, errs, rv, stack, hn, hs, lp, h0, 
                              t0, view, lh3, cw, startTaken_, snapped, scan, 
                              lh4, h1, startTaken, k, lt, w, nx, before, n >>
@@ -1283,16 +1286,17 @@ PU4w(self) == /\ pc[self] = "PU4w"
                               lh4, h1, startTaken, k, lt, w, nx, before, n >>
 
 PU4a(self) == /\ pc[self] = "PU4a"
-              /\ errs' = (errs \cup Touch(tptr, Min2(tw.id, MaxSegs - 1)))
+              /\ /\ errs' = (errs \cup Touch(tptr, Min2(tw.id, MaxSegs - 1)))
+                 /\ prot' = [prot EXCEPT ![self] = Reached(self, tptr .. Min2(tw.id, MaxSegs - 1))]
               /\ tptr' = (IF tptr >= tw.id THEN tptr
                           ELSE LET reach == {x \in tptr .. Min2(tw.id, MaxSegs - 1) : Linked(tptr, x)}
                                IN CHOOSE x \in reach : \A y \in reach : y <= x)
               /\ pc' = [pc EXCEPT ![self] = "PU4b"]
-              /\ UNCHANGED << cst, cval, nxt, retired, freed, holders, prot, 
-                              tw, hw, hptr, opn, busy, pos, claimsP, claimsC, 
-                              took, done, said, rv, stack, lh, hn, hs, lp, h0, 
-                              t0, view, lh3, cw, startTaken_, snapped, scan, 
-                              lh4, h1, startTaken, k, lt, w, nx, before, n >>
+              /\ UNCHANGED << cst, cval, nxt, retired, freed, holders, tw, hw, 
+                              hptr, opn, busy, pos, claimsP, claimsC, took, 
+                              done, said, rv, stack, lh, hn, hs, lp, h0, t0, 
+                              view, lh3, cw, startTaken_, snapped, scan, lh4, 
+                              h1, startTaken, k, lt, w, nx, before, n >>
 
 PU4b(self) == /\ pc[self] = "PU4b"
               /\ IF cst[w[self].id][w[self].ix] = "EMPTY"
@@ -1404,8 +1408,9 @@ PU8(self) == /\ pc[self] = "PU8"
                               THEN /\ tptr' = nx[self]
                               ELSE /\ TRUE
                                    /\ tptr' = tptr
-                        /\ errs' = errs
-                   ELSE /\ errs' = (errs \cup Touch(tptr, Min2(tw.id, MaxSegs - 1)))
+                        /\ UNCHANGED << prot, errs >>
+                   ELSE /\ /\ errs' = (errs \cup Touch(tptr, Min2(tw.id, MaxSegs - 1)))
+                           /\ prot' = [prot EXCEPT ![self] = Reached(self, tptr .. Min2(tw.id, MaxSegs - 1))]
                         /\ tptr' = (IF tptr >= tw.id THEN tptr
                                     ELSE LET reach == {x \in tptr .. Min2(tw.id, MaxSegs - 1) : Linked(tptr, x)}
                                          IN CHOOSE x \in reach : \A y \in reach : y <= x)
@@ -1420,9 +1425,9 @@ PU8(self) == /\ pc[self] = "PU8"
                         /\ pc' = [pc EXCEPT ![self] = "PU1"]
                    ELSE /\ pc' = [pc EXCEPT ![self] = "PU2"]
                         /\ UNCHANGED << busy, done, k, lt, w, nx, before >>
-             /\ UNCHANGED << cst, cval, nxt, retired, freed, holders, prot, tw, 
-                             hw, hptr, opn, pos, claimsP, claimsC, took, said, 
-                             rv, stack, lh, hn, hs, lp, h0, t0, view, lh3, cw, 
+             /\ UNCHANGED << cst, cval, nxt, retired, freed, holders, tw, hw, 
+                             hptr, opn, pos, claimsP, claimsC, took, said, rv, 
+                             stack, lh, hn, hs, lp, h0, t0, view, lh3, cw, 
                              startTaken_, snapped, scan, lh4, h1, startTaken, 
                              n >>
 
