@@ -16,16 +16,21 @@
 set -uo pipefail
 here="$(cd "$(dirname "$0")" && pwd)"
 
-# Every configuration of every family as "family name seconds": the seconds its family's
-# tlc-run.txt recorded (close enough to a CI runner's for dealing out shares), or 60 when nothing
-# is recorded.
+# Every configuration of every family as "family name seconds": the seconds it took on a CI
+# runner as ci-seconds.txt records them (tools/tla-ci-seconds.sh writes it from a CI run), else
+# the seconds its family's tlc-run.txt recorded, else 60. CI's shares are dealt by these, and the
+# ratio of a CI runner's time to a local run's differs from family to family.
 costs() {
   local f
   for f in "$here"/*/EXPECTED.txt; do
-    awk -v fam="$(basename "$(dirname "$f")")" -v rec="$(dirname "$f")/tlc-run.txt" '
+    awk -v fam="$(basename "$(dirname "$f")")" -v rec="$(dirname "$f")/tlc-run.txt" \
+        -v ci="$here/ci-seconds.txt" '
       BEGIN {
         while ((getline l < rec) > 0) {
           split(l, c, /[ \t]+/); if (c[4] ~ /^[0-9]+$/) sec[c[1]] = c[4]
+        }
+        while ((getline l < ci) > 0) {
+          split(l, c, /[ \t]+/); if (c[1] !~ /^#/ && c[2] ~ /^[0-9]+$/) sec[c[1]] = c[2]
         }
       }
       !/^#/ && NF {
