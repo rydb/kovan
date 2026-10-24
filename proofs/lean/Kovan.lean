@@ -1,9 +1,11 @@
+import Kovan.Atom
 import Kovan.FlushExit
 import Kovan.HopscotchShrink
 import Kovan.HopscotchShrinkThreads
 import Kovan.Magazine
 import Kovan.Recycle
 import Kovan.SegQueue
+import Kovan.Stm
 
 /-!
 # The Lean proofs of kovan

@@ -283,6 +283,32 @@ rings' `turn_of`, `wrapping_sub` and the signs `push` and `pop` branch on, `ROUN
 | `carve_rises` | blocks carved from a chunk one after another lie at rising addresses |
 | `magazines_hold_at_most`, `class_bound`, `bound_for_64_byte_nodes` | the blocks per thread and in the depot of one class, and the crate docs' numbers for 64-byte nodes |
 
+`Kovan/Atom.lean`, a model of `kovan/src/atom.rs` (`AtomNode`'s layout, `val_ptr`, the pointer
+compare of `compare_and_swap`) and of the birth-epoch rule of `kovan/src/guard.rs` (`enqueue_node`'s
+batch birth, `try_retire`'s skip, `current_birth_epoch`).
+
+| theorem | what it says |
+|---------|--------------|
+| `alignUp_ge`, `alignUp_dvd`, `value_after_header`, `node_holds_value`, `valOffset_eq` | the value sits after the 40-byte header, aligned, wholly inside the node (at 40 for an alignment of at most 8, at 48 for 16) |
+| `node_takes_a_class` | a node of a value up to the largest class takes a magazine class |
+| `valPtr_eq_iff` | comparing two value pointers is comparing the nodes |
+| `lowerBirth_eq_min`, `foldl_lower_le_init`, `foldl_lower_le_mem`, `batchBirth_le`, `foldl_lower_ge` | a batch's birth is the least birth of its nodes |
+| `not_skipped`, `unconditional_not_skipped` | a slot at or past one node's birth is not skipped for its batch; the unconditional reservation is skipped for none |
+| `cached_le_global`, `global_grows` | a thread's cached birth epoch is never above the global epoch, which only grows |
+| `reader_not_skipped`, `removed_node_not_skipped`, `cas_guard_not_skipped` | a reader of a node, the node a `Removed`'s drop retires, and `compare_and_swap`'s success guard are never skipped |
+| `fresh_stamp_skipped` | a stamp above a reader's epoch skips it (the rule before 6b1cb09): why the node keeps its own birth |
+
+`Kovan/Stm.lean`, a model of `kovan-stm/src/var.rs` (the lock word), `transaction.rs` (locking,
+unlocking, the version checks) and `lib.rs` (the clock).
+
+| theorem | what it says |
+|---------|--------------|
+| `and_one`, `and_notOne`, `decode_pack` | `val & 1` is the lock bit and `val & !1` the version, for an even version |
+| `store_unlocked`, `lock_word`, `cas_locks`, `unlock_keeps_version`, `unlocked_word_is_version` | a published version is unlocked, the lock's compare-and-swap and the unlock keep the version, and an unlocked word is its version |
+| `clock_even`, `clock_no_wrap`, `clock_grows`, `write_version`, `clock_wraps` | the clock stays even, grows without wrapping for `2^63` fetch-adds, and then wraps to 0 |
+| `retry_iff_later`, `newer_iff` | a load retries on a version exactly when that commit's fetch-add came after the load's read of the clock |
+| `rank_cons_lt`, `rank_cons_ge`, `rank_mono`, `rank_lt`, `rank_lt_iff`, `rank_eq_iff` | renaming the numbers in use to their ranks keeps every comparison, as the TLA+ model does |
+
 ## How to check it
 
 The toolchain is pinned in `lean-toolchain` (Lean 4 v4.35.0, core Lean only: no Mathlib, no

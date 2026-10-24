@@ -1,8 +1,9 @@
 # TLA+ models of kovan
 
-Six models, each at the grain of its code's atomic steps, checked by TLC: kovan's memory
-reclamation (the `kovan` crate) and its magazine cache and slab layer (the `recycle` feature), the
-two concurrent maps of `kovan-map` and the segment queue of `kovan-queue`. Each carries the defects fixed so far as mutations, one at a time (the maps' 0.1.20
+Eight models, each at the grain of its code's atomic steps, checked by TLC: kovan's memory
+reclamation (the `kovan` crate), its `Atom`, and its magazine cache and slab layer (the `recycle`
+feature), the two concurrent maps of `kovan-map`, the segment queue of `kovan-queue` and the
+software transactional memory of `kovan-stm`. Each carries the defects fixed so far as mutations, one at a time (the maps' 0.1.20
 rules and the fixes merged into this branch, the reclamation's 0.1.21 rules and the later defects
 this branch fixed, the segment queue's earlier pop): TLC finds a counterexample for every one, and
 none for the code as built.
@@ -15,6 +16,8 @@ none for the code as built.
 | [`segqueue/`](segqueue/README.md) | `kovan_queue::SegQueue`: the two claim words and segment pointers, the push's fetch-add claim and the cell's compare-and-swap, the link of a successor holding the linking push's value, the tail word's and pointer's advance, the pop's view of the two words, its fetch-add claim and swap (a cell still being written taken out of play), the `try_pop` claim by compare-and-swap and its `Busy` answer, the drained head segment's successor found, the head's walk that moves the tail pointer off a segment before retiring it, and kovan freeing a retired segment after its holders | `just tla segqueue` (about 25 minutes in the recorded run, on 4 workers) |
 | [`magazine/`](magazine/README.md) | the `recycle` feature's magazine cache for one class: each thread's loaded and previous magazines and their swaps, the depot's two Vyukov rings at their atomic steps (ticket, turn word, the ticket's compare-and-swap, the magazine, the published turn), the refill from the layer below, the hand-off of a full or empty magazine and the release of one the depot has no room for, a thread's exit | `just tla magazine` |
 | [`slab/`](slab/README.md) | the slab layer under the magazine cache: an owner's chunks, its free lists and its spare chunk, the inbox other threads push blocks on, the owner's drain, its exit (the counts, the close and its count-downs), the last block back freeing an orphaned chunk and the inbox | `just tla slab` |
+| [`atom/`](atom/README.md) | `kovan::Atom` and `AtomOption`: the pointer word, nodes at addresses that can be reused, load, store, `swap` and `take` with the `Removed` that reads the value in its node, `compare_and_swap` and its success guard, `rcu`'s retry loop, `into_inner` and `Drop`, over the reclamation's birth-epoch rule; one object per value, drop once, no use after free, no leak, linearizability, lock-free `rcu`; the 0.1.22 copy in `Removed` and six other defects as mutations | `just tla atom` |
+| [`stm/`](stm/README.md) | `kovan_stm`: the lock words, the version clock, a load's validation (a repeat load too), the commit's locking, clock, read-set validation, publication and unlocking, rollback and commit hooks, the drops and retires of values and variables; serializability, opacity, all-or-none, drop once, no use after free, no leak, termination; the 0.1.22 re-read and four other defects as mutations | `just tla stm` |
 
 Each family's README describes its model, what it leaves out and why, its properties, its
 configurations, its code map and its TLC results.
