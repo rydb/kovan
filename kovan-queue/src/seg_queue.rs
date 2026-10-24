@@ -6,9 +6,10 @@
 //! The queue is a linked list of segments of 32 cells (`SEGMENT_SIZE`). Each
 //! end of the queue, the tail where pushes work and the head where pops
 //! work, is a claim word and a segment pointer. A claim word packs a segment
-//! id and an index: one fetch-add on it claims cell `index` of segment `id`,
-//! for that thread alone, and an index past the segment's end says the
-//! segment is full (at the tail) or drained (at the head).
+//! id and an index: a push's fetch-add, or a pop's compare-and-swap, claims
+//! cell `index` of segment `id` for that thread alone, and an index at or
+//! past the segment's end says the segment is full (at the tail) or drained
+//! (at the head).
 //!
 //! - A push claims a cell with one fetch-add on the tail word, writes its
 //!   value into the cell and publishes it with one compare-and-swap of the
@@ -17,14 +18,15 @@
 //!   compare-and-swap of `next`), then moves the tail word to the successor's
 //!   second cell; when another push linked a successor first, it moves the
 //!   word there and tries again.
-//! - A pop claims a cell with one fetch-add on the head word and swaps the
-//!   cell's state to `TAKEN`. If the state was `FULL` it returns the value.
-//!   If it was `EMPTY`, the cell's push has claimed it but not written yet (or
-//!   no push has claimed it): the swap takes the cell out of play, that push's
-//!   compare-and-swap fails and it pushes again at a later index, and the pop
-//!   claims the next cell. Before claiming, a pop reads both words: when every
-//!   index pushes claimed is claimed by pops too and no successor can exist,
-//!   the queue is empty and the pop returns without claiming. When every cell
+//! - A pop reads both words, walks to the cell the head word names, claims
+//!   it with a compare-and-swap of the head word from that very word, and
+//!   swaps the cell's state to `TAKEN`. If the state was `FULL` it returns the
+//!   value. If it was `EMPTY`, the cell's push has claimed it but not written
+//!   yet: the swap takes the cell out of play, that push's compare-and-swap
+//!   fails and it pushes again at a later index, and the pop claims the next
+//!   cell. A pop claims only a cell a push claimed: when every index pushes
+//!   claimed is claimed by pops too and no successor can exist, the queue is
+//!   empty and the pop returns without claiming. When every cell
 //!   of the head segment is claimed and a successor exists, the pop moves the
 //!   head word to the successor, then the pointers (the tail pointer first,
 //!   so neither end points at the old segment), and the pop whose
@@ -33,13 +35,17 @@
 //! The words move first and the pointers follow, so a pointer is never past
 //! its word's segment (except the tail pointer, which a pop may move one
 //! segment past a tail word that is being moved): a thread loads the pointer,
-//! then claims through the word, and walks forward from the pointer to the
-//! segment its claim names.
+//! then reads or claims through the word, and walks forward from the pointer
+//! to the segment the word names, each step checked against the head pointer
+//! (see Memory reclamation).
 //!
 //! This is the segmented infinite-array design of the queues built on
 //! fetch-add (Morrison and Afek's LCRQ, Correia and Ramalhete's
 //! FAAArrayQueue), with the claim words packed as in the established segment
-//! queues and kovan's memory reclamation. The earlier design scanned each
+//! queues and kovan's memory reclamation; the pops claim by compare-and-swap
+//! because kovan protects a segment only for a guard that reached it while it
+//! was reachable, and a fetch-add claim can name a segment the head moves
+//! past before the pop reaches it. The earlier design scanned each
 //! segment from its first slot for the first written one and passed over a
 //! slot still being written, so a pop could return a producer's second value
 //! before its first; claiming cells by index makes the order of the indices
@@ -76,8 +82,10 @@
 //!   completes with that very step: nothing can take a cell of a segment that
 //!   is not linked yet.
 //! - [`SegQueue::pop`] is lock-free and never waits for a stopped producer:
-//!   a claimed cell whose value has not landed is re-read a bounded number of
-//!   times (`PATIENCE`), then taken out of play.
+//!   it claims the next cell with a compare-and-swap of the head word once it
+//!   has found the cell (a claim retries only when another pop claimed it
+//!   first), and a cell whose value has not landed is re-read a bounded
+//!   number of times (`PATIENCE`), then taken out of play.
 //! - [`SegQueue::try_pop`] never waits and never takes a cell out of play: it
 //!   answers [`TryPopError::Busy`] when the next cell is claimed and not yet
 //!   written, so a consumer can register a waker and park until the
@@ -91,10 +99,14 @@
 //! # Memory reclamation
 //!
 //! A segment is retired through kovan once the head pointer moved past it,
-//! after the tail pointer did. A retired segment holds no value: every one of
-//! its cells was claimed by a pop, which takes the value or takes the cell
-//! out of play while it is pinned, and kovan frees the segment only after
-//! those pins. So a retired segment is freed through a type-erased header
+//! after the tail pointer did. kovan keeps it allocated for every guard that
+//! loaded it while it was reachable, so a walk from one segment to the next
+//! checks each successor against the head pointer before it steps onto it (a
+//! successor loaded from a segment already passed may be retired too), and a
+//! pop claims a cell only once it has found it. A retired segment holds no
+//! value: every one of its cells was claimed by a pop, which takes the value
+//! or takes the cell out of play while it is pinned, and kovan frees the
+//! segment only after those pins. So a retired segment is freed through a type-erased header
 //! that knows only the segment's layout, and the queue needs no `T: 'static`
 //! bound (the proof is on the private `Header` type).
 
@@ -305,33 +317,6 @@ impl<T> Segment<T> {
     }
 }
 
-/// Walks from `seg` to the segment with id `id`, or `None` when `seg` is
-/// already past it. A thread loads an end's pointer before it reads or claims
-/// through the end's word, and a pointer is never moved past its word's
-/// segment before the word is, so the walk only goes forward over linked
-/// segments.
-fn locate<'g, T>(
-    mut seg: Shared<'g, Segment<T>>,
-    id: u64,
-    guard: &'g Guard,
-) -> Option<&'g Segment<T>> {
-    loop {
-        // SAFETY: never null (checked below for the successors), and the
-        // guard keeps every segment reachable from a loaded pointer allocated.
-        let s = unsafe { seg.deref() };
-        if s.id == id {
-            return Some(s);
-        }
-        if !behind(s.id, id) {
-            return None;
-        }
-        seg = s.next.load(SeqCst, guard);
-        if seg.is_null() {
-            return None;
-        }
-    }
-}
-
 /// Moves the value out of a cell this thread claimed, if it holds one.
 ///
 /// The swap to `TAKEN` decides the cell: a value already there is ours, and
@@ -485,12 +470,10 @@ impl<T> SegQueue<T> {
             let w = self.tail.word.fetch_add(1, SeqCst);
             let (s, i) = (id_of(w), index_of(w));
             if i < SEGMENT_SIZE as u64 {
-                let Some(seg) = locate(tail, s, &guard) else {
-                    // Not reached: a claim of a cell names a linked segment at
-                    // or past the pointer loaded before it. Were it reached,
-                    // the cell would stay empty and the pop claiming it would
-                    // take it out of play: the value is still ours.
-                    debug_assert!(false, "a claimed cell's segment is not linked");
+                let Some(seg) = self.locate(tail, s, &guard) else {
+                    // The head pointer passed the segment: every cell of it,
+                    // this one too, was claimed by a pop, which took this one
+                    // out of play as it was empty. The value is still ours.
                     continue;
                 };
                 if !ptr::eq(seg, tail.as_raw()) {
@@ -517,7 +500,7 @@ impl<T> SegQueue<T> {
                 continue;
             }
             // Segment `s` is full.
-            let Some(seg) = locate(tail, s, &guard) else {
+            let Some(seg) = self.locate(tail, s, &guard) else {
                 // A pop moved the tail pointer past `s`, onto the successor:
                 // the word follows it.
                 self.advance_tail_word(s);
@@ -625,6 +608,49 @@ impl<T> SegQueue<T> {
         }
     }
 
+    /// Walks from `seg`, loaded from an end, to the segment with id `id`, or
+    /// `None` when it is gone: `seg` already past it, or the head pointer moved
+    /// past it, or not linked yet. A thread loads an end's pointer before it
+    /// reads or claims through the end's word, so the walk goes forward.
+    ///
+    /// kovan keeps a segment allocated for this guard only when the guard
+    /// loaded it while it was reachable. A successor loaded from a segment the
+    /// head has passed may itself be retired by then, and freed before this
+    /// guard ends, so every step is checked: the head pointer moves off a
+    /// segment before the segment is retired, and a successor the head
+    /// pointer has not passed after its load was reachable at the load. Past
+    /// it, the walk goes on from the head pointer.
+    fn locate<'g>(
+        &self,
+        mut seg: Shared<'g, Segment<T>>,
+        id: u64,
+        guard: &'g Guard,
+    ) -> Option<&'g Segment<T>> {
+        loop {
+            // SAFETY: never null (the successors are checked below), and
+            // loaded from an end, or from a link checked below to name a
+            // segment reachable at the load: kept allocated by the guard.
+            let s = unsafe { seg.deref() };
+            if s.id == id {
+                return Some(s);
+            }
+            if !behind(s.id, id) {
+                return None;
+            }
+            let next = s.next.load(SeqCst, guard);
+            if next.is_null() {
+                return None;
+            }
+            let head = self.head.seg.load(SeqCst, guard);
+            // SAFETY: loaded from the head end, reachable at the load.
+            seg = if behind(next_id(s.id), unsafe { head.deref() }.id) {
+                head
+            } else {
+                next
+            };
+        }
+    }
+
     /// The head word and what the two words say, read without a guard: the
     /// words are in the queue itself, never freed while it lives.
     fn view(&self) -> (u64, View) {
@@ -641,7 +667,7 @@ impl<T> SegQueue<T> {
     /// is already past the segment, another pop moved the head on.
     fn drained(&self, head: Shared<'_, Segment<T>>, hw: u64, guard: &Guard) -> bool {
         let s = id_of(hw);
-        let Some(seg) = locate(head, s, guard) else {
+        let Some(seg) = self.locate(head, s, guard) else {
             return false;
         };
         let next = seg.next.load(SeqCst, guard);
@@ -710,13 +736,15 @@ impl<T> SegQueue<T> {
     /// call. Never waits for a producer: a cell whose producer has claimed it
     /// but not written is taken out of play, and that producer pushes again.
     pub fn pop(&self) -> Option<T> {
-        let (mut hw, mut view) = self.view();
-        if let View::Empty = view {
+        if let (_, View::Empty) = self.view() {
             return None;
         }
         let guard = pin();
         loop {
+            // The pointer first, then the words: the walk to the head word's
+            // segment goes forward.
             let head = self.head.seg.load(SeqCst, &guard);
+            let (hw, view) = self.view();
             match view {
                 View::Empty => return None,
                 View::Drained => {
@@ -725,30 +753,36 @@ impl<T> SegQueue<T> {
                     }
                 }
                 View::Claimed => {
-                    let w = self.head.word.fetch_add(1, SeqCst);
-                    let (s, d) = (id_of(w), index_of(w));
-                    // An index past the end: the segment is drained, which
-                    // the next view tells.
-                    if d < SEGMENT_SIZE as u64 {
-                        let seg = locate(head, s, &guard);
-                        // Always found: the pointer was loaded before the
-                        // claim, and a pointer is never past its word.
-                        debug_assert!(seg.is_some(), "a claimed cell's segment is not linked");
-                        if let Some(cell) = seg.and_then(|seg| seg.cells.get(d as usize)) {
-                            for _ in 0..PATIENCE {
-                                if cell.state.load(SeqCst) != EMPTY {
-                                    break;
-                                }
-                                spin_hint();
-                            }
-                            if let Some(value) = take(cell) {
-                                return Some(value);
-                            }
+                    // The cell is found before it is claimed, so the guard
+                    // holds its segment: a claim that a fetch-add made first
+                    // could name a segment the head moves past, and retires,
+                    // before the walk reaches it.
+                    let Some(cell) = self
+                        .locate(head, id_of(hw), &guard)
+                        .and_then(|seg| seg.cells.get(index_of(hw) as usize))
+                    else {
+                        // The head moved past `hw` meanwhile: look again.
+                        continue;
+                    };
+                    for _ in 0..PATIENCE {
+                        if cell.state.load(SeqCst) != EMPTY {
+                            break;
                         }
+                        spin_hint();
+                    }
+                    // Claim the cell only if it is still the next one; one
+                    // still empty is taken out of play by `take`.
+                    if self
+                        .head
+                        .word
+                        .compare_exchange(hw, hw + 1, SeqCst, SeqCst)
+                        .is_ok()
+                        && let Some(value) = take(cell)
+                    {
+                        return Some(value);
                     }
                 }
             }
-            (hw, view) = self.view();
         }
     }
 
@@ -788,7 +822,8 @@ impl<T> SegQueue<T> {
                     }
                 }
                 View::Claimed => {
-                    let Some(cell) = locate(head, id_of(hw), &guard)
+                    let Some(cell) = self
+                        .locate(head, id_of(hw), &guard)
                         .and_then(|seg| seg.cells.get(index_of(hw) as usize))
                     else {
                         // The head moved past `hw` meanwhile: look again.
