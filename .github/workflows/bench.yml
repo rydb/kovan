@@ -1,0 +1,53 @@
+name: Benchmarks
+
+# Run by hand. Each job measures one benchmark target of this tree against a baseline (by
+# default the last release) on one runner, with tools/bench-ab.py (bench.sh says how). The job
+# summary lists every case's change; a job fails when a case is slower in every round by more
+# than 5%. hopscotch_ops runs in eight jobs, one per key and hasher, single-threaded or not, so
+# that each job fits its ten minutes.
+on:
+  workflow_dispatch:
+    inputs:
+      baseline:
+        description: Release tag or commit to compare against
+        default: kovan-v0.1.22
+
+permissions:
+  contents: read
+
+jobs:
+  bench:
+    name: ${{ matrix.target }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - kovan/comparison
+          - kovan/throughput
+          - kovan-map/hopscotch
+          - 'kovan-map/hopscotch_ops:u64-fold(/10k|/1m)?$'
+          - 'kovan-map/hopscotch_ops:u64-fold/t'
+          - 'kovan-map/hopscotch_ops:u64-rapid(/10k|/1m)?$'
+          - 'kovan-map/hopscotch_ops:u64-rapid/t'
+          - 'kovan-map/hopscotch_ops:string-fold(/10k|/1m)?$'
+          - 'kovan-map/hopscotch_ops:string-fold/t'
+          - 'kovan-map/hopscotch_ops:string-rapid(/10k|/1m)?$'
+          - 'kovan-map/hopscotch_ops:string-rapid/t'
+          - kovan-map/perf
+          - kovan-queue/seg_queue
+          - kovan-channel/async_wake_latency
+          - kovan-channel/bounded_mpmc
+          - kovan-channel/bounded_spsc
+          - kovan-channel/unbounded_mpmc
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Benchmark against the baseline
+        env:
+          BASELINE: ${{ inputs.baseline }}
+          TARGET: ${{ matrix.target }}
+        run: bash .github/workflows/bench.sh "$TARGET"
