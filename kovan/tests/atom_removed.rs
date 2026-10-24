@@ -6,6 +6,7 @@ use kovan::{Atom, AtomOption};
 use std::sync::atomic::{AtomicU64, AtomicUsize, Ordering::SeqCst};
 use std::sync::{Arc, Barrier, Mutex, TryLockError, mpsc};
 use std::thread;
+use std::time::{Duration, Instant};
 
 #[test]
 fn swap_hands_back_the_object_a_reader_holds() {
@@ -53,6 +54,25 @@ impl Drop for Counted {
     }
 }
 
+/// Flushes until `n` values are dropped, as other tests' pins may hold the
+/// frees back for a while, and fails at a deadline; then checks that no more
+/// than `n` were.
+fn wait_for_drops(drops: &AtomicUsize, n: usize) {
+    let deadline = Instant::now() + Duration::from_secs(10);
+    let mut pause = Duration::from_micros(50);
+    while drops.load(SeqCst) < n {
+        assert!(
+            Instant::now() < deadline,
+            "only {} of {n} values dropped",
+            drops.load(SeqCst)
+        );
+        kovan::flush();
+        thread::sleep(pause);
+        pause = (pause * 2).min(Duration::from_millis(20));
+    }
+    assert_eq!(drops.load(SeqCst), n, "a value dropped twice");
+}
+
 #[test]
 fn a_removed_value_is_dropped_once() {
     let drops = Arc::new(AtomicUsize::new(0));
@@ -60,9 +80,7 @@ fn a_removed_value_is_dropped_once() {
     drop(atom.swap(Counted(drops.clone())));
     let opt = AtomOption::some(Counted(drops.clone()));
     drop(opt.take());
-    kovan::flush();
-    kovan::flush();
-    assert_eq!(drops.load(SeqCst), 2, "each removed value dropped once");
+    wait_for_drops(&drops, 2);
     drop(atom);
     drop(opt);
     assert_eq!(
