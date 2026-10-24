@@ -144,7 +144,8 @@ pub unsafe fn free_node<T>(node: *mut T) {
 /// As for [`retire`](crate::retire): `node` came from [`alloc_node`] for this
 /// `T`, a `#[repr(C)]` type whose first field is a
 /// [`RetiredNode`](crate::RetiredNode); it is unlinked; it is retired once and
-/// not used afterwards except through guards that were already pinned.
+/// not used afterwards except through pointers that guards loaded while it
+/// was reachable (see [`Atomic::load`](crate::Atomic::load)).
 #[inline]
 pub unsafe fn retire_node<T: 'static>(node: *mut T) {
     #[cfg(feature = "recycle")]

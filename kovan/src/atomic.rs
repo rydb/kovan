@@ -85,6 +85,15 @@ impl<T> Atomic<T> {
     /// the thread's slot era is updated so `try_retire()` counts this thread
     /// as protecting the loaded pointer's batch.
     ///
+    /// # Protection
+    ///
+    /// The guard keeps the node allocated until it is dropped when the node
+    /// was reachable at this load: linked, not yet retired. A pointer read out
+    /// of a node that may itself be retired already (the successor stored in a
+    /// node another thread unlinked) can name a node retired, and freed, since:
+    /// check that it is still reachable from a live location before using it,
+    /// as kovan-map's chain walks and kovan-queue's segment walk do.
+    ///
     /// Fast path cost: 1 atomic pointer load, 1 epoch load, 1 compare
     ///
     /// # Examples
