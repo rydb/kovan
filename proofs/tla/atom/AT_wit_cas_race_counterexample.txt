@@ -1,0 +1,483 @@
+Error: Invariant NoCasRaceW is violated.
+Error: The behavior up to this point is:
+State 1: <Initial predicate>
+/\ node = << [ st |-> "live",
+     ver |-> 0,
+     own |-> TRUE,
+     kind |-> "none",
+     val |-> 0,
+     birth |-> 1,
+     hold |-> {} ],
+   [ st |-> "free",
+     ver |-> -1,
+     own |-> FALSE,
+     kind |-> "none",
+     val |-> -2,
+     birth |-> 0,
+     hold |-> {} ],
+   [ st |-> "free",
+     ver |-> -1,
+     own |-> FALSE,
+     kind |-> "none",
+     val |-> -2,
+     birth |-> 0,
+     hold |-> {} ],
+   [ st |-> "free",
+     ver |-> -1,
+     own |-> FALSE,
+     kind |-> "none",
+     val |-> -2,
+     birth |-> 0,
+     hold |-> {} ] >>
+/\ lp = <<<<0, -1>>, <<0, -1>>, <<0, -1>>>>
+/\ cbirth = <<0, 0, 0>>
+/\ ag = <<<<0, -1>>, <<0, -1>>, <<0, -1>>>>
+/\ E = 1
+/\ nw = <<0, 0, 0>>
+/\ alive = TRUE
+/\ said = {}
+/\ cg = <<<<0, -1>>, <<0, -1>>, <<0, -1>>>>
+/\ wsince = <<FALSE, FALSE, FALSE>>
+/\ pc = (0 :> "RC1" @@ 1 :> "OP" @@ 2 :> "OP" @@ 3 :> "OP")
+/\ pinc = <<0, 0, 0>>
+/\ ep = <<<<0, -1>>, <<0, -1>>, <<0, -1>>>>
+/\ rem = << [v |-> -1, a |-> 0, copy |-> FALSE, b |-> 0],
+   [v |-> -1, a |-> 0, copy |-> FALSE, b |-> 0],
+   [v |-> -1, a |-> 0, copy |-> FALSE, b |-> 0] >>
+/\ errs = {}
+/\ vst = ( 0 :> "live" @@
+  11 :> "none" @@
+  12 :> "none" @@
+  13 :> "none" @@
+  14 :> "none" @@
+  15 :> "none" @@
+  16 :> "none" @@
+  21 :> "none" @@
+  31 :> "none" )
+/\ ix = <<1, 1, 1>>
+/\ mailbox = <<0, -1>>
+/\ era = <<0, 0, 0>>
+/\ seen = <<{}, {}, {}>>
+/\ cell = 1
+
+State 2: <OP line 738, col 13 to line 1071, col 51 of module Atom>
+/\ node = << [ st |-> "live",
+     ver |-> 0,
+     own |-> TRUE,
+     kind |-> "none",
+     val |-> 0,
+     birth |-> 1,
+     hold |-> {} ],
+   [ st |-> "free",
+     ver |-> -1,
+     own |-> FALSE,
+     kind |-> "none",
+     val |-> -2,
+     birth |-> 0,
+     hold |-> {} ],
+   [ st |-> "free",
+     ver |-> -1,
+     own |-> FALSE,
+     kind |-> "none",
+     val |-> -2,
+     birth |-> 0,
+     hold |-> {} ],
+   [ st |-> "free",
+     ver |-> -1,
+     own |-> FALSE,
+     kind |-> "none",
+     val |-> -2,
+     birth |-> 0,
+     hold |-> {} ] >>
+/\ lp = <<<<0, -1>>, <<0, -1>>, <<0, -1>>>>
+/\ cbirth = <<1, 0, 0>>
+/\ ag = <<<<0, -1>>, <<0, -1>>, <<0, -1>>>>
+/\ E = 1
+/\ nw = <<0, 0, 0>>
+/\ alive = TRUE
+/\ said = {}
+/\ cg = <<<<0, -1>>, <<0, -1>>, <<0, -1>>>>
+/\ wsince = <<FALSE, FALSE, FALSE>>
+/\ pc = (0 :> "RC1" @@ 1 :> "LD2" @@ 2 :> "OP" @@ 3 :> "OP")
+/\ pinc = <<1, 0, 0>>
+/\ ep = <<<<0, -1>>, <<0, -1>>, <<0, -1>>>>
+/\ rem = << [v |-> -1, a |-> 0, copy |-> FALSE, b |-> 0],
+   [v |-> -1, a |-> 0, copy |-> FALSE, b |-> 0],
+   [v |-> -1, a |-> 0, copy |-> FALSE, b |-> 0] >>
+/\ errs = {}
+/\ vst = ( 0 :> "live" @@
+  11 :> "none" @@
+  12 :> "none" @@
+  13 :> "none" @@
+  14 :> "none" @@
+  15 :> "none" @@
+  16 :> "none" @@
+  21 :> "none" @@
+  31 :> "none" )
+/\ ix = <<1, 1, 1>>
+/\ mailbox = <<0, -1>>
+/\ era = <<1, 0, 0>>
+/\ seen = <<{0}, {}, {}>>
+/\ cell = 1
+
+State 3: <LD2 line 1073, col 14 to line 1092, col 47 of module Atom>
+/\ node = << [ st |-> "live",
+     ver |-> 0,
+     own |-> TRUE,
+     kind |-> "none",
+     val |-> 0,
+     birth |-> 1,
+     hold |-> {} ],
+   [ st |-> "free",
+     ver |-> -1,
+     own |-> FALSE,
+     kind |-> "none",
+     val |-> -2,
+     birth |-> 0,
+     hold |-> {} ],
+   [ st |-> "free",
+     ver |-> -1,
+     own |-> FALSE,
+     kind |-> "none",
+     val |-> -2,
+     birth |-> 0,
+     hold |-> {} ],
+   [ st |-> "free",
+     ver |-> -1,
+     own |-> FALSE,
+     kind |-> "none",
+     val |-> -2,
+     birth |-> 0,
+     hold |-> {} ] >>
+/\ lp = <<<<0, -1>>, <<0, -1>>, <<0, -1>>>>
+/\ cbirth = <<1, 0, 0>>
+/\ ag = <<<<1, 0>>, <<0, -1>>, <<0, -1>>>>
+/\ E = 1
+/\ nw = <<0, 0, 0>>
+/\ alive = TRUE
+/\ said = {}
+/\ cg = <<<<0, -1>>, <<0, -1>>, <<0, -1>>>>
+/\ wsince = <<FALSE, FALSE, FALSE>>
+/\ pc = (0 :> "RC1" @@ 1 :> "OP" @@ 2 :> "OP" @@ 3 :> "OP")
+/\ pinc = <<1, 0, 0>>
+/\ ep = <<<<0, -1>>, <<0, -1>>, <<0, -1>>>>
+/\ rem = << [v |-> -1, a |-> 0, copy |-> FALSE, b |-> 0],
+   [v |-> -1, a |-> 0, copy |-> FALSE, b |-> 0],
+   [v |-> -1, a |-> 0, copy |-> FALSE, b |-> 0] >>
+/\ errs = {}
+/\ vst = ( 0 :> "live" @@
+  11 :> "none" @@
+  12 :> "none" @@
+  13 :> "none" @@
+  14 :> "none" @@
+  15 :> "none" @@
+  16 :> "none" @@
+  21 :> "none" @@
+  31 :> "none" )
+/\ ix = <<2, 1, 1>>
+/\ mailbox = <<0, -1>>
+/\ era = <<1, 0, 0>>
+/\ seen = <<{}, {}, {}>>
+/\ cell = 1
+
+State 4: <OP line 738, col 13 to line 1071, col 51 of module Atom>
+/\ node = << [ st |-> "live",
+     ver |-> 0,
+     own |-> TRUE,
+     kind |-> "none",
+     val |-> 0,
+     birth |-> 1,
+     hold |-> {} ],
+   [ st |-> "live",
+     ver |-> 12,
+     own |-> TRUE,
+     kind |-> "none",
+     val |-> 12,
+     birth |-> 1,
+     hold |-> {} ],
+   [ st |-> "free",
+     ver |-> -1,
+     own |-> FALSE,
+     kind |-> "none",
+     val |-> -2,
+     birth |-> 0,
+     hold |-> {} ],
+   [ st |-> "free",
+     ver |-> -1,
+     own |-> FALSE,
+     kind |-> "none",
+     val |-> -2,
+     birth |-> 0,
+     hold |-> {} ] >>
+/\ lp = <<<<0, -1>>, <<0, -1>>, <<0, -1>>>>
+/\ cbirth = <<1, 0, 0>>
+/\ ag = <<<<1, 0>>, <<0, -1>>, <<0, -1>>>>
+/\ E = 1
+/\ nw = <<2, 0, 0>>
+/\ alive = TRUE
+/\ said = {}
+/\ cg = <<<<0, -1>>, <<0, -1>>, <<0, -1>>>>
+/\ wsince = <<FALSE, FALSE, FALSE>>
+/\ pc = (0 :> "RC1" @@ 1 :> "CS2" @@ 2 :> "OP" @@ 3 :> "OP")
+/\ pinc = <<2, 0, 0>>
+/\ ep = <<<<0, -1>>, <<0, -1>>, <<0, -1>>>>
+/\ rem = << [v |-> -1, a |-> 0, copy |-> FALSE, b |-> 0],
+   [v |-> -1, a |-> 0, copy |-> FALSE, b |-> 0],
+   [v |-> -1, a |-> 0, copy |-> FALSE, b |-> 0] >>
+/\ errs = {}
+/\ vst = ( 0 :> "live" @@
+  11 :> "none" @@
+  12 :> "live" @@
+  13 :> "none" @@
+  14 :> "none" @@
+  15 :> "none" @@
+  16 :> "none" @@
+  21 :> "none" @@
+  31 :> "none" )
+/\ ix = <<2, 1, 1>>
+/\ mailbox = <<0, -1>>
+/\ era = <<1, 0, 0>>
+/\ seen = <<{}, {}, {}>>
+/\ cell = 1
+
+State 5: <CS2 line 1217, col 14 to line 1236, col 47 of module Atom>
+/\ node = << [ st |-> "live",
+     ver |-> 0,
+     own |-> TRUE,
+     kind |-> "none",
+     val |-> 0,
+     birth |-> 1,
+     hold |-> {} ],
+   [ st |-> "live",
+     ver |-> 12,
+     own |-> TRUE,
+     kind |-> "none",
+     val |-> 12,
+     birth |-> 1,
+     hold |-> {} ],
+   [ st |-> "free",
+     ver |-> -1,
+     own |-> FALSE,
+     kind |-> "none",
+     val |-> -2,
+     birth |-> 0,
+     hold |-> {} ],
+   [ st |-> "free",
+     ver |-> -1,
+     own |-> FALSE,
+     kind |-> "none",
+     val |-> -2,
+     birth |-> 0,
+     hold |-> {} ] >>
+/\ lp = <<<<1, 0>>, <<0, -1>>, <<0, -1>>>>
+/\ cbirth = <<1, 0, 0>>
+/\ ag = <<<<1, 0>>, <<0, -1>>, <<0, -1>>>>
+/\ E = 1
+/\ nw = <<2, 0, 0>>
+/\ alive = TRUE
+/\ said = {}
+/\ cg = <<<<0, -1>>, <<0, -1>>, <<0, -1>>>>
+/\ wsince = <<FALSE, FALSE, FALSE>>
+/\ pc = (0 :> "RC1" @@ 1 :> "CS3" @@ 2 :> "OP" @@ 3 :> "OP")
+/\ pinc = <<2, 0, 0>>
+/\ ep = <<<<0, -1>>, <<0, -1>>, <<0, -1>>>>
+/\ rem = << [v |-> -1, a |-> 0, copy |-> FALSE, b |-> 0],
+   [v |-> -1, a |-> 0, copy |-> FALSE, b |-> 0],
+   [v |-> -1, a |-> 0, copy |-> FALSE, b |-> 0] >>
+/\ errs = {}
+/\ vst = ( 0 :> "live" @@
+  11 :> "none" @@
+  12 :> "live" @@
+  13 :> "none" @@
+  14 :> "none" @@
+  15 :> "none" @@
+  16 :> "none" @@
+  21 :> "none" @@
+  31 :> "none" )
+/\ ix = <<2, 1, 1>>
+/\ mailbox = <<0, -1>>
+/\ era = <<1, 0, 0>>
+/\ seen = <<{}, {}, {}>>
+/\ cell = 1
+
+State 6: <OP line 738, col 13 to line 1071, col 51 of module Atom>
+/\ node = << [ st |-> "live",
+     ver |-> 0,
+     own |-> TRUE,
+     kind |-> "none",
+     val |-> 0,
+     birth |-> 1,
+     hold |-> {} ],
+   [ st |-> "live",
+     ver |-> 12,
+     own |-> TRUE,
+     kind |-> "none",
+     val |-> 12,
+     birth |-> 1,
+     hold |-> {} ],
+   [ st |-> "live",
+     ver |-> 31,
+     own |-> TRUE,
+     kind |-> "none",
+     val |-> 31,
+     birth |-> 1,
+     hold |-> {} ],
+   [ st |-> "free",
+     ver |-> -1,
+     own |-> FALSE,
+     kind |-> "none",
+     val |-> -2,
+     birth |-> 0,
+     hold |-> {} ] >>
+/\ lp = <<<<1, 0>>, <<0, -1>>, <<0, -1>>>>
+/\ cbirth = <<1, 0, 1>>
+/\ ag = <<<<1, 0>>, <<0, -1>>, <<0, -1>>>>
+/\ E = 1
+/\ nw = <<2, 0, 3>>
+/\ alive = TRUE
+/\ said = {}
+/\ cg = <<<<0, -1>>, <<0, -1>>, <<0, -1>>>>
+/\ wsince = <<FALSE, FALSE, FALSE>>
+/\ pc = (0 :> "RC1" @@ 1 :> "CS3" @@ 2 :> "OP" @@ 3 :> "ST2")
+/\ pinc = <<2, 0, 1>>
+/\ ep = <<<<0, -1>>, <<0, -1>>, <<0, -1>>>>
+/\ rem = << [v |-> -1, a |-> 0, copy |-> FALSE, b |-> 0],
+   [v |-> -1, a |-> 0, copy |-> FALSE, b |-> 0],
+   [v |-> -1, a |-> 0, copy |-> FALSE, b |-> 0] >>
+/\ errs = {}
+/\ vst = ( 0 :> "live" @@
+  11 :> "none" @@
+  12 :> "live" @@
+  13 :> "none" @@
+  14 :> "none" @@
+  15 :> "none" @@
+  16 :> "none" @@
+  21 :> "none" @@
+  31 :> "live" )
+/\ ix = <<2, 1, 1>>
+/\ mailbox = <<0, -1>>
+/\ era = <<1, 0, 1>>
+/\ seen = <<{}, {}, {}>>
+/\ cell = 1
+
+State 7: <ST2 line 1113, col 14 to line 1122, col 68 of module Atom>
+/\ node = << [ st |-> "live",
+     ver |-> 0,
+     own |-> TRUE,
+     kind |-> "none",
+     val |-> 0,
+     birth |-> 1,
+     hold |-> {} ],
+   [ st |-> "live",
+     ver |-> 12,
+     own |-> TRUE,
+     kind |-> "none",
+     val |-> 12,
+     birth |-> 1,
+     hold |-> {} ],
+   [ st |-> "live",
+     ver |-> 31,
+     own |-> TRUE,
+     kind |-> "none",
+     val |-> 31,
+     birth |-> 1,
+     hold |-> {} ],
+   [ st |-> "free",
+     ver |-> -1,
+     own |-> FALSE,
+     kind |-> "none",
+     val |-> -2,
+     birth |-> 0,
+     hold |-> {} ] >>
+/\ lp = <<<<1, 0>>, <<0, -1>>, <<1, 0>>>>
+/\ cbirth = <<1, 0, 1>>
+/\ ag = <<<<1, 0>>, <<0, -1>>, <<0, -1>>>>
+/\ E = 1
+/\ nw = <<2, 0, 3>>
+/\ alive = TRUE
+/\ said = {}
+/\ cg = <<<<0, -1>>, <<0, -1>>, <<0, -1>>>>
+/\ wsince = <<FALSE, FALSE, FALSE>>
+/\ pc = (0 :> "RC1" @@ 1 :> "CS3" @@ 2 :> "OP" @@ 3 :> "ST3")
+/\ pinc = <<2, 0, 1>>
+/\ ep = <<<<0, -1>>, <<0, -1>>, <<0, -1>>>>
+/\ rem = << [v |-> -1, a |-> 0, copy |-> FALSE, b |-> 0],
+   [v |-> -1, a |-> 0, copy |-> FALSE, b |-> 0],
+   [v |-> -1, a |-> 0, copy |-> FALSE, b |-> 0] >>
+/\ errs = {}
+/\ vst = ( 0 :> "live" @@
+  11 :> "none" @@
+  12 :> "live" @@
+  13 :> "none" @@
+  14 :> "none" @@
+  15 :> "none" @@
+  16 :> "none" @@
+  21 :> "none" @@
+  31 :> "live" )
+/\ ix = <<2, 1, 1>>
+/\ mailbox = <<0, -1>>
+/\ era = <<1, 0, 1>>
+/\ seen = <<{}, {}, {}>>
+/\ cell = 3
+
+State 8: <CS3 line 1238, col 14 to line 1259, col 75 of module Atom>
+/\ node = << [ st |-> "live",
+     ver |-> 0,
+     own |-> TRUE,
+     kind |-> "none",
+     val |-> 0,
+     birth |-> 1,
+     hold |-> {} ],
+   [ st |-> "free",
+     ver |-> 12,
+     own |-> FALSE,
+     kind |-> "none",
+     val |-> 12,
+     birth |-> 1,
+     hold |-> {} ],
+   [ st |-> "live",
+     ver |-> 31,
+     own |-> TRUE,
+     kind |-> "none",
+     val |-> 31,
+     birth |-> 1,
+     hold |-> {} ],
+   [ st |-> "free",
+     ver |-> -1,
+     own |-> FALSE,
+     kind |-> "none",
+     val |-> -2,
+     birth |-> 0,
+     hold |-> {} ] >>
+/\ lp = <<<<0, -1>>, <<0, -1>>, <<1, 0>>>>
+/\ cbirth = <<1, 0, 1>>
+/\ ag = <<<<1, 0>>, <<0, -1>>, <<0, -1>>>>
+/\ E = 1
+/\ nw = <<0, 0, 3>>
+/\ alive = TRUE
+/\ said = {"cas_err_race"}
+/\ cg = <<<<0, -1>>, <<0, -1>>, <<0, -1>>>>
+/\ wsince = <<FALSE, FALSE, FALSE>>
+/\ pc = (0 :> "RC1" @@ 1 :> "OP" @@ 2 :> "OP" @@ 3 :> "ST3")
+/\ pinc = <<1, 0, 1>>
+/\ ep = <<<<0, -1>>, <<0, -1>>, <<0, -1>>>>
+/\ rem = << [v |-> -1, a |-> 0, copy |-> FALSE, b |-> 0],
+   [v |-> -1, a |-> 0, copy |-> FALSE, b |-> 0],
+   [v |-> -1, a |-> 0, copy |-> FALSE, b |-> 0] >>
+/\ errs = {}
+/\ vst = ( 0 :> "live" @@
+  11 :> "none" @@
+  12 :> "dropped" @@
+  13 :> "none" @@
+  14 :> "none" @@
+  15 :> "none" @@
+  16 :> "none" @@
+  21 :> "none" @@
+  31 :> "live" )
+/\ ix = <<3, 1, 1>>
+/\ mailbox = <<0, -1>>
+/\ era = <<1, 0, 1>>
+/\ seen = <<{}, {}, {}>>
+/\ cell = 3
+
+492 states generated, 343 distinct states found, 195 states left on queue.
