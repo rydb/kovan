@@ -221,6 +221,13 @@ impl<T: Send + Sync + 'static + fmt::Display> fmt::Display for Removed<T> {
     }
 }
 
+// The wrapper is its value to unwinding code, as when it held the value inline.
+impl<T: Send + Sync + 'static + core::panic::UnwindSafe> core::panic::UnwindSafe for Removed<T> {}
+impl<T: Send + Sync + 'static + core::panic::RefUnwindSafe> core::panic::RefUnwindSafe
+    for Removed<T>
+{
+}
+
 // SAFETY: the value is only reached through `&T`, as readers on other
 // threads reach it (`T: Sync`), and whichever thread drops the wrapper
 // retires the node, so `T`'s destructor may run on another thread (`T: Send`).
