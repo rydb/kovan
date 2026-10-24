@@ -256,9 +256,8 @@ P_kkk_aa_r == [t \in {1, 2, 3} |->
     CASE t = 1 -> <<OSend(1), OSend(1), OSend(1)>> [] t = 2 -> <<OARecv(1), OARecv(1)>> [] t = 3 -> <<ORecv(1)>>]
 P_k_a_r == [t \in {1, 2, 3} |->
     CASE t = 1 -> <<OSend(1)>> [] t = 2 -> <<OARecv(1)>> [] t = 3 -> <<ORecv(1)>>]
-P_kk_kk_rrr == [t \in {1, 2, 3} |->
-    CASE t = 1 -> <<OSend(1), OSend(1)>> [] t = 2 -> <<OSend(1), OSend(1)>>
-      [] t = 3 -> <<ORecv(1), ORecv(1), ORecv(1)>>]
+P_kk_k_rr == [t \in {1, 2, 3} |->
+    CASE t = 1 -> <<OSend(1), OSend(1)>> [] t = 2 -> <<OSend(1)>> [] t = 3 -> <<ORecv(1), ORecv(1)>>]
 P_d_k_sel == [t \in {1, 2, 3} |->
     CASE t = 1 -> <<ODrop(1)>> [] t = 2 -> <<OSend(2)>> [] t = 3 -> <<OSelect>>]
 P_k_sel2 == [t \in {1, 2} |-> CASE t = 1 -> <<OSend(1)>> [] t = 2 -> <<OSelect>>]

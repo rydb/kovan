@@ -127,7 +127,8 @@ MutNoSkip == Mutation = "no_stale_skip"
 \* no_self_notify: a recv whose re-check found a message leaves its own entry live in the wait
 \* list (NoLostWakeup).
 MutNoSelf == Mutation = "no_self_notify"
-\* unpark_before_store: Signal::notify unparks the thread before it stores the state (NoLostWakeup).
+\* unpark_before_store: Signal::notify, and the wake of notify_one's try_notify, unpark the thread
+\* before they store the state (NoLostWakeup).
 MutUnparkFirst == Mutation = "unpark_before_store"
 \* aw_no_redeliver: AtomicWaker::register whose hand-back compare-and-swap finds a wake raced it
 \* resets the state without waking the waker itself (NoLostWakeup).
@@ -334,11 +335,21 @@ end macro;
 procedure Notify(ns, nstore)
 variables wk = FALSE;
 begin
-NT1: \* state.store(1) (unpark_before_store: the unpark first); after try_notify's compare-and-swap
-     \* (nstore FALSE) the state is set already
+NT1: \* state.store(1) (unpark_before_store: the unpark first); after try_notify's won
+     \* compare-and-swap (nstore FALSE) the state is set already, and this step is the unpark, or
+     \* AtomicWaker::take's fetch_or (TK1's)
     popd[self] := 0;
     if ~nstore then
-        skip;
+        if skind[ns] = "thread" then
+            token[sown[ns]] := TRUE;
+            return;
+        elsif aws[ns] = 0 \/ MutTakeAny then
+            aws[ns] := IF aws[ns] >= 2 THEN aws[ns] ELSE aws[ns] + 2 || incell[ns] := incell[ns] \cup {self};
+            goto TK2;
+        else
+            aws[ns] := IF aws[ns] >= 2 THEN aws[ns] ELSE aws[ns] + 2;
+            return;
+        end if;
     elsif MutUnparkFirst /\ skind[ns] = "thread" then
         token[sown[ns]] := TRUE;
     else
@@ -438,11 +449,12 @@ NO1: \* SegQueue::pop
     end if;
 NO2: \* try_notify(): the compare-and-swap from waiting to notified, then the unpark or the wake; a
      \* stale entry (notified, or cancelled by its owner) passed over (check_then_notify: is_notified,
-     \* then notify() in a later step; no_stale_skip: notify() whatever the state)
+     \* then notify() in a later step; no_stale_skip: notify() whatever the state; unpark_before_store:
+     \* the unpark, then the store)
     if sst[popd[self]] # 0 /\ ~MutNoSkip then
         said := said \cup Say("skip");
         goto NO1;
-    elsif MutCheckNotify \/ MutNoSkip then
+    elsif MutCheckNotify \/ MutNoSkip \/ MutUnparkFirst then
         call Notify(popd[self], TRUE);
         return;
     else
@@ -1295,8 +1307,8 @@ TD4:
 end process;
 
 end algorithm; *)
-\* BEGIN TRANSLATION (chksum(pcal) = "95dd173c" /\ chksum(tla) = "7fc46897")
-\* Process variable dc of process TheDrop at line 1268 col 11 changed to dc_
+\* BEGIN TRANSLATION (chksum(pcal) = "afeecd3a" /\ chksum(tla) = "ef09f5e6")
+\* Process variable dc of process TheDrop at line 1280 col 11 changed to dc_
 CONSTANT defaultInitValue
 VARIABLES head, tail, nnext, ndata, allocated, retired, freed, holders, busy, 
           aq, links, len, scount, disc, rcount, rgone, wl, nsig, sst, skind, 
@@ -1467,24 +1479,45 @@ Init == (* Global variables *)
 NT1(self) == /\ pc[self] = "NT1"
              /\ popd' = [popd EXCEPT ![self] = 0]
              /\ IF ~nstore[self]
-                   THEN /\ TRUE
-                        /\ UNCHANGED << sst, owed, token >>
+                   THEN /\ IF skind[ns[self]] = "thread"
+                              THEN /\ token' = [token EXCEPT ![sown[ns[self]]] = TRUE]
+                                   /\ pc' = [pc EXCEPT ![self] = Head(stack[self]).pc]
+                                   /\ wk' = [wk EXCEPT ![self] = Head(stack[self]).wk]
+                                   /\ ns' = [ns EXCEPT ![self] = Head(stack[self]).ns]
+                                   /\ nstore' = [nstore EXCEPT ![self] = Head(stack[self]).nstore]
+                                   /\ stack' = [stack EXCEPT ![self] = Tail(stack[self])]
+                                   /\ UNCHANGED << aws, incell >>
+                              ELSE /\ IF aws[ns[self]] = 0 \/ MutTakeAny
+                                         THEN /\ /\ aws' = [aws EXCEPT ![ns[self]] = IF aws[ns[self]] >= 2 THEN aws[ns[self]] ELSE aws[ns[self]] + 2]
+                                                 /\ incell' = [incell EXCEPT ![ns[self]] = incell[ns[self]] \cup {self}]
+                                              /\ pc' = [pc EXCEPT ![self] = "TK2"]
+                                              /\ UNCHANGED << stack, ns, 
+                                                              nstore, wk >>
+                                         ELSE /\ aws' = [aws EXCEPT ![ns[self]] = IF aws[ns[self]] >= 2 THEN aws[ns[self]] ELSE aws[ns[self]] + 2]
+                                              /\ pc' = [pc EXCEPT ![self] = Head(stack[self]).pc]
+                                              /\ wk' = [wk EXCEPT ![self] = Head(stack[self]).wk]
+                                              /\ ns' = [ns EXCEPT ![self] = Head(stack[self]).ns]
+                                              /\ nstore' = [nstore EXCEPT ![self] = Head(stack[self]).nstore]
+                                              /\ stack' = [stack EXCEPT ![self] = Tail(stack[self])]
+                                              /\ UNCHANGED incell
+                                   /\ token' = token
+                        /\ UNCHANGED << sst, owed >>
                    ELSE /\ IF MutUnparkFirst /\ skind[ns[self]] = "thread"
                               THEN /\ token' = [token EXCEPT ![sown[ns[self]]] = TRUE]
                                    /\ UNCHANGED << sst, owed >>
                               ELSE /\ /\ owed' = [owed EXCEPT ![ns[self]] = skind[ns[self]] = "async" /\ (cell[ns[self]] \/ aws[ns[self]] \in {1, 3})]
                                       /\ sst' = [sst EXCEPT ![ns[self]] = 1]
                                    /\ token' = token
-             /\ pc' = [pc EXCEPT ![self] = "NT2"]
+                        /\ pc' = [pc EXCEPT ![self] = "NT2"]
+                        /\ UNCHANGED << aws, incell, stack, ns, nstore, wk >>
              /\ UNCHANGED << head, tail, nnext, ndata, allocated, retired, 
                              freed, holders, busy, aq, links, len, scount, 
-                             disc, rcount, rgone, wl, nsig, skind, sown, aws, 
-                             cell, incell, woken, late, stake, created, drops, 
-                             took, dropped, said, errs, bound, rv, final, 
-                             stack, ns, nstore, wk, rs, ws, dws, nside, nc, 
-                             bside, bch, bsig, aside, ac, apop, rlc, rc, lh, 
-                             lt, ln, ec, eh, et, ene, elinks, sc, sv, st, sn, 
-                             bc, bv, bl, bsg, xc, xv, xl, xsg, xq, dpc, zc, 
+                             disc, rcount, rgone, wl, nsig, skind, sown, cell, 
+                             woken, late, stake, created, drops, took, dropped, 
+                             said, errs, bound, rv, final, rs, ws, dws, nside, 
+                             nc, bside, bch, bsig, aside, ac, apop, rlc, rc, 
+                             lh, lt, ln, ec, eh, et, ene, elinks, sc, sv, st, 
+                             sn, bc, bv, bl, bsg, xc, xv, xl, xsg, xq, dpc, zc, 
                              zsg, dc, dsg, yc, ysg, yq, j, qsg, ready, regd, 
                              fw, dj, i, rdone, dc_, cur >>
 
@@ -1831,7 +1864,7 @@ NO2(self) == /\ pc[self] = "NO2"
                    THEN /\ said' = (said \cup Say("skip"))
                         /\ pc' = [pc EXCEPT ![self] = "NO1"]
                         /\ UNCHANGED << sst, owed, stack, ns, nstore, wk >>
-                   ELSE /\ IF MutCheckNotify \/ MutNoSkip
+                   ELSE /\ IF MutCheckNotify \/ MutNoSkip \/ MutUnparkFirst
                               THEN /\ /\ ns' = [ns EXCEPT ![self] = popd[self]]
                                       /\ nstore' = [nstore EXCEPT ![self] = TRUE]
                                       /\ stack' = [stack EXCEPT ![self] = << [ procedure |->  "Notify",

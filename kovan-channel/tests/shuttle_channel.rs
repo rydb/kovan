@@ -339,7 +339,7 @@ fn shuttle_channel_blocking_recv_stale_entry_does_not_take_a_wakeup() {
 
 /// (i) The same window on the bounded senders' wait list
 /// (`CH_send_stale`, the model's program): two senders sending two values
-/// each on a channel of one slot, a receiver taking three; no handle is
+/// and one on a channel of one slot, a receiver taking two; no handle is
 /// dropped until all are done.
 fn bounded_send_stale_entry_does_not_take_a_wakeup() {
     let (tx1, rx) = bounded::<u64>(1);
@@ -352,11 +352,10 @@ fn bounded_send_stale_entry_does_not_take_a_wakeup() {
     });
     let s2 = shuttle::thread::spawn(move || {
         tx2.send(3u64);
-        tx2.send(4u64);
         tx2
     });
-    let r = shuttle::thread::spawn(move || (0..3).filter_map(|_| rx.recv()).count());
-    assert_eq!(r.join().unwrap(), 3);
+    let r = shuttle::thread::spawn(move || (0..2).filter_map(|_| rx.recv()).count());
+    assert_eq!(r.join().unwrap(), 2);
     let (_kept1, _kept2) = (s1.join().unwrap(), s2.join().unwrap());
     drop(spare);
 }

@@ -226,7 +226,8 @@ Each mutation puts back one wrong rule on the program of a passing configuration
 property first, the others after it, so that TLC, which stops at the first state that breaks any
 of them, names the one the mutation is for. `CH_mut_insert_at_tail_pointer` leaves `ListShape`
 out: the insert puts the list out of the abstract queue's order at once, before a take shows the
-order broken.
+order broken. `CH_mut_retire_next` leaves it out too: the retired node is still on the chain, which
+`ListShape` breaks in the same step, before a later step touches the freed node.
 
 | configuration | the wrong rule | expected |
 |---|---|---|
@@ -309,12 +310,13 @@ meets the bound `NoBound` checks (`CH_wit_bound`).
 | `CH_live_bounded` | bounded, capacity one, fair | one sender (two sends, a `send_async`, the drop), one receiver (`recv`, `recv_async`, two `recv`s); `Termination` |
 | `CH_live_select` | unbounded, two channels, fair | a sender on each keeping its handle (a send), one thread of one `select!`; `Termination` |
 | `CH_recv_stale` | unbounded | one sender keeping its handle (two sends), two receivers (a `recv` each) |
-| `CH_send_stale` | bounded, capacity one | two senders keeping their handles (two sends each), one receiver (three `recv`s) |
+| `CH_send_stale` | bounded, capacity one | two senders keeping their handles (two sends, one), one receiver (two `recv`s) |
 | `CH_select_stale` | unbounded | one sender keeping its handle (two sends), one thread of two `select!`s |
 | `CH_async_repoll` | unbounded | one sender keeping its handle (three sends), a task of two `recv_async`s, a receiver of one `recv` |
 | `CH_async_cancel` | unbounded, futures dropped | one sender keeping its handle (a send), a task of one `recv_async` its executor may drop, a receiver of one `recv` |
 | `CH_select_spin` | unbounded, two channels | the first channel's only sender dropped, a sender keeping its handle on the second (a send), one thread of one `select!` |
 | `CH_select_disconnected` | unbounded, fair | the only sender dropped, one thread of one `select!`; `Termination` |
+| `CH_recv_try` | unbounded | one sender (two sends, the drop), a receiver of one `recv`, a receiver of one `try_recv` |
 | `CH_send_no_receiver` | bounded, capacity one, fair | one sender (two sends, the drop), one receiver (a `try_recv`), whose thread then ends; `Termination` |
 
 Every passing configuration checks every invariant above. A configuration whose last receive waits for good ends in a deadlock

@@ -26,6 +26,7 @@ CH_async_cancel                    MC_Channel         pass
 CH_select_spin                     MC_Channel         pass
 CH_select_disconnected             MC_Channel         pass
 CH_send_no_receiver                MC_Channel         pass
+CH_recv_try                        MC_Channel         pass
 CH_mut_retire_next                 MC_Channel         violated:NoUseAfterFree
 CH_mut_insert_at_tail_pointer      MC_Channel         violated:Fifo
 CH_mut_empty_on_tail_lag           MC_Channel         violated:EmptySound
