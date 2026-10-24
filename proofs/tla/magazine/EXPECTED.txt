@@ -1,0 +1,21 @@
+# configuration                  module             expected
+MG_two                             MC_Magazine        pass
+MG_trade                           MC_Magazine        pass
+MG_race                            MC_Magazine        pass
+MG_rounds                          MC_Magazine        pass
+MG_live                            MC_Magazine        pass
+MG_mut_pop_no_claim                MC_Magazine        violated:MagOnce
+MG_mut_push_turn_first             MC_Magazine        violated:Handover
+MG_mut_exit_forgets_previous       MC_Magazine        violated:MagOnce
+MG_mut_empty_to_full               MC_Magazine        violated:FullHoldsBlocks
+MG_mut_swap_full_previous          MC_Magazine        violated:Bounded
+MG_mut_pop_previous_in_place       MC_Magazine        violated:PairShape
+MG_mut_exit_keeps_loaded           MC_Magazine        violated:ExitReturns
+MG_mut_stale_ticket                MC_Magazine        violated:Termination
+MG_wit_depot_pop                   MC_Magazine        violated:NoDepotPopW
+MG_wit_depot_full                  MC_Magazine        violated:NoDepotFullW
+MG_wit_fresh                       MC_Magazine        violated:NoFreshW
+MG_wit_new_magazine                MC_Magazine        violated:NoNewMagazineW
+MG_wit_wrap                        MC_Magazine        violated:NoWrapW
+MG_wit_exit_to_depot               MC_Magazine        violated:NoExitToDepotW
+MG_mut_release_leaks               MC_Magazine        violated:BlockOnce

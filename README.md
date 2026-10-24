@@ -171,6 +171,11 @@ cargo +nightly bench --bench comparison --features nightly
 ```toml
 # Nightly optimizations (~5% faster)
 kovan = { version = "0.1", features = ["nightly"] }
+
+# Node memory from a per-thread magazine cache over a slab layer instead of
+# an allocator call per node (every kovan crate has the same feature); it beats
+# glibc's allocator but not mimalloc, so measure with yours (see the crate docs)
+kovan-map = { version = "0.1", features = ["recycle"] }
 ```
 
 ## Supported Platforms
@@ -221,7 +226,7 @@ everywhere, instead of a second implementation to keep in step.
 
 There is **no `wasm` feature**. Everything is selected by
 `cfg(target_arch = "wasm32")`, so building for wasm gives you the right code
-automatically — there is no flag to forget, and no way to get a build that
+automatically: there is no flag to forget, and no way to get a build that
 compiles and then panics.
 
 | Crate | wasm32 | API difference on wasm |
@@ -235,7 +240,7 @@ compiles and then panics.
 
 ### Test coverage
 
-Each crate keeps its original `tests/*.rs` untouched — those stay the real
+Each crate keeps its original `tests/*.rs` untouched: those stay the real
 concurrency coverage and are native-only. Single-threaded adaptations live in
 `<crate>/tests/wasm/` and run on every target. Where a test's entire value was
 the race, it is **not** ported; each file's header records what was dropped and
@@ -244,7 +249,7 @@ why, rather than shipping a test that asserts nothing.
 | Target | What CI runs | Result |
 | --- | --- | --- |
 | `x86_64` | Full workspace suite (native DCAS path) | 544 |
-| `i686` | Full workspace suite at 32-bit — real threads on the seqlock fallback | 544 |
+| `i686` | Full workspace suite at 32-bit: real threads on the seqlock fallback | 544 |
 | `wasm32-unknown-unknown` | Build (incl. `--no-default-features`), clippy, **and runs** the wasm suites via `wasm-bindgen-test` | 213 |
 | `wasm32-wasip1` | Build, clippy, **and runs** the wasm suites under `wasmtime` | 212 |
 
@@ -253,23 +258,24 @@ target combining 32-bit pointers with real concurrency.
 
 `wasm32-unknown-unknown` is the load-bearing wasm job, not `wasip1`. `std`
 routes `target_os = "wasi"` to its unix implementation, so `Instant::now()`,
-`SystemTime::now()` and `thread::sleep` all work there — while on
+`SystemTime::now()` and `thread::sleep` all work there, while on
 `wasm32-unknown-unknown` they hit the `unsupported` arm and **panic at
 runtime despite compiling**. Only the unknown-unknown job catches that class.
 (The 212 vs 213 difference is one `#[should_panic]` case; wasip1's harness has
 no `catch_unwind`.)
 
 Test targets are discovered from `cargo metadata` by
-`.github/workflows/wasm-test.sh` — any `[[test]]` named `wasm_*` is picked up
+`.github/workflows/wasm-test.sh`: any `[[test]]` named `wasm_*` is picked up
 automatically, so adding a suite needs no CI change. That script also fails the
 build if any test binary registers **zero** tests, since a binary that runs
 nothing still exits 0 and would otherwise read as a pass.
 
 ## Proofs
 
-The memory reclamation protocol and both maps are modelled in TLA+ at the grain of their atomic
-steps and model-checked with TLC, and arithmetic properties of the code, such as the bound on
-the work of the hopscotch map's failed shrinks, are proved in Lean 4. CI runs both, and
+The memory reclamation protocol, both maps, the segment queue, and the `recycle` feature's
+magazine cache and slab layer are modelled in TLA+ at the grain of their atomic steps and
+model-checked with TLC, and arithmetic properties of the code, such as the bound on the work of
+the hopscotch map's failed shrinks, are proved in Lean 4. CI runs both, and
 `just proofs` runs both locally. [`proofs/README.md`](proofs/README.md) says what each checks
 and how to run it.
 

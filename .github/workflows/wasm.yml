@@ -128,6 +128,10 @@ jobs:
       - name: Run full suite (release)
         run: cargo test --workspace --target i686-unknown-linux-gnu --release
 
+      # The magazine cache's ring tickets wrap at 32 bits here.
+      - name: Run full suite (release, recycle)
+        run: cargo test --workspace --target i686-unknown-linux-gnu --release --features recycle
+
   width-invariants:
     name: Pointer-width static assertions
     runs-on: ubuntu-latest

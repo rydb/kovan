@@ -29,6 +29,11 @@ jobs:
       - name: Run tests
         run: cargo test --workspace --release
 
+      # Every crate has a `recycle` feature, off by default, that takes node
+      # memory from kovan's magazine cache: the suite runs with it too.
+      - name: Run tests (recycle)
+        run: cargo test --workspace --release --features recycle
+
       # `cargo test` never builds bench targets (they default to `test =
       # false`) and `clippy --all-targets` only checks them, with no codegen
       # and no link. Build them for real so a bench that fails only there has
@@ -52,6 +57,9 @@ jobs:
       # accident of release codegen has no other job that catches it.
       - name: Run tests (debug)
         run: cargo test --workspace
+
+      - name: Run tests (debug, recycle)
+        run: cargo test --workspace --features recycle
 
   test-nightly:
     name: Test nightly (${{ matrix.os }})
@@ -86,6 +94,11 @@ jobs:
         env:
           RUSTFLAGS: "-C target-feature=+cmpxchg16b"
 
+      - name: Clippy (recycle)
+        run: cargo clippy --workspace --all-targets --features recycle -- -D warnings
+        env:
+          RUSTFLAGS: "-C target-feature=+cmpxchg16b"
+
       # `default = ["std"]` on kovan and kovan-map is a real feature
       # combination (the no_std + alloc path); wasm.yml proves it builds at
       # 32 bits, this proves it on the host target too. `--lib` for the same
@@ -97,6 +110,26 @@ jobs:
           cargo clippy -p kovan-map --no-default-features --lib -- -D warnings
         env:
           RUSTFLAGS: "-C target-feature=+cmpxchg16b"
+
+  doc:
+    name: Docs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+
+      # A broken intra-doc link or a warning fails the build, with and
+      # without the `recycle` feature (which adds the magazine cache's docs).
+      - name: Docs
+        run: cargo doc --workspace --no-deps
+        env:
+          RUSTDOCFLAGS: "-D warnings"
+
+      - name: Docs (recycle)
+        run: cargo doc --workspace --no-deps --features recycle
+        env:
+          RUSTDOCFLAGS: "-D warnings"
 
   fmt:
     name: Format
@@ -127,3 +160,10 @@ jobs:
       # release keeps the per-iteration cost (and so the total run) down.
       - name: Run shuttle tests
         run: .github/workflows/shuttle-test.sh
+
+      # The same scenarios with every node's memory from the magazine cache,
+      # and the cache's own (`shuttle_magazine`, which needs the feature).
+      - name: Run shuttle tests (recycle)
+        run: .github/workflows/shuttle-test.sh
+        env:
+          SHUTTLE_FEATURES: recycle

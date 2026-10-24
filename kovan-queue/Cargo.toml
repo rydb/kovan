@@ -12,6 +12,9 @@ categories = ["concurrency", "data-structures", "no-std"]
 readme.workspace = true
 
 [features]
+# Takes the memory of `SegQueue`'s segments from kovan's magazine cache
+# (`kovan/recycle`): see kovan's crate docs.
+recycle = ["kovan/recycle"]
 # See `kovan`'s `shuttle` feature doc. Cascades so `SegQueue`'s segment
 # pointers (`kovan::Atomic<T>`) are shuttle-instrumented; also swaps this
 # crate's own `ArrayQueue` head/tail/stamp atomics (see `array_queue.rs`),

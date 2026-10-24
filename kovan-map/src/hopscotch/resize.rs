@@ -7,10 +7,9 @@ extern crate alloc;
 use super::table::{Entry, GUARD, Table, Walk, Word, hop_bit};
 use super::{HopscotchMap, MIN_CAPACITY, NEIGHBORHOOD_SIZE};
 use crate::sync::spin_hint;
-use alloc::boxed::Box;
 use core::hash::{BuildHasher, Hash};
 use core::sync::atomic::Ordering;
-use kovan::{Shared, pin, retire};
+use kovan::{Shared, alloc_node, drop_node, pin, retire_node};
 
 #[cfg(test)]
 use super::pause;
@@ -130,13 +129,13 @@ where
         // was and the insert that needed the room asked for the same resize
         // again, forever. A shrink that does not fit is given up.
         let published = loop {
-            let new_table = Box::into_raw(Box::new(Table::new(new_capacity)));
+            let new_table = alloc_node(Table::new(new_capacity));
             let new_table_ref = unsafe { &*new_table };
             if self.copy_into(old_table, new_table_ref, &guard) {
                 break Some(new_table);
             }
             // The unpublished new table's destructor frees its cloned entries.
-            unsafe { drop(Box::from_raw(new_table)) };
+            unsafe { drop_node(new_table) };
             if new_capacity < old_table.capacity {
                 break None;
             }
@@ -151,7 +150,7 @@ where
                 // The replaced table keeps its writer guards held: a writer that
                 // still holds its pointer fails its guard, reloads and writes to
                 // the new table.
-                unsafe { retire(old_table_ptr.as_raw()) };
+                unsafe { retire_node(old_table_ptr.as_raw()) };
             }
             // The old table stays live, so its writers get their guards back. Its removes ask for
             // the shrink again only once half the entries it failed at have gone (at least one

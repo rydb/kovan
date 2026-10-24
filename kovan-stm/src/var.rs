@@ -1,5 +1,4 @@
 use super::node::StmNode;
-use alloc::boxed::Box;
 use kovan::Atomic;
 use std::sync::Arc;
 use std::sync::atomic::Ordering;
@@ -35,11 +34,9 @@ pub(crate) struct TVarInner<T: Send + Sync + 'static> {
 
 impl<T: Send + Sync + 'static> TVarInner<T> {
     fn new(val: T) -> Arc<Self> {
-        let node = Box::new(StmNode::new(val));
-        let ptr = Box::into_raw(node);
         Arc::new(Self {
             version_lock: AtomicU64::new(0),
-            data: Atomic::new(ptr),
+            data: Atomic::new(kovan::alloc_node(StmNode::new(val))),
         })
     }
 
@@ -61,9 +58,9 @@ impl<T: Send + Sync + 'static> Drop for TVarInner<T> {
         let guard = kovan::pin();
         let node = self.data.load(Ordering::Acquire, &guard);
         if !node.is_null() {
-            // SAFETY: StmNode is #[repr(C)] with RetiredNode at offset 0,
-            // satisfying kovan::retire's layout requirement.
-            unsafe { kovan::retire(node.as_raw()) };
+            // SAFETY: every node of `data` comes from `alloc_node`; StmNode is
+            // #[repr(C)] with RetiredNode at offset 0, as retire_node requires.
+            unsafe { kovan::retire_node(node.as_raw()) };
         }
     }
 }

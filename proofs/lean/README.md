@@ -124,6 +124,33 @@ segment 8 (position 257).
 `Kovan/SegQueue.lean` proves these for the code's own masks and shifts. How pushes and pops
 interleave is checked by the TLA+ model in `../tla/segqueue`.
 
+### The magazine cache's arithmetic
+
+Under the `recycle` feature, a node's memory goes back to a per-thread magazine of its size class
+when the node is freed. Take a 72-byte node: it takes the 80-byte class (the smallest of
+`16, 32, ..., 1024` that fits), so a 72-byte node and an 80-byte one share blocks, and a
+1025-byte node takes no class at all. Each thread trades full and empty magazines with a depot of
+two rings of 16 slots, whose tickets and turn words count to `2^64` and then wrap.
+
+1. A node takes the smallest class that fits it, or none past 1 KiB or 16 bytes of alignment, and
+   every class is a multiple of 16 bytes.
+2. A ring compares a slot's word with its ticket's turn by the sign of their wrapped difference;
+   that sign is the true one while they are fewer than `2^63` apart (they are at most 16 apart),
+   so the wrap never changes a decision, and the turn of a wrapped ticket is the wrapped turn.
+3. The slot's word tells apart the four states a push or a pop can meet, and each answer (take the
+   slot, full or empty, reload the ticket) comes from exactly one.
+4. The slab layer under the magazines carves blocks from 8 KiB chunks aligned to their size: a
+   block's address masked down to the chunk size is its chunk, every class fits at least two
+   blocks in a chunk, each block lies wholly inside and aligned to 16, and a refill takes between
+   one block and a magazine's worth.
+5. The cache holds at most two magazines of 32 blocks per thread and class and 16 in the depot.
+6. A refill hands out the first block it takes and leaves the others to pop in the order it took
+   them, and blocks carved one after another lie at rising addresses: nodes allocated one after
+   another lie at rising addresses, which a prefetcher streams.
+
+`Kovan/Magazine.lean` proves these; the TLA+ model in `../tla/magazine` checks the threads'
+interleavings.
+
 ## What is proved
 
 `Kovan/HopscotchShrink.lean`, a model of `kovan-map/src/hopscotch.rs` (`shrink_at`,
@@ -234,6 +261,27 @@ without wrapping (`pos`, `classify`).
 | `drained_full` | a `Drained` answer: the head word's index passed the segment's end |
 | `lenOf_exact`, `len_word` | `len()` is the distance from the head to the tail while the head is behind by less than `2^48` |
 | `lenOf_ahead`, `len_word_ahead` | `len()` is 0 while pops ran ahead of pushes by at most `2^48` |
+
+`Kovan/Magazine.lean`, a model of `kovan/src/recycle.rs` (`class_of`, `CLASS_SIZES`, the
+rings' `turn_of`, `wrapping_sub` and the signs `push` and `pop` branch on, `ROUNDS`,
+`DEPOT_SLOTS`, `refill_count`, the loop of `Pair::refill`) and `kovan/src/recycle/slab.rs`
+(`chunk_of`, `capacity`, the carving offset of `SlabClass::alloc`).
+
+| theorem | what it says |
+|---------|--------------|
+| `firstFit_some`, `firstFit_isSome`, `firstFit_none` | the class loop answers the first size that fits, every earlier one too small, and none when no size fits |
+| `classOf_fits` | every node of 1 to 1024 bytes aligned to at most 16 takes the smallest class that fits |
+| `classOf_large`, `classOf_overaligned` | a node over 1 KiB, or aligned to more than 16, takes no class |
+| `classSizes_sorted_and_aligned` | the class sizes grow and are multiples of 16 |
+| `signed_exact` | the wrapped difference of two words, read as signed, is the true difference while they are fewer than `2^63` apart |
+| `turnOf_wrap` | the turn of a wrapped ticket is the wrapped turn |
+| `slot_states` | the push's and the pop's three answers each come from exactly one of the four states of a slot's word |
+| `chunkOf_block` | a block carved from a chunk finds its chunk by masking its address |
+| `capacity_fits`, `block_aligned` | with a header of at most 128 bytes, every class's chunk holds at least two blocks, each wholly inside and aligned to 16 |
+| `refillCount_bounds` | a refill takes at least one block and at most a magazine's |
+| `refillLoop_slot`, `refillLoop_above`, `refill_pops_in_carving_order`, `refill_fits` | the refill's loop stores the `j`-th block it takes in slot `rest - 1 - j` and nothing at or past `rest`, so the `k`-th pop after it takes the `(k + 1)`-th block taken (the refill's own allocation the first), and the blocks fit in the magazine |
+| `carve_rises` | blocks carved from a chunk one after another lie at rising addresses |
+| `magazines_hold_at_most`, `class_bound`, `bound_for_64_byte_nodes` | the blocks per thread and in the depot of one class, and the crate docs' numbers for 64-byte nodes |
 
 ## How to check it
 

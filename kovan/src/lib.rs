@@ -74,7 +74,7 @@
 //!   stalled reader only delays batches containing nodes born before its
 //!   pinned epoch; younger garbage remains reclaimable. (A reader stalled
 //!   *inside* an escalated critical section defers all younger batches
-//!   until it resumes — escalation windows are bounded by the critical
+//!   until it resumes: escalation windows are bounded by the critical
 //!   section that triggered them.)
 //! - **`no_std` Compatible**: Uses only `alloc`. No standard library required.
 //!
@@ -96,6 +96,32 @@
 //! Long-idle threads that once pinned should call [`flush`] before idling
 //! to release retained garbage promptly: with no guard live, `flush()`
 //! also leaves the slot holding nothing back until the thread pins again.
+//!
+//! # Recycling node memory (the `recycle` feature)
+//!
+//! A structure that publishes nodes allocates each one with [`alloc_node`]
+//! and lets it go with [`retire_node`], [`drop_node`] or [`free_node`]
+//! (every structure of the kovan crates does). Without the `recycle` feature,
+//! off by default, these are `Box` allocations, frees and [`retire`]. With
+//! it, the memory of a node of up to 1 KiB, aligned to at most 16 bytes, goes
+//! back to a per-thread magazine cache of its size class when the node is
+//! freed, and the next node of that size takes it from there: a thread that
+//! frees about as much as it allocates makes no call into the global
+//! allocator, and threads that only allocate or only free trade full and
+//! empty magazines through a bounded lock-free depot per class. The
+//! magazines hold at most 64 blocks per class per thread and 512 per class in
+//! the depot. Under them, blocks are carved from 8 KiB chunks taken from the
+//! global allocator one at a time, so even a run of allocations the magazines
+//! cannot serve costs one allocator call per chunk, and a chunk goes back to
+//! the global allocator once all its blocks are free (a chunk with one
+//! long-lived node keeps its 8 KiB). A thread's magazines go back to the depot
+//! when it exits, and its chunks are freed by whichever thread gives back each
+//! one's last block.
+//!
+//! Whether the cache is faster depends on the global allocator it replaces.
+//! Against glibc's, node churn takes a quarter to a half fewer instructions;
+//! against mimalloc, whose fast path is shorter than the cache's, it takes 3 to
+//! 11% more. Measure with the program's own allocator before turning it on.
 //!
 //! # Example
 //!
@@ -135,7 +161,10 @@ mod atom;
 mod atomic;
 mod cache_padded;
 mod guard;
+mod node;
 mod reclaim;
+#[cfg(feature = "recycle")]
+mod recycle;
 mod retired;
 mod slot;
 #[cfg(test)]
@@ -150,6 +179,7 @@ pub use retired::RetiredNode;
 
 // Re-export retire from guard (it's the public API)
 pub use guard::{retire, retire_reclaimable};
+pub use node::{NodeBox, alloc_node, alloc_node_uninit, drop_node, free_node, retire_node};
 
 // Re-export for convenience
 pub use core::sync::atomic::Ordering;

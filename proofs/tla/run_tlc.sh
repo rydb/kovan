@@ -4,6 +4,9 @@
 #   bash proofs/tla/run_tlc.sh chained                 every configuration, rewrites chained/tlc-run.txt
 #   bash proofs/tla/run_tlc.sh chained CM_iter CM_get  only those (tlc-run.txt untouched)
 #   bash proofs/tla/run_tlc.sh all                     every family
+#   bash proofs/tla/run_tlc.sh shard 2 8               the third of 8 shares of every family's
+#                                                      configurations (CI runs the 8 at once)
+#   bash proofs/tla/run_tlc.sh plan 8                  which share each configuration is in
 # The TLA+ tools come from $TLA2TOOLS when it names a tla2tools.jar, otherwise from
 # proofs/tla/.tools/tla2tools.jar, fetched on first use (release v1.7.4, TLC 2.19, the version every
 # recorded run used). TLC_WORKERS caps the workers of a passing configuration (default auto);
@@ -12,6 +15,40 @@
 # trace is kept in <family>/<name>_counterexample.txt. Exit status 0 means every result matched.
 set -uo pipefail
 here="$(cd "$(dirname "$0")" && pwd)"
+
+# Every configuration of every family as "family name seconds": the seconds its family's
+# tlc-run.txt recorded (close enough to a CI runner's for dealing out shares), or 60 when nothing
+# is recorded.
+costs() {
+  local f
+  for f in "$here"/*/EXPECTED.txt; do
+    awk -v fam="$(basename "$(dirname "$f")")" -v rec="$(dirname "$f")/tlc-run.txt" '
+      BEGIN {
+        while ((getline l < rec) > 0) {
+          split(l, c, /[ \t]+/); if (c[4] ~ /^[0-9]+$/) sec[c[1]] = c[4]
+        }
+      }
+      !/^#/ && NF {
+        s = ($1 in sec) ? sec[$1] : 60
+        printf "%s %s %d\n", fam, $1, (s < 1 ? 1 : s)
+      }' "$f"
+  done
+}
+
+# Deals the configurations out to $1 shares, longest first, each to the least loaded share (the
+# lowest-numbered of equals), as "share family name seconds": every configuration in one share.
+plan() {
+  costs | sort -k3,3nr -k1,1 -k2,2 | awk -v n="$1" '
+    { k = 0; for (i = 1; i < n; i++) if (load[i] < load[k]) k = i
+      load[k] += $3; print k, $1, $2, $3 }'
+}
+
+if [ "${1:-}" = plan ]; then
+  [[ "${2:-}" =~ ^[1-9][0-9]*$ ]] || { echo "usage: run_tlc.sh plan <shares>" >&2; exit 2; }
+  plan "$2" | sort -k1,1n -k4,4nr
+  plan "$2" | awk '{s[$1] += $4; c[$1]++} END {for (k in s) printf "share %d: %d configurations, about %d s\n", k, c[k], s[k]}' | sort -k2,2n
+  exit 0
+fi
 jar="${TLA2TOOLS:-$here/.tools/tla2tools.jar}"
 if [ ! -f "$jar" ]; then
   mkdir -p "$(dirname "$jar")"
@@ -19,8 +56,21 @@ if [ ! -f "$jar" ]; then
   curl -fsSL -o "$jar" "https://github.com/tlaplus/tlaplus/releases/download/v1.7.4/tla2tools.jar" || {
     echo "could not fetch tla2tools.jar; set TLA2TOOLS to a local copy" >&2; exit 2; }
 fi
-family="${1:?usage: run_tlc.sh <family|all> [configuration...]}"
+family="${1:?usage: run_tlc.sh <family|all|shard|plan> [configuration...]}"
 shift
+if [ "$family" = shard ]; then
+  k="${1:-}"; n="${2:-}"
+  [[ "$k" =~ ^[0-9]+$ && "$n" =~ ^[1-9][0-9]*$ ]] && [ "$k" -lt "$n" ] || {
+    echo "usage: run_tlc.sh shard <k> <shares>, with 0 <= k < shares" >&2; exit 2; }
+  mine="$(plan "$n" | awk -v k="$k" '$1 == k')"
+  echo "share $k of $n: $(printf '%s\n' "$mine" | grep -c .) configurations, about $(printf '%s\n' "$mine" | awk '{s += $4} END {print s + 0}') s"
+  bad=0
+  for fam in $(printf '%s\n' "$mine" | awk 'NF {print $2}' | sort -u); do
+    mapfile -t names < <(printf '%s\n' "$mine" | awk -v f="$fam" '$2 == f {print $3}')
+    bash "$0" "$fam" "${names[@]}" || bad=1
+  done
+  exit $bad
+fi
 if [ "$family" = all ]; then
   bad=0
   for f in "$here"/*/EXPECTED.txt; do

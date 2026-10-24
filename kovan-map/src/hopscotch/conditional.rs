@@ -18,11 +18,10 @@ use super::displace::Placed;
 use super::table::{Entry, HomeGuard, Table, Word};
 use super::{Blocked, HopscotchMap};
 use crate::sync::spin_hint;
-use alloc::boxed::Box;
 use core::borrow::Borrow;
 use core::hash::{BuildHasher, Hash};
 use core::sync::atomic::Ordering;
-use kovan::{pin, retire};
+use kovan::{NodeBox, pin, retire_node};
 
 #[cfg(test)]
 use super::pause;
@@ -246,7 +245,7 @@ where
                         // SAFETY: unlinked above under its home guard, so no other thread
                         // unlinks or retires it; a reader that loaded it holds a guard that
                         // keeps it alive.
-                        unsafe { retire(found_ptr) };
+                        unsafe { retire_node(found_ptr) };
                         if let Some(capacity) = shrink_to {
                             drop(guard);
                             self.try_resize(capacity);
@@ -339,7 +338,7 @@ where
             drop(home);
             // SAFETY: unlinked above under its home guard, so no other thread unlinks or
             // retires it; a reader that loaded it holds a guard that keeps it alive.
-            unsafe { retire(entry_ptr) };
+            unsafe { retire_node(entry_ptr) };
             if let Some(capacity) = shrink_to {
                 drop(guard);
                 self.try_resize(capacity);
@@ -363,7 +362,7 @@ impl<K, V> Reservation<'_, '_, K, V> {
     /// Link `entry` in the reserved slot: the compute's linearization point, with the slot's hop
     /// bit published before it, as `link_in` publishes an insert's.
     #[inline]
-    fn fill(self, entry: Box<Entry<K, V>>) {
+    fn fill(self, entry: NodeBox<Entry<K, V>>) {
         // A store, not a CAS: no other writer claims a reserved slot. Release: a reader that
         // acquires the slot sees the entry's fields.
         self.table

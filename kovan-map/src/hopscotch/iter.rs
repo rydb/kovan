@@ -6,11 +6,10 @@ extern crate alloc;
 
 use super::table::{Entry, Table, Walk, Word};
 use super::{HopscotchMap, NEIGHBORHOOD_SIZE};
-use alloc::boxed::Box;
 use core::hash::{BuildHasher, Hash};
 use core::marker::PhantomData;
 use core::sync::atomic::Ordering;
-use kovan::pin;
+use kovan::{drop_node, free_node, pin};
 
 // Construction: none of `iter`/`keys`/`values` hashes or clones a value (the walks that do
 // live in the `Iterator` impls below). `K: Eq` is captured here as the walk's key comparison
@@ -319,12 +318,7 @@ impl<K, V> Iterator for HopscotchIntoIter<K, V> {
                 table.get_bucket(idx).store(Word::free(), Ordering::Relaxed);
                 let k = unsafe { core::ptr::read(&(*entry).key) };
                 let v = unsafe { core::ptr::read(&(*entry).value) };
-                unsafe {
-                    alloc::alloc::dealloc(
-                        entry as *mut u8,
-                        core::alloc::Layout::new::<Entry<K, V>>(),
-                    );
-                }
+                unsafe { free_node(entry) };
                 return Some((k, v));
             }
         }
@@ -336,7 +330,7 @@ impl<K, V> Drop for HopscotchIntoIter<K, V> {
     fn drop(&mut self) {
         while self.next().is_some() {}
         // All slots nulled above; Table::drop frees only the bucket array.
-        unsafe { drop(Box::from_raw(self.table)) };
+        unsafe { drop_node(self.table) };
     }
 }
 

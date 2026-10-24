@@ -2099,7 +2099,7 @@ unsafe fn dealloc_reclaimable<T: Reclaimable>(ptr: *mut RetiredNode) {
 /// The one retire path both public entry points share: the nightly
 /// thread-local handle, the stable one, and the exiting thread's handle.
 #[inline]
-unsafe fn retire_with(node_ptr: *mut RetiredNode, destructor: DestructorFn) {
+pub(crate) unsafe fn retire_with(node_ptr: *mut RetiredNode, destructor: DestructorFn) {
     #[cfg(feature = "nightly")]
     {
         // SAFETY: Caller upholds the safety contract.

@@ -1,0 +1,22 @@
+TLC run of every configuration in proofs/tla/slab, 2026-10-23 18:00 UTC.
+Written by proofs/tla/run_tlc.sh, not by hand. Version 2.19 of 08 August 2024.
+Java -Xmx8g; -workers 4, or 1 worker where a violation is expected. Limit: 3600 s each.
+
+configuration                         generated   distinct    sec  result                     expected                   match
+SL_two                                   761896     390403      6  pass                       pass                       yes
+SL_one                                    38236      23197      2  pass                       pass                       yes
+SL_deep                                 3845421    1885607     19  pass                       pass                       yes
+SL_live                                     808        535      1  pass                       pass                       yes
+SL_mut_close_before_counts                  784        550      1  violated:CountsRight       violated:CountsRight       yes
+SL_mut_touch_after_push                    1345        910      1  violated:NoUseAfterFree    violated:NoUseAfterFree    yes
+SL_mut_drop_closed_blocks                   953        671      2  violated:BlockOnce         violated:BlockOnce         yes
+SL_mut_free_one_early                      2291       1393      1  violated:BlocksOfFreed     violated:BlocksOfFreed     yes
+SL_mut_keep_inbox_ref                      1280        893      1  violated:NoLeak            violated:NoLeak            yes
+SL_mut_stale_head                           808        535      1  violated:Termination       violated:Termination       yes
+SL_wit_remote_push                          125        108      1  violated:NoRemotePushW     violated:NoRemotePushW     yes
+SL_wit_count_down                           950        669      1  violated:NoCountDownW      violated:NoCountDownW      yes
+SL_wit_freed_by_releaser                    950        669      1  violated:NoFreedByReleaserW violated:NoFreedByReleaserW yes
+SL_wit_spare                                 31         29      1  violated:NoSpareW          violated:NoSpareW          yes
+SL_wit_reuse                                 65         59      1  violated:NoReuseW          violated:NoReuseW          yes
+
+results matching EXPECTED.txt: 15 of 15

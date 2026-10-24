@@ -2,7 +2,8 @@
 # Model-check every TLA+ model under proofs/tla/ with a pinned, checksum-verified
 # tla2tools.jar.
 #
-# The models' own runner does the work: `proofs/tla/run_tlc.sh all` discovers every
+# The models' own runner does the work: `proofs/tla/run_tlc.sh all` (or one share of it, `shard`)
+# discovers every
 # family (a directory of proofs/tla/ with an EXPECTED.txt), checks each of its
 # configurations and exits non-zero unless every result matches what
 # EXPECTED.txt says it must be. This script only fetches the tools, verifies
@@ -36,4 +37,10 @@ fi
 echo "Checksum verified."
 java -cp "$JAR" tlc2.TLC 2>&1 | head -1 || true
 
-TLA2TOOLS="$JAR" bash proofs/tla/run_tlc.sh all
+# CI runs the configurations in TLC_SHARDS shares at once, one per job (TLC_SHARD = 0, 1, ...);
+# without them this checks every family in one go.
+if [ -n "${TLC_SHARDS:-}" ]; then
+  TLA2TOOLS="$JAR" bash proofs/tla/run_tlc.sh shard "${TLC_SHARD:?TLC_SHARD is unset}" "$TLC_SHARDS"
+else
+  TLA2TOOLS="$JAR" bash proofs/tla/run_tlc.sh all
+fi

@@ -39,7 +39,7 @@ echo
 FAILED=0
 while IFS=$'\t' read -r p t; do
   echo "==> $p --test $t"
-  cargo test -p "$p" --features shuttle --release --test "$t" < /dev/null || FAILED=1
+  cargo test -p "$p" --features "shuttle${SHUTTLE_FEATURES:+,$SHUTTLE_FEATURES}" --release --test "$t" < /dev/null || FAILED=1
 done <<< "$MAP"
 
 exit "$FAILED"

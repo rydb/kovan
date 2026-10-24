@@ -66,8 +66,8 @@ just proofs                         # all of the above
 TLA+: the models need Java on `PATH` (CI uses Java 21); the runner, `proofs/tla/run_tlc.sh`,
 fetches the pinned TLA+ tools on first use. A run compares each configuration's result with the
 family's `EXPECTED.txt` and exits non-zero on any mismatch. CI runs every family
-(`.github/workflows/tla.yml`). `proofs/tla/README.md` explains the models, their
-configurations and their findings.
+(`.github/workflows/tla.yml`). `proofs/tla/README.md` lists the models; each family's own
+`README.md` explains its model, its configurations and its findings.
 
 Lean: install elan once (`proofs/lean/README.md` says how). The recipes run
 `proofs/lean/check.sh`, which CI runs too (`.github/workflows/lean.yml`).
@@ -76,8 +76,8 @@ Lean: install elan once (`proofs/lean/README.md` says how). The recipes run
 
 - `tla/reclaim/`: kovan's memory reclamation (pin, the protected load, retire, the traversal,
   flush, a thread's exit and the hand-over of its id, the flush and the exit of a thread that
-  never pinned), 81 configurations: 36 that must pass and 45 mutations and witnesses that must
-  fail.
+  never pinned, the recycling of retired nodes), 103 configurations: 44 that must pass and 59
+  mutations and witnesses that must fail.
 - `tla/chained/`: `kovan_map::HashMap`, the chained map (the link words, the writes, the walks,
   the conditional writes, the freezing migration and clear), 47 configurations: 26 that must
   pass and 21 that must fail.
@@ -85,6 +85,15 @@ Lean: install elan once (`proofs/lean/README.md` says how). The recipes run
   conditional writes, the lookup's rescan, resize, clear, the walk across a table swap, the
   shrink a remove asks for, its threshold and the work of failed shrinks per thread), 69
   configurations: 35 that must pass and 34 that must fail.
+- `tla/segqueue/`: `kovan_queue::SegQueue` (the claim words and segment pointers, push, pop,
+  `try_pop`, the drained head and the head's walk, reclamation of the retired segments), 21
+  configurations: 5 that must pass and 16 that must fail.
+- `tla/magazine/`: the `recycle` feature's magazine cache (each thread's pair of magazines, the
+  depot's two rings at their atomic steps, the refill, the hand-offs, a thread's exit), 20
+  configurations: 5 that must pass and 15 that must fail.
+- `tla/slab/`: the slab layer under the magazine cache (an owner's chunks and spare, the inbox
+  other threads give blocks back on, the drain, the exit's counts, close and count-downs), 15
+  configurations: 4 that must pass and 11 that must fail.
 - `lean/Kovan/HopscotchShrink.lean`: the hopscotch map's shrink threshold, for one thread and
   every sequence of operations: a successful resize and a clear erase it; after a failed shrink
   at `c` entries, until the next erasure, no shrink is asked for while `max (c / 2) 1` entries
@@ -106,3 +115,12 @@ Lean: install elan once (`proofs/lean/README.md` says how). The recipes run
   once it has exited (and with the exit as it was before the fix, a value can be kept nowhere);
   a thread that keeps flushing adopts every chain parked on `maxThreads` tids within
   `maxThreads` flushes.
+- `lean/Kovan/SegQueue.lean`: the segment queue's claim words on the code's own masks and shifts:
+  a fetch-add never carries the index into the id; positions follow the words, wrap with the ids
+  and never go back; `behind` and `classify` on wrapped ids answer as on ids counted without
+  wrapping; an `Empty` answer means every cell pushes claimed is behind the head; `len()` is the
+  distance from head to tail, or 0 while pops ran ahead.
+- `lean/Kovan/Magazine.lean`: the magazine cache's classes (the smallest that fits, aligned to 16),
+  the rings' wrapped ticket arithmetic and the slot states it tells apart, the slab layer's chunk
+  geometry (a block's masked address is its chunk, every block inside and aligned), the order a
+  refill hands its blocks out in (the order they were carved) and the memory bound.

@@ -16,6 +16,9 @@ name = "kovan_stm"
 path = "src/lib.rs"
 
 [features]
+# Takes the memory of the variables' nodes from kovan's magazine cache
+# (`kovan/recycle`): see kovan's crate docs.
+recycle = ["kovan/recycle", "kovan-map/recycle"]
 # See `kovan`'s `shuttle` feature doc. Cascades so `TVarInner::data`
 # (`kovan::Atomic<StmNode<T>>`) is shuttle-instrumented; also swaps this
 # crate's own `version_lock`/`lock_atomic` (see `var.rs`, `transaction.rs`),

@@ -1,8 +1,8 @@
 use super::node::StmNode;
+use super::var::TVarInner;
 use super::{Stm, StmError, TVar};
 use alloc::boxed::Box;
-use kovan::Shared;
-use kovan::{Guard, retire};
+use kovan::{Guard, Shared, alloc_node, retire_node};
 use std::any::Any;
 use std::collections::BTreeMap;
 use std::sync::Arc;
@@ -18,7 +18,6 @@ use std::sync::atomic::AtomicU64;
 
 /// Unique ID for a TVar (memory address) to sort locks.
 type TVarId = usize;
-type Committer = Box<dyn Fn(&Box<dyn Any + Send>) + Send>;
 
 /// Internal entry for the Read Set.
 #[derive(Clone)]
@@ -34,23 +33,62 @@ struct ReadEntry {
     _keep_alive: Arc<dyn Any + Send + Sync>,
 }
 
-/// Internal entry for the Write Set.
-/// Type erasure is needed to store heterogeneous TVar updates in one map.
-struct WriteEntry {
-    /// The new value prepared for commit.
-    new_node: Box<dyn Any + Send>,
-    /// Function pointer to perform the actual swap and retirement type-safely.
-    committer: Committer,
-    /// Reference to the version lock atomic for locking.
-    lock_atomic: *const AtomicU64,
+/// A value a transaction stores in one variable, published at commit.
+///
+/// Type erasure lets one write set hold the writes of variables of different types. The
+/// entry owns the value until commit moves it into the node it publishes, or until the
+/// transaction rolls back and drops it: either way the value is dropped exactly once.
+trait PendingWrite: Send {
+    /// The value, for the transaction's own reads of the variable.
+    fn value(&self) -> &dyn Any;
+    /// The variable's version lock.
+    fn lock(&self) -> &AtomicU64;
+    /// Publishes the value in a new node, retires the node it replaces, and releases the
+    /// variable's lock with `version`.
+    fn commit(self: Box<Self>, version: u64);
 }
+
+/// The [`PendingWrite`] of a variable of `T`. Holding the variable's `Arc` keeps its
+/// `version_lock` and `data` alive until the commit, even if every `TVar` handle is gone.
+struct Write<T: Send + Sync + 'static> {
+    var: Arc<TVarInner<T>>,
+    value: T,
+}
+
+impl<T: Any + Send + Sync + 'static> PendingWrite for Write<T> {
+    fn value(&self) -> &dyn Any {
+        &self.value
+    }
+
+    fn lock(&self) -> &AtomicU64 {
+        &self.var.version_lock
+    }
+
+    fn commit(self: Box<Self>, version: u64) {
+        let Write { var, value } = *self;
+        let node = alloc_node(StmNode::new(value));
+        let guard = kovan::pin();
+        // SAFETY: a fresh node, published here once.
+        let old = var
+            .data
+            .swap(unsafe { Shared::from_raw(node) }, Ordering::AcqRel, &guard);
+        if !old.is_null() {
+            // SAFETY: unlinked by the swap, which only this committer (holding the
+            // variable's lock) makes; every node of `data` comes from `alloc_node`, and
+            // `StmNode` is #[repr(C)] with its RetiredNode at offset 0.
+            unsafe { retire_node(old.as_raw()) };
+        }
+        // Release: a reader that sees the new version sees the new node.
+        var.version_lock.store(version, Ordering::Release);
+    }
+}
+
+type WriteEntry = Box<dyn PendingWrite>;
 
 /// Clear the lock bit of every entry an aborting commit locked, leaving each version as it was.
 fn unlock<'e>(locked: impl Iterator<Item = &'e WriteEntry>) {
     for entry in locked {
-        // SAFETY: the committer closure of the same entry holds an `Arc` of the `TVarInner`
-        // this points into, so the atomic lives as long as the write set does.
-        unsafe { &*entry.lock_atomic }.fetch_and(!1, Ordering::Release);
+        entry.lock().fetch_and(!1, Ordering::Release);
     }
 }
 
@@ -139,9 +177,14 @@ impl<'a> Transaction<'a> {
         let id = Arc::as_ptr(&tvar.0) as usize;
 
         // 1. Check Write Set (Read-Your-Own-Writes)
-        if let Some(entry) = self.write_set.get(&id) {
-            let node = entry.new_node.downcast_ref::<StmNode<T>>().unwrap();
-            return Ok(node.data.clone());
+        // The id is the address of this variable's `TVarInner<T>`, which the entry keeps
+        // alive, so an entry under it is a `Write<T>` and holds a `T`.
+        if let Some(value) = self
+            .write_set
+            .get(&id)
+            .and_then(|e| e.value().downcast_ref::<T>())
+        {
+            return Ok(value.clone());
         }
 
         // 2. Check Read Set (Cache)
@@ -205,41 +248,11 @@ impl<'a> Transaction<'a> {
         // Use the address of the heap-allocated TVarInner as the stable id.
         let id = Arc::as_ptr(&tvar.0) as usize;
 
-        // Create the new node immediately (heap allocation)
-        let new_node = Box::new(StmNode::new(val));
-
-        // Clone the Arc so the committer closure owns a reference to the
-        // TVarInner. Arc keeps the data alive.
-        let tvar_inner = Arc::clone(&tvar.0);
-        let committer = Box::new(move |any_box: &Box<dyn Any + Send>| {
-            let node_box = any_box.downcast_ref::<StmNode<T>>().unwrap();
-            unsafe {
-                let raw_node_src = &node_box.data as *const T;
-                let data_copy = std::ptr::read(raw_node_src);
-                let new_ptr = Box::into_raw(Box::new(StmNode::new(data_copy)));
-
-                // Bind guard to extend lifetime for swap
-                let guard = kovan::pin();
-                let old = tvar_inner
-                    .data
-                    .swap(Shared::from_raw(new_ptr), Ordering::AcqRel, &guard);
-
-                if !old.is_null() {
-                    // SAFETY: old was allocated via Box::into_raw,
-                    // StmNode is #[repr(C)] with RetiredNode at offset 0.
-                    retire(old.as_raw());
-                }
-            }
+        // A second store to the variable replaces (and drops) the first one's value.
+        let entry: WriteEntry = Box::new(Write {
+            var: Arc::clone(&tvar.0),
+            value: val,
         });
-
-        // lock_atomic points into the Arc-allocated TVarInner; the Arc in the
-        // committer closure keeps it alive through the commit phase.
-        let entry = WriteEntry {
-            new_node,
-            committer,
-            lock_atomic: &tvar.0.version_lock as *const _,
-        };
-
         self.write_set.insert(id, entry);
         Ok(())
     }
@@ -264,7 +277,7 @@ impl<'a> Transaction<'a> {
 
         // 1. Acquire Locks
         for (id, entry) in &write_set {
-            let lock_atomic = unsafe { &*entry.lock_atomic };
+            let lock_atomic = entry.lock();
             let mut current = lock_atomic.load(Ordering::Acquire);
             loop {
                 if current & 1 == 1 {
@@ -345,9 +358,7 @@ impl<'a> Transaction<'a> {
 
         // 4. Commit Writes
         for (_, entry) in write_set {
-            (entry.committer)(&entry.new_node);
-            let lock_atomic = unsafe { &*entry.lock_atomic };
-            lock_atomic.store(write_version, Ordering::Release);
+            entry.commit(write_version);
         }
 
         // 5. Success

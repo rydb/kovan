@@ -31,6 +31,7 @@ fmt-check:
 [group("lint")]
 clippy:
     RUSTFLAGS="{{ cmpxchg }}" cargo clippy --workspace --all-targets -- -D warnings
+    RUSTFLAGS="{{ cmpxchg }}" cargo clippy --workspace --all-targets --features recycle -- -D warnings
 
 # Lint kovan and kovan-map built without the standard library, warnings as errors (CI: test.yml, clippy)
 [group("lint")]
@@ -38,10 +39,11 @@ clippy-no-std:
     RUSTFLAGS="{{ cmpxchg }}" cargo clippy -p kovan --no-default-features --lib -- -D warnings
     RUSTFLAGS="{{ cmpxchg }}" cargo clippy -p kovan-map --no-default-features --lib -- -D warnings
 
-# Build the API documentation, failing on any warning such as a broken link (not run by CI)
+# Build the API documentation with and without `recycle`, failing on any warning such as a broken link (CI: test.yml, doc)
 [group("lint")]
 doc:
     RUSTDOCFLAGS="-D warnings" cargo doc --workspace --no-deps
+    RUSTDOCFLAGS="-D warnings" cargo doc --workspace --no-deps --features recycle
 
 # Check the semantic versioning of every crate against its last release on crates.io (CI: semver.yml)
 [group("lint")]
@@ -59,11 +61,13 @@ build:
 [group("test")]
 test:
     RUSTFLAGS="{{ cmpxchg }}" cargo test --workspace
+    RUSTFLAGS="{{ cmpxchg }}" cargo test --workspace --features recycle
 
 # Run every test of every crate optimized (CI: test.yml, test)
 [group("test")]
 test-release:
     RUSTFLAGS="{{ cmpxchg }}" cargo test --workspace --release
+    RUSTFLAGS="{{ cmpxchg }}" cargo test --workspace --release --features recycle
 
 # Build and test every crate with the nightly compiler and the nightly feature (CI: test.yml, test-nightly)
 [group("test")]
@@ -75,6 +79,7 @@ test-nightly:
 [group("test")]
 test-i686:
     cargo test --workspace --target i686-unknown-linux-gnu --release
+    cargo test --workspace --target i686-unknown-linux-gnu --release --features recycle
 
 # Run the tests of one crate, for example `just test-crate kovan-map` (extra arguments go to cargo test)
 [group("test")]
@@ -100,6 +105,7 @@ example crate name *args:
 [group("test")]
 shuttle:
     RUSTFLAGS="{{ cmpxchg }}" bash .github/workflows/shuttle-test.sh
+    RUSTFLAGS="{{ cmpxchg }}" SHUTTLE_FEATURES=recycle bash .github/workflows/shuttle-test.sh
 
 # Run one shuttle test, for example `just shuttle-target kovan-map shuttle_hopscotch`
 [group("test")]
@@ -182,12 +188,12 @@ bench-ab *args:
 
 # ---------------------------------------------------------------- proofs
 
-# Model-check one TLA+ family (reclaim, chained, hopscotch), all its configurations or the ones named
+# Model-check one TLA+ family (reclaim, chained, hopscotch, segqueue, magazine, slab), all its configurations or the ones named
 [group("proofs")]
 tla family *configs:
     bash proofs/tla/run_tlc.sh {{ family }} {{ configs }}
 
-# Model-check every TLA+ family, as CI does (CI: tla.yml; reclaim alone takes 32 to 73 minutes, by the machine's load)
+# Model-check every TLA+ family in one go (CI: tla.yml runs the same checks in 10 shares at once; reclaim alone takes 32 to 73 minutes here, by the machine's load)
 [group("proofs")]
 tla-all:
     bash proofs/tla/run_tlc.sh all

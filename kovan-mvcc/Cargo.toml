@@ -16,6 +16,9 @@ name = "kovan_mvcc"
 path = "src/lib.rs"
 
 [features]
+# Takes the memory of the lock table's map nodes from kovan's magazine cache
+# (`kovan/recycle`): see kovan's crate docs.
+recycle = ["kovan-map/recycle"]
 # See `kovan`'s `shuttle` feature doc. `LockTable` has no atomics of its
 # own (it's built entirely on `kovan_map::HashMap`), so this crate needs no
 # type-swap plumbing of its own -- just the cascade so `HashMap`'s
