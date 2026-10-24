@@ -1,0 +1,48 @@
+TLC run of every configuration in proofs/tla/atom, 2026-10-24 01:40 UTC.
+Written by proofs/tla/run_tlc.sh, not by hand. Version 2.19 of 08 August 2024.
+Java -Xmx8g; -workers 4, or 1 worker where a violation is expected. Limit: 3600 s each.
+
+configuration                         generated   distinct    sec  result                     expected                   match
+AT_store                                 605762     203053      4  pass                       pass                       yes
+AT_cas                                   414771     152291      3  pass                       pass                       yes
+AT_cas2                                  347366     130017      4  pass                       pass                       yes
+AT_rcu                                  6051237    1899167     20  pass                       pass                       yes
+AT_mix                                   241643      87456      3  pass                       pass                       yes
+AT_opt                                   265239      92554      3  pass                       pass                       yes
+AT_end                                   210595      75999      3  pass                       pass                       yes
+AT_inner                                  88950      34186      2  pass                       pass                       yes
+AT_live                                  175092      60014      9  pass                       pass                       yes
+AT_mut_store_drop_now                        96         73      1  violated:NoUseAfterFree    violated:NoUseAfterFree    yes
+AT_mut_retire_before_swap                   724        503      1  violated:NoUseAfterFree    violated:NoUseAfterFree    yes
+AT_mut_load_unprotected                   46207      22992      2  violated:NoUseAfterFree    violated:NoUseAfterFree    yes
+AT_mut_guard_send                          4239       2488      2  violated:NoUseAfterFree    violated:NoUseAfterFree    yes
+AT_mut_guard_send_idle                      345        170      1  violated:Reclaimed         violated:Reclaimed         yes
+AT_mut_cas_load_unprotected                1898       1191      1  violated:NoUseAfterFree    violated:NoUseAfterFree    yes
+AT_mut_load_unprotected_cas              111277      58940      2  violated:CasExact          violated:CasExact          yes
+AT_mut_into_inner_no_forget               20788      10348      2  violated:DropOnce          violated:DropOnce          yes
+AT_mut_drop_skips_final                  152509      59923      4  violated:NoLeak            violated:NoLeak            yes
+AT_mut_store_no_retire                    31000      12379      1  violated:NoLeak            violated:NoLeak            yes
+AT_mut_publish_before_init                   44         35      1  violated:Linearizable      violated:Linearizable      yes
+AT_mut_cas_check_then_store                 492        343      1  violated:CasExact          violated:CasExact          yes
+AT_mut_rcu_reload_expected                  298        214      1  violated:RcuApplies        violated:RcuApplies        yes
+AT_mut_rcu_stale_expected                   435        282      2  violated:LockFree          violated:LockFree          yes
+AT_mut_rcu_stale_expected_term            30933      14595      4  violated:Termination       violated:Termination       yes
+AT_wit_free                                  62         49      1  violated:NoFreeW           violated:NoFreeW           yes
+AT_wit_reuse                                163        128      1  violated:NoReuseW          violated:NoReuseW          yes
+AT_wit_skip                                5069       3198      1  violated:NoSkipW           violated:NoSkipW           yes
+AT_wit_raise                                124         97      1  violated:NoRaiseW          violated:NoRaiseW          yes
+AT_wit_held                                 105         84      1  violated:NoHeldW           violated:NoHeldW           yes
+AT_wit_ok_held                             1118        734      1  violated:NoOkHeldW         violated:NoOkHeldW         yes
+AT_wit_late_removed                       99518      41039      3  violated:NoLateRemovedW    violated:NoLateRemovedW    yes
+AT_wit_rcu_retry                            186        128      1  violated:NoRcuRetryW       violated:NoRcuRetryW       yes
+AT_wit_rcu_retry2                         43115      22738      2  violated:NoRcuRetry2W      violated:NoRcuRetry2W      yes
+AT_wit_cas_err_load                         206        151      1  violated:NoCasErrLoadW     violated:NoCasErrLoadW     yes
+AT_wit_cas_race                             492        343      1  violated:NoCasRaceW        violated:NoCasRaceW        yes
+AT_wit_none                                   9          8      1  violated:NoNoneW           violated:NoNoneW           yes
+AT_wit_is_none                               54         36      1  violated:NoIsNoneW         violated:NoIsNoneW         yes
+AT_mut_removed_copy                         127        103      1  violated:OneObject         violated:OneObject         yes
+AT_mut_removed_frees_now                    307        229      1  violated:NoUseAfterFree    violated:NoUseAfterFree    yes
+AT_mut_swap_retires_node                     96         80      1  violated:NoUseAfterFree    violated:NoUseAfterFree    yes
+AT_wit_removed_held                         316        240      1  violated:NoRemovedHeldW    violated:NoRemovedHeldW    yes
+
+results matching EXPECTED.txt: 41 of 41

@@ -1,0 +1,45 @@
+TLC run of every configuration in proofs/tla/stm, 2026-10-24 01:03 UTC.
+Written by proofs/tla/run_tlc.sh, not by hand. Version 2.19 of 08 August 2024.
+Java -Xmx8g; -workers 4, or 1 worker where a violation is expected. Limit: 3600 s each.
+
+configuration                         generated   distinct    sec  result                     expected                   match
+ST_transfer3                            2470489     809342     33  pass                       pass                       yes
+ST_cross3                                828470     299799     12  pass                       pass                       yes
+ST_incr3                                 368044     130657      6  pass                       pass                       yes
+ST_rounds                                257266      81426      4  pass                       pass                       yes
+ST_drops                                 959130     271237     12  pass                       pass                       yes
+ST_reread_quiet                           16817       7392      1  pass                       pass                       yes
+ST_live                                  257266      81426     22  pass                       pass                       yes
+ST_live_cross                              5561       2848      3  pass                       pass                       yes
+ST_reread                                   783        423      1  pass                       pass                       yes
+ST_reread_update                           2933       1490      1  pass                       pass                       yes
+ST_reread_torn                             2484       1150      2  pass                       pass                       yes
+ST_mut_commit_copies_value                   31         24      1  violated:DropOnce          violated:DropOnce          yes
+ST_mut_keep_locks                          2421       1275      1  violated:LockOwned         violated:LockOwned         yes
+ST_mut_no_var_retire                         42         30      2  violated:NoLeak            violated:NoLeak            yes
+ST_mut_no_keep_alive                       1582        902      2  violated:NoUseAfterFree    violated:NoUseAfterFree    yes
+ST_mut_free_now                             547        326      1  violated:NoUseAfterFree    violated:NoUseAfterFree    yes
+ST_mut_skip_read_validation                 554        335      1  violated:Serializable      violated:Serializable      yes
+ST_mut_no_rv_check                         1986       1078      2  violated:Opacity           violated:Opacity           yes
+ST_mut_version_before_swap                 1627        900      1  violated:AllOrNone         violated:AllOrNone         yes
+ST_mut_read_only_not_committed              111         66      2  violated:HooksRight        violated:HooksRight        yes
+ST_mut_keep_locks_live                     9170       4150      3  violated:Termination       violated:Termination       yes
+ST_mut_stale_read_version                  2861       1468      4  violated:SoloEnds          violated:SoloEnds          yes
+ST_wit_lock_abort                          5463       2589      1  violated:NoLockAbortW      violated:NoLockAbortW      yes
+ST_wit_version_abort                      18935       8437      3  violated:NoVersionAbortW   violated:NoVersionAbortW   yes
+ST_wit_validate_abort                      4683       2245      1  violated:NoValidateAbortW  violated:NoValidateAbortW  yes
+ST_wit_read_retry                           467        210      2  violated:NoReadRetryW      violated:NoReadRetryW      yes
+ST_wit_post_retry                           779        350      1  violated:NoPostRetryW      violated:NoPostRetryW      yes
+ST_wit_reread                               142         88      1  violated:NoRereadW         violated:NoRereadW         yes
+ST_wit_entry_drop                          3213       1714      2  violated:NoEntryDropW      violated:NoEntryDropW      yes
+ST_wit_commit_var_drop                    12706       6186      2  violated:NoCommitDropW     violated:NoCommitDropW     yes
+ST_wit_guarded_retire                       496        224      2  violated:NoGuardedRetireW  violated:NoGuardedRetireW  yes
+ST_wit_early_free                          1259        586      1  violated:NoEarlyFreeW      violated:NoEarlyFreeW      yes
+ST_wit_livelock                            5561       2848      3  violated:Termination       violated:Termination       yes
+ST_mut_reread_unvalidated                   338        207      1  violated:Serializable      violated:Serializable      yes
+ST_mut_reread_unvalidated_update            276        175      1  violated:Opacity           violated:Opacity           yes
+ST_mut_reread_unvalidated_torn              891        481      2  violated:AllOrNone         violated:AllOrNone         yes
+ST_wit_reread_retry                         107         75      1  violated:NoRereadRetryW    violated:NoRereadRetryW    yes
+ST_reread_stable                           2484       1150      2  pass                       pass                       yes
+
+results matching EXPECTED.txt: 38 of 38

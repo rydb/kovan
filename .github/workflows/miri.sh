@@ -19,5 +19,7 @@ cargo miri test -p kovan --lib --tests
 echo "Running Miri on kovan's magazine cache (the recycle feature)..."
 cargo miri test -p kovan --features recycle --lib recycle
 cargo miri test -p kovan --features recycle --test node
+echo "Running Miri on kovan-stm's read and drop paths..."
+cargo miri test -p kovan-stm --test reread --test drops
 
 echo "All Miri tests passed!"

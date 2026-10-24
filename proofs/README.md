@@ -94,6 +94,12 @@ Lean: install elan once (`proofs/lean/README.md` says how). The recipes run
 - `tla/slab/`: the slab layer under the magazine cache (an owner's chunks and spare, the inbox
   other threads give blocks back on, the drain, the exit's counts, close and count-downs), 15
   configurations: 4 that must pass and 11 that must fail.
+- `tla/atom/`: `kovan::Atom` and `AtomOption` (load, store, `swap`, `take` and the `Removed` that
+  reads the value in its node, `compare_and_swap`, `rcu`, `into_inner`, `Drop`, over the
+  reclamation's birth-epoch rule), 41 configurations: 9 that must pass and 32 that must fail.
+- `tla/stm/`: `kovan_stm` (loads and their validation, a repeat load too, the commit's locking,
+  clock, validation and publication, hooks, drops and retires), 38 configurations: 12 that must
+  pass and 26 that must fail.
 - `lean/Kovan/HopscotchShrink.lean`: the hopscotch map's shrink threshold, for one thread and
   every sequence of operations: a successful resize and a clear erase it; after a failed shrink
   at `c` entries, until the next erasure, no shrink is asked for while `max (c / 2) 1` entries
@@ -124,3 +130,10 @@ Lean: install elan once (`proofs/lean/README.md` says how). The recipes run
   the rings' wrapped ticket arithmetic and the slot states it tells apart, the slab layer's chunk
   geometry (a block's masked address is its chunk, every block inside and aligned), the order a
   refill hands its blocks out in (the order they were carved) and the memory bound.
+- `lean/Kovan/Atom.lean`: an `Atom` node's layout (the value after the 40-byte header, aligned, in
+  one magazine class), the value-pointer compare as a compare of nodes, and the birth-epoch rule:
+  a batch's birth is the least of its nodes', and neither a reader of a node, nor the node a
+  `Removed` retires, nor `compare_and_swap`'s success guard is skipped for it.
+- `lean/Kovan/Stm.lean`: the STM's lock word (the lock in bit 0, the version in the rest, packed
+  and unpacked exactly by the code's masks), the clock (even, growing, no wrap before `2^63`
+  commit attempts), a load's retry as a later commit, and the rank renaming the TLA+ model uses.
