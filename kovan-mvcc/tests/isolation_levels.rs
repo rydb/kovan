@@ -446,10 +446,10 @@ fn test_serializable_read_only_txn_no_conflict() {
     writer.write("key", b"new_value".to_vec()).unwrap();
     writer.commit().unwrap();
 
-    // Read again — still sees old value (snapshot)
+    // Read again - still sees old value (snapshot)
     assert_eq!(reader.read("key").unwrap().unwrap(), b"value");
 
-    // Drop reader — no commit, no prewrite, no SSI check → no error
+    // Drop reader - no commit, no prewrite, no SSI check → no error
     drop(reader);
 }
 
@@ -460,7 +460,7 @@ fn test_serializable_phantom_prevention() {
     let db = KovanMVCC::new();
 
     let mut t1 = db.begin_with_isolation(IsolationLevel::Serializable);
-    // Read non-existent key — added to read_set
+    // Read non-existent key - added to read_set
     assert!(t1.read("phantom_key").unwrap().is_none());
 
     // T2 inserts the key and commits

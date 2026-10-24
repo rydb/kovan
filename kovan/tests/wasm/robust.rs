@@ -3,16 +3,16 @@
 //! 2 of the original's 3 tests are adapted; 1 is not ported.
 //!
 //! Not ported (race-only):
-//! - `test_bounded_memory_with_stalls` — a 5 real-second soak test with one
+//! - `test_bounded_memory_with_stalls` - a 5 real-second soak test with one
 //!   stalled reader thread and 8 active writer threads, whose only
 //!   assertion is that it completes (it prints throughput, it doesn't check
 //!   a bound). Its distinct value over `test_stalled_thread_handling` is
 //!   "the system stays responsive under a real concurrent stall for a
-//!   sustained duration" — a genuinely concurrent throughput/robustness
+//!   sustained duration" - a genuinely concurrent throughput/robustness
 //!   claim that a single serial thread cannot stall itself against (there
 //!   is no scheduler to contend with). The correctness aspect it shares
-//!   with `test_stalled_thread_handling` — a long-held guard doesn't
-//!   corrupt or block other operations — is already covered by that test's
+//!   with `test_stalled_thread_handling` - a long-held guard doesn't
+//!   corrupt or block other operations - is already covered by that test's
 //!   adaptation below, so nothing distinct survives porting this one.
 
 #![allow(unused_unsafe)]
@@ -32,7 +32,7 @@ use kovan::{Atomic, RetiredNode, pin, retire};
 use std::sync::Arc;
 use std::sync::atomic::{AtomicUsize, Ordering};
 
-/// `value` alone is stored, no drop-counting needed — bare struct, `Rc`
+/// `value` alone is stored, no drop-counting needed - bare struct, `Rc`
 /// vs. `Arc` makes no difference here, so this stays as-is for fidelity
 /// with the original.
 #[repr(C)]
@@ -56,7 +56,7 @@ impl RobustNode {
 /// about slot allocation staying correct under concurrent contention across
 /// many distinct slots. Run from one thread there's only one slot, so this
 /// only proves the swap/retire loop itself doesn't hang or corrupt state
-/// over many iterations — not concurrent slot-selection correctness. The
+/// over many iterations - not concurrent slot-selection correctness. The
 /// threaded original remains the real coverage on native.
 #[test]
 #[cfg_attr(miri, ignore)]
@@ -102,7 +102,7 @@ fn adaptive_slot_selection_sequence_single_threaded() {
 /// (sleeping between reads) while 4 "active" threads did normal swap/retire
 /// work concurrently, then asserted every active operation completed. This
 /// pins a guard up front (standing in for the stalled reader) and keeps it
-/// alive — via kovan's per-thread reentrant `pin_count` — across a full
+/// alive - via kovan's per-thread reentrant `pin_count` - across a full
 /// sequence of "active" swap/retire operations on the SAME thread, then
 /// asserts every one of them completed and the exact op count matches. It
 /// proves a long-held guard doesn't block or corrupt concurrent-shaped

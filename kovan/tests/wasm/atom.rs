@@ -3,7 +3,7 @@
 //! `tests/atom.rs` has 59 tests behind 10 `thread::spawn` call sites inside 8
 //! test functions; the other 51 tests are already single-threaded and are
 //! ported here verbatim. The 8 threaded tests are adapted to a sequential
-//! interleaving that exercises the same operation sequence on one thread —
+//! interleaving that exercises the same operation sequence on one thread -
 //! each carries its own doc comment explaining exactly what concurrency
 //! coverage it no longer has. None of the 8 are race-only: every one of them
 //! also asserts something about the API's sequential contract (return
@@ -35,7 +35,7 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 /// Used to verify drop correctness (exactly-once, no double-free, no leak).
 ///
 /// This stays `Arc<AtomicUsize>` (not `Rc<Cell<usize>>`) because it is
-/// stored inside `Atom<T>`, which requires `T: Send + Sync` — that bound is
+/// stored inside `Atom<T>`, which requires `T: Send + Sync` - that bound is
 /// unconditional on the safe API, not a concurrency choice made by these
 /// tests. Nothing here is ever shared across threads.
 #[derive(Debug, Clone)]
@@ -57,7 +57,7 @@ impl Drop for DropCounter {
 }
 
 // ============================================================================
-// Atom<T> — basic operations
+// Atom<T> - basic operations
 // ============================================================================
 
 #[test]
@@ -167,7 +167,7 @@ fn atom_peek_with_store() {
 }
 
 // ============================================================================
-// Atom<T> — compare-and-swap
+// Atom<T> - compare-and-swap
 // ============================================================================
 
 #[test]
@@ -229,7 +229,7 @@ fn atom_cas_retry_pattern() {
 }
 
 // ============================================================================
-// Atom<T> — RCU
+// Atom<T> - RCU
 // ============================================================================
 
 #[test]
@@ -276,7 +276,7 @@ fn atom_rcu_string_transform() {
 /// final value equalled `THREADS * INCREMENTS`. This performs the same total
 /// number of `rcu()` calls from one thread, so it validates RCU's
 /// read-copy-update arithmetic (every increment is observed exactly once),
-/// NOT concurrent CAS-retry contention — sequentially there is never a
+/// NOT concurrent CAS-retry contention - sequentially there is never a
 /// failed CAS to retry. The threaded original remains the real contention
 /// coverage on native.
 #[test]
@@ -292,7 +292,7 @@ fn rcu_increment_sequence_single_threaded() {
 }
 
 // ============================================================================
-// Atom<T> — trait implementations
+// Atom<T> - trait implementations
 // ============================================================================
 
 #[test]
@@ -450,7 +450,7 @@ fn atom_option_roundtrip() {
 }
 
 // ============================================================================
-// AtomMap — projections
+// AtomMap - projections
 // ============================================================================
 
 #[derive(Debug, Clone)]
@@ -535,7 +535,7 @@ fn atom_map_multiple_projections() {
 
 /// Sequential adaptation of `atom::atom_concurrent_readers_writers`. The
 /// original ran 4 reader threads and 4 writer threads against the same
-/// `Atom`. This interleaves reads and writes from one thread — it checks
+/// `Atom`. This interleaves reads and writes from one thread - it checks
 /// that `load()`/`store()` don't panic or corrupt state when interleaved,
 /// NOT that they're safe under concurrent access. The threaded original
 /// remains the real coverage on native.
@@ -555,7 +555,7 @@ fn readers_writers_sequence_single_threaded() {
 /// Sequential adaptation of `atom::atom_concurrent_rcu_counter`. The
 /// original ran 4 threads doing 5000 `rcu()` increments each. This performs
 /// a scaled-down but still substantial number of increments from one
-/// thread and checks the exact final value — sequential RCU arithmetic,
+/// thread and checks the exact final value - sequential RCU arithmetic,
 /// not concurrent retry behavior. The threaded original remains the real
 /// coverage on native.
 #[test]
@@ -573,7 +573,7 @@ fn rcu_counter_sequence_single_threaded() {
 /// Sequential adaptation of `atom::atom_option_concurrent_operations`. The
 /// original ran 4 threads cycling through store_some/load/take/store_none
 /// on a shared `AtomOption`. This runs the same operation cycle from one
-/// thread — it validates the state machine (no panic across any
+/// thread - it validates the state machine (no panic across any
 /// Some/None transition sequence), NOT concurrent-access safety. The
 /// threaded original remains the real coverage on native.
 #[test]
@@ -614,7 +614,7 @@ fn atom_rapid_create_load_drop() {
 /// original ran 4 threads each swapping in unique values and collecting the
 /// swapped-out values, then verified every value appeared exactly once
 /// across all threads' collections. Run from one thread, that uniqueness is
-/// no longer a proof of anything — no data race is even possible — so this
+/// no longer a proof of anything - no data race is even possible - so this
 /// version validates the return-value bookkeeping contract of `swap()`
 /// itself (every swapped-out value is exactly the previous stored value,
 /// every value appears exactly once), NOT thread-safety under contention.
@@ -644,7 +644,7 @@ fn swap_correctness_sequence_single_threaded() {
 /// ran 4 reader threads and 2 writer threads doing 20,000 ops each. This
 /// interleaves the same read/write mix from one thread at a reduced op
 /// count (parallel throughput isn't something a single thread can
-/// reproduce, so the count is scaled down for a fast test run) — it
+/// reproduce, so the count is scaled down for a fast test run) - it
 /// validates that sustained interleaved load/store doesn't panic or
 /// corrupt state. The threaded original remains the real coverage on
 /// native.
@@ -667,7 +667,7 @@ fn sustained_heavy_load_sequence_single_threaded() {
 /// ran 4 threads each doing 500 clone-and-push `rcu()` calls on a shared
 /// `Vec`, then asserted the final length equalled `THREADS * PUSHES`. This
 /// performs the same total number of pushes from one thread and checks the
-/// same final length — sequential RCU arithmetic, not concurrent CAS-retry
+/// same final length - sequential RCU arithmetic, not concurrent CAS-retry
 /// behavior under contention. The threaded original remains the real
 /// coverage on native.
 #[test]
@@ -727,7 +727,7 @@ fn atom_option_take_no_double_drop() {
     let taken = opt.take();
     assert!(taken.is_some());
 
-    // XXX: Extract via into_inner_unchecked for immediate drop —
+    // XXX: Extract via into_inner_unchecked for immediate drop -
     // safe in this single-threaded test with no concurrent readers.
     // Removed<T>::drop would defer through reclamation, making the
     // count non-deterministic. We want to verify no double-drop.
@@ -764,7 +764,7 @@ fn atom_swap_no_double_drop() {
 
     // Swap returns the old value wrapped in Removed<T>
     let old = atom.swap(DropCounter::new(2, drop_count.clone()));
-    // XXX: Extract via into_inner_unchecked for immediate drop —
+    // XXX: Extract via into_inner_unchecked for immediate drop -
     // safe in this single-threaded test with no concurrent readers.
     let old_val = unsafe { old.into_inner_unchecked() };
     drop(old_val);
@@ -873,7 +873,7 @@ fn atom_guard_survives_store() {
     let guard = atom.load();
     assert_eq!(&*guard, "original");
 
-    // Store a new value — old guard should still be valid
+    // Store a new value - old guard should still be valid
     atom.store(String::from("updated"));
 
     // Guard still references the old value (snapshot semantics)
@@ -930,7 +930,7 @@ fn atom_rcu_with_complex_type() {
 /// (asserting the rejected value and unchanged state), then performs an
 /// uncontended CAS to force a success. It proves the CAS success/failure
 /// contract exactly, but does NOT prove the CAS instruction itself resolves
-/// correctly under genuine concurrent modification — the threaded original
+/// correctly under genuine concurrent modification - the threaded original
 /// remains the real coverage on native.
 #[test]
 fn cas_fails_after_intervening_store_single_threaded() {

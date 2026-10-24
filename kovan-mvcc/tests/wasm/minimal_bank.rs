@@ -1,7 +1,7 @@
 //! Single-threaded, wasm-capable adaptation of `tests/minimal_bank.rs`.
 //!
 //! The original ran 4 threads for 1000 random-account-pair transfers each
-//! (using `rand`, which this crate's wasm dev-dependencies exclude — see
+//! (using `rand`, which this crate's wasm dev-dependencies exclude - see
 //! `Cargo.toml`), retrying on write conflict, then checked that the total
 //! balance across accounts was conserved. Two things are genuinely
 //! race-only there: the *random* pairing (there is no `rand` on wasm, and
@@ -10,16 +10,16 @@
 //! exercising the lock table under real parallelism). What survives
 //! sequentially, and is ported below, is the part with actual conflict
 //! semantics: two transactions racing to transfer between the SAME pair of
-//! accounts, one rejected, and — unlike `tests/wasm/two_key_bug.rs` /
-//! `tests/wasm/simple_conflict.rs`, which stop at "one is rejected" — the
+//! accounts, one rejected, and - unlike `tests/wasm/two_key_bug.rs` /
+//! `tests/wasm/simple_conflict.rs`, which stop at "one is rejected" - the
 //! rejected transaction's retry-with-a-fresh-snapshot loop, which is the
 //! part of the original's `loop { ... }` that actually mattered
 //! (conflict resolution converges, not just conflict detection).
 //!
 //! Not ported (race-only):
-//! - `tests/stress_bank.rs` — the same scenario at 10 accounts / 10
+//! - `tests/stress_bank.rs` - the same scenario at 10 accounts / 10
 //!   threads / 2000 transfers/thread, plus a random millisecond sleep-based
-//!   backoff (`thread::sleep`, unusable here — see `src/backoff.rs`'s
+//!   backoff (`thread::sleep`, unusable here - see `src/backoff.rs`'s
 //!   module doc on `wasm32-unknown-unknown`). It proves the identical
 //!   invariant as this file under more contention; contention volume has
 //!   no single-threaded analogue, so nothing beyond what's already covered

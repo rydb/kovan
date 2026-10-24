@@ -124,7 +124,7 @@ fn test_no_double_free_on_drop_with_pending() {
             for i in 0..5 {
                 tx.send(format!("msg-{i}"));
             }
-            // Consume only some messages — the rest are pending at drop time.
+            // Consume only some messages - the rest are pending at drop time.
             let _ = rx.try_recv();
             let _ = rx.try_recv();
             // Drop channel with 3 pending messages + 2 consumed sentinel nodes.
@@ -135,8 +135,8 @@ fn test_no_double_free_on_drop_with_pending() {
 
 /// Concurrent send/recv must not violate aliasing rules.
 ///
-/// Before the fix, `try_recv()` created `&mut (*next.as_raw()).data` — a mutable
-/// reference to the data field — while other threads could hold shared references
+/// Before the fix, `try_recv()` created `&mut (*next.as_raw()).data` - a mutable
+/// reference to the data field - while other threads could hold shared references
 /// to the same node via an epoch guard.
 /// The fix uses `addr_of_mut!` to obtain a raw pointer without asserting exclusivity.
 #[test]

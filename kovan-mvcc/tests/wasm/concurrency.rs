@@ -6,7 +6,7 @@
 //! `start_ts`/`commit_ts` comparisons against the lock table and CF_WRITE
 //! (see `Txn::prewrite` in `src/percolator.rs`), not by wall-clock thread
 //! scheduling, so that exact interleaving is reproduced deterministically
-//! by calling the same operations in the same order from one thread — no
+//! by calling the same operations in the same order from one thread - no
 //! `Barrier` needed. What's lost is coverage of the storage/lock-table
 //! layer under genuine concurrent access from two OS threads; that part has
 //! no single-threaded analogue and remains covered by the threaded

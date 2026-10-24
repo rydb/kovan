@@ -2,9 +2,9 @@
 //!
 //! All 4 tests in the original spawn threads. Every one still has a
 //! meaningful single-threaded core, so all 4 are adapted here (none are
-//! race-only): the safety invariant these tests check — a node retired
+//! race-only): the safety invariant these tests check - a node retired
 //! while a guard pinned before that retire is still alive must not be
-//! freed — holds regardless of whether the pinning thread and the retiring
+//! freed - holds regardless of whether the pinning thread and the retiring
 //! thread are the same thread or not, so it's fully provable sequentially.
 //! What's lost is cross-thread *visibility* of that protection (does the
 //! reclaimer correctly see another thread's era from that thread's own
@@ -33,7 +33,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 /// Node for testing with embedded RetiredNode.
 ///
 /// `freed` stays `Arc<AtomicBool>` rather than `Rc<Cell<bool>>` purely by
-/// convention with the original — `Atomic<T>` (unlike `Atom<T>`) has no
+/// convention with the original - `Atomic<T>` (unlike `Atom<T>`) has no
 /// `Send + Sync` bound on `T`, and `retire()`'s own safety docs sanction
 /// `Rc`-style thread-affine payloads for single-threaded reclamation
 /// (`kovan::retire`'s "Cross-thread drop" note). Nothing here is shared
@@ -229,7 +229,7 @@ fn concurrent_access_sequence_single_threaded() {
 
 /// Adaptation of `correctness::test_guard_drop_triggers_reclamation`. The
 /// original ran the retire loop inside a spawned thread purely to isolate
-/// it, then joined before checking reclamation — the spawn itself added no
+/// it, then joined before checking reclamation - the spawn itself added no
 /// concurrency (nothing else touched the atomic while that thread ran), so
 /// this inlines the same sequential logic directly with no adaptation
 /// needed beyond removing the redundant thread.

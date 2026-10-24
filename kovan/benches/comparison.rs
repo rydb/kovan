@@ -114,7 +114,7 @@ mod kovan_bench {
     }
 }
 
-/* other reclamation libraries (crossbeam-epoch / seize / haphazard) — disabled with their dev-deps
+/* other reclamation libraries (crossbeam-epoch / seize / haphazard) - disabled with their dev-deps
 // Crossbeam-Epoch implementation
 mod crossbeam_bench {
     use super::*;

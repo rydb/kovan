@@ -3,13 +3,13 @@
 //! 5 of the original's 7 tests are adapted; 2 are not ported.
 //!
 //! Not ported (race-only):
-//! - `test_oversubscription` — its entire premise is running more OS
+//! - `test_oversubscription` - its entire premise is running more OS
 //!   threads than cores (2-4x oversubscription) to see how the scheduler
 //!   and slot system behave; sequential execution is inherently the
 //!   opposite of oversubscribed. What it exercises beyond
 //!   `test_high_contention`'s adapted swap/retire loop is purely about OS
 //!   thread scheduling, which has no single-threaded analogue.
-//! - `test_many_threads_beyond_old_limit` — a regression test that
+//! - `test_many_threads_beyond_old_limit` - a regression test that
 //!   `MAX_THREADS` (previously a fixed 128) doesn't panic with more
 //!   concurrent threads. kovan's slot model gives one OS thread exactly one
 //!   slot (see `src/guard.rs`/`src/slot.rs`), so ">128 concurrently pinned
@@ -48,7 +48,7 @@ impl StressNode {
 }
 
 /// Sequential adaptation of `stress::test_high_contention`. The original ran
-/// 16 threads hammering the same `Atomic` and printed throughput — it had
+/// 16 threads hammering the same `Atomic` and printed throughput - it had
 /// no assertion beyond completion. This runs the same swap/retire loop from
 /// one thread (scaled down for a fast test run instead of 16 * 50000
 /// iterations) so it validates the state machine, NOT contention. The
@@ -94,7 +94,7 @@ fn high_contention_sequence_single_threaded() {
 
 /// Sequential adaptation of `stress::test_read_heavy_workload`. The original
 /// ran 8 threads each doing a 95%-read/5%-write mix and printed throughput.
-/// This runs the same read/write ratio from one thread — it validates the
+/// This runs the same read/write ratio from one thread - it validates the
 /// mixed-workload state machine, NOT concurrent read/write safety. The
 /// threaded original remains the real coverage on native.
 #[test]
@@ -147,7 +147,7 @@ fn read_heavy_workload_sequence_single_threaded() {
 /// Sequential adaptation of `stress::test_rapid_guard_creation`. The
 /// original ran 8 threads each creating and immediately dropping 100,000
 /// guards. This does the same total number of pin/drop cycles from one
-/// thread — it validates guard creation/teardown mechanics, NOT concurrent
+/// thread - it validates guard creation/teardown mechanics, NOT concurrent
 /// slot contention (this scenario is already covered without threads by
 /// `tests/reclaim.rs`'s `test_pin_unpin_rapid`; kept here too for parity
 /// with the original file's structure). The threaded original remains the
@@ -167,7 +167,7 @@ fn rapid_guard_creation_sequence_single_threaded() {
 /// original held guards open on 2 dedicated long-lived threads while 6
 /// short-lived threads did normal swap/retire work concurrently. This pins
 /// a guard up front (standing in for the long-running readers) and keeps it
-/// alive — via kovan's per-thread reentrant `pin_count` — across a full
+/// alive - via kovan's per-thread reentrant `pin_count` - across a full
 /// sequence of short-lived swap/retire operations on the SAME thread. It
 /// proves a long-held guard doesn't block or corrupt activity issued from
 /// the same thread, NOT that a long-running guard on one OS thread can't
@@ -223,7 +223,7 @@ fn long_running_guard_with_interleaved_ops_single_threaded() {
 /// Sequential adaptation of `stress::test_burst_workload`. The original ran
 /// 8 threads for each of 10 bursts of 10,000 ops, with a quiet period
 /// between bursts. This runs the same burst structure (bursts of sequential
-/// swap/retire ops, scaled down for a fast run) from one thread — it
+/// swap/retire ops, scaled down for a fast run) from one thread - it
 /// validates the burst-shaped op sequence doesn't panic or corrupt state,
 /// NOT concurrent burst behavior. The threaded original remains the real
 /// coverage on native.

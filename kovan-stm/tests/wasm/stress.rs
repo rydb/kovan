@@ -10,12 +10,12 @@
 //!
 //! As in `tests/wasm/integration.rs`: a single-threaded caller can never
 //! have another writer's commit land between its own read and its own
-//! commit, so `atomically` always succeeds on the first attempt here —
+//! commit, so `atomically` always succeeds on the first attempt here -
 //! conflict/retry handling is not exercised by anything in this file. The
 //! threaded originals remain the only coverage of that path.
 //!
 //! Not ported (race-only):
-//! - `test_read_only_transactions` — 8 threads each read the same `TVar`
+//! - `test_read_only_transactions` - 8 threads each read the same `TVar`
 //!   1000 times with NO writer at all; the entire point is that many
 //!   readers hitting a shared `TVar` from real OS threads simultaneously
 //!   don't crash or see a torn read. Sequentially, reading a value nothing
@@ -40,7 +40,7 @@ use kovan_stm::Stm;
 /// Sequential adaptation of `stress::test_concurrent_counter`. The original
 /// split 800 increments (8 threads * 100) of a shared `TVar` across real
 /// threads to force retries. This runs the identical total number of
-/// increments from one thread — it validates sustained `atomically` load
+/// increments from one thread - it validates sustained `atomically` load
 /// doesn't corrupt the `TVar`, not conflict/retry correctness under real
 /// contention (see this file's header). The threaded original remains the
 /// real coverage on native.

@@ -503,7 +503,7 @@ impl Txn {
         let key = key.as_ref();
         // 0. Check local write buffer first (read-your-own-writes, even before
         // prewrite). Skip the guarded map lookup entirely when there are no
-        // buffered writes (the common case for read-only transactions) — the
+        // buffered writes (the common case for read-only transactions) - the
         // is_empty() check is a single relaxed atomic load, no kovan pin.
         if !self.writes.is_empty()
             && let Some((lock_type, value_opt)) = self.writes.get(key)

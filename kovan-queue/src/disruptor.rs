@@ -563,7 +563,7 @@ impl<T> RingBuffer<T> {
 /// ensuring a clean shutdown of the disruptor pipeline.
 pub struct Producer<T> {
     ring_buffer: Arc<RingBuffer<T>>,
-    /// Barriers for each consumer — used to alert them on shutdown.
+    /// Barriers for each consumer - used to alert them on shutdown.
     barriers: Vec<Arc<ProcessingSequenceBarrier>>,
     /// Join handles for consumer threads, taken during drop.
     join_handles: Vec<Option<thread::JoinHandle<()>>>,

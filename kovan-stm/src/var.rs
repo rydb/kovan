@@ -72,7 +72,7 @@ impl<T: Send + Sync + 'static> Drop for TVarInner<T> {
 ///
 /// The inner state is stored behind an `Arc<TVarInner<T>>` so that
 /// transactions can cheaply extend the lifetime of the `version_lock` and
-/// `data` fields by cloning the Arc into the read/write sets — even after
+/// `data` fields by cloning the Arc into the read/write sets - even after
 /// the `TVar` handle itself is dropped.
 pub struct TVar<T: Send + Sync + 'static>(pub(crate) Arc<TVarInner<T>>);
 

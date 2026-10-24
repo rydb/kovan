@@ -124,6 +124,10 @@
 //! against mimalloc, whose fast path is shorter than the cache's, it takes 3 to
 //! 11% more. Measure with the program's own allocator before turning it on.
 //!
+//! Turn it on in the application, never in a library: Cargo enables a feature
+//! for every crate of the build at once, so a library that turns it on turns it
+//! on for every kovan structure of the programs that depend on it, theirs too.
+//!
 //! # Example
 //!
 //! ```rust

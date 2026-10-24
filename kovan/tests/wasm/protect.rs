@@ -2,16 +2,16 @@
 //!
 //! Both tests in the original exist to prove era tracking works *across
 //! threads*: thread A pins, loads a pointer, then loads a second pointer
-//! born after another thread advanced the epoch and retired things — proving
+//! born after another thread advanced the epoch and retired things - proving
 //! `load()` updates A's recorded era so the second pointer isn't freed out
 //! from under it. The mechanism itself (does a second `load()` on an
 //! already-pinned guard update this thread's recorded era so a
 //! later-born node stays protected) is provable on one thread: single-
 //! threaded `retire()` advances the epoch too (every EPOCH_FREQ = 128
-//! retires — see `tests/reclaim.rs`'s header note), so both tests are
+//! retires - see `tests/reclaim.rs`'s header note), so both tests are
 //! adapted to run that whole sequence on one thread. What's lost is
 //! cross-thread *visibility* of the era update (does the reclaimer on
-//! thread B correctly observe thread A's era store) — that can only be
+//! thread B correctly observe thread A's era store) - that can only be
 //! shown with a real second thread. Each adapted test's doc comment says
 //! so explicitly.
 //!
