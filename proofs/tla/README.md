@@ -29,9 +29,13 @@ seconds each configuration may take (default 3600). A configuration expected to 
 runs one worker, so the breadth-first trace is the shortest, and the trace is kept in
 `<family>/<configuration>_counterexample.txt`. Each family's `EXPECTED.txt` names what every
 configuration must report, and a full run of a family rewrites its `tlc-run.txt`. CI runs the
-same: `.github/workflows/tla.yml` runs `.github/workflows/tla.sh` on every push to and pull request
-against `master`, which fetches tla2tools.jar v1.7.4, checks its SHA-256 and hands it to
-`proofs/tla/run_tlc.sh all` through `TLA2TOOLS`.
+same checks: `.github/workflows/tla.yml` runs `.github/workflows/tla.sh` on every push to and pull
+request against `master`, which fetches tla2tools.jar v1.7.4, checks its SHA-256 and hands it to
+`proofs/tla/run_tlc.sh shard <k> 10` through `TLA2TOOLS`, in 10 jobs at once. `shard` deals every
+configuration of every family out to the 10 shares, longest first by the seconds its family's
+`tlc-run.txt` recorded (60 for one not recorded), so each share takes about a tenth of the whole;
+`bash proofs/tla/run_tlc.sh plan 10` prints the shares. A new push to a pull request cancels the
+run it supersedes.
 
 ## What the map models check
 
