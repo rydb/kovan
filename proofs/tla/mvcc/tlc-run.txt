@@ -1,0 +1,60 @@
+TLC run of every configuration in proofs/tla/mvcc, 2026-10-24 01:57 UTC.
+Written by proofs/tla/run_tlc.sh, not by hand. Version 2.19 of 08 August 2024.
+Java -Xmx8g; -workers 4, or 1 worker where a violation is expected. Limit: 3600 s each.
+
+configuration                         generated   distinct    sec  result                     expected                   match
+MV_si                                   2527647     709736     12  pass                       pass                       yes
+MV_rc                                    322373     122826      3  pass                       pass                       yes
+MV_rw                                   7454057    2347872     30  pass                       pass                       yes
+MV_ser                                  9672937    2691886     38  pass                       pass                       yes
+MV_ext                                 28259461    7127582     78  pass                       pass                       yes
+MV_live                                   81116      30534     10  pass                       pass                       yes
+MV_live_ext                              361613     126099     25  pass                       pass                       yes
+MV_live_readers                           99128      34666      6  pass                       pass                       yes
+MV_mut_oracle_load_store                    126         74      1  violated:TsIncreasing      violated:TsIncreasing      yes
+MV_mut_read_ignores_lock                   5806       2515      2  violated:SnapshotRead      violated:SnapshotRead      yes
+MV_mut_read_data_column                    3030       1352      1  violated:NoDirtyRead       violated:NoDirtyRead       yes
+MV_mut_skip_newer_commit                  34537      13365      2  violated:FirstCommitterWins violated:FirstCommitterWins yes
+MV_mut_check_before_lock                  42901      16180      3  violated:FirstCommitterWins violated:FirstCommitterWins yes
+MV_mut_lock_get_then_insert              112725      44536      3  violated:FirstCommitterWins violated:FirstCommitterWins yes
+MV_mut_lock_get_then_insert_primary        13137       5709      1  violated:PrimaryHeld       violated:PrimaryHeld       yes
+MV_mut_secondaries_first                   1346        651      1  violated:PrimaryDecides    violated:PrimaryDecides    yes
+MV_mut_validate_after_primary              1766        983      2  violated:AllOrNothing      violated:AllOrNothing      yes
+MV_mut_no_ssi_lock                        33337      12514      2  violated:SerialReads       violated:SerialReads       yes
+MV_mut_rollback_keeps_data               134235      49920      4  violated:NoLeak            violated:NoLeak            yes
+MV_mut_rollback_deletes_range            112824      41993      3  violated:VersionData       violated:VersionData       yes
+MV_mut_ssi_lock_kept                      87587      34406     10  violated:Termination       violated:Termination       yes
+MV_mut_secondary_keeps_lock                 412        222      1  violated:LocksReleased     violated:LocksReleased     yes
+MV_mut_read_waits                         20042       8042      4  violated:ReadersEnd        violated:ReadersEnd        yes
+MV_mut_spin_unbounded                     21557       8368      4  violated:ReadersEnd        violated:ReadersEnd        yes
+MV_mut_ext_commit_unregisters             30154      12574      2  violated:SafeReadTs        violated:SafeReadTs        yes
+MV_mut_cap_returns_now                    30280      12614      2  violated:SafeReadTs        violated:SafeReadTs        yes
+MV_inert_secondaries_first              2527647     709736     11  pass                       pass                       yes
+MV_inert_epoch_ignored                   674034     224767      5  pass                       pass                       yes
+MV_give_up                                  326        180      1  pass                       pass                       yes
+MV_mut_giveup_answers_none                   78         51      1  violated:GiveUpSound       violated:GiveUpSound       yes
+MV_ssi_rollback                        11545350    3422064     38  pass                       pass                       yes
+MV_mut_ssi_latest_record               11119725    3280327    123  violated:SerialReads       violated:SerialReads       yes
+MV_gc_rollback                          4279831    1021644     13  pass                       pass                       yes
+MV_mut_gc_keeps_latest_record           3461825     842415     32  violated:SnapshotRead      violated:SnapshotRead      yes
+MV_gc_data                                14423       4409      1  pass                       pass                       yes
+MV_mut_gc_keeps_latest_data               10739       3402      2  violated:VersionData       violated:VersionData       yes
+MV_watermark                               9901       2991      1  pass                       pass                       yes
+MV_mut_register_after_ts                    184        110      1  violated:WatermarkSound    violated:WatermarkSound    yes
+MV_watermark_read                       1361022     273896      7  pass                       pass                       yes
+MV_mut_walk_only                           3960       1959      1  violated:WatermarkSound    violated:WatermarkSound    yes
+MV_wit_sight                                223        126      1  violated:NoSightW          violated:NoSightW          yes
+MV_wit_half_read                           5099       2196      1  violated:NoHalfReadW       violated:NoHalfReadW       yes
+MV_wit_old_version                         7049       2951      2  violated:NoOldVersionW     violated:NoOldVersionW     yes
+MV_wit_fresh_rc                           13442       5931      1  violated:NoFreshRcW        violated:NoFreshRcW        yes
+MV_wit_lock_conflict                        216        123      2  violated:NoLockConflictW   violated:NoLockConflictW   yes
+MV_wit_write_conflict                    192571      68873      4  violated:NoWriteConflictW  violated:NoWriteConflictW  yes
+MV_wit_rollback_reject                   135147      50320      3  violated:NoRollbackRejectW violated:NoRollbackRejectW yes
+MV_wit_ssi_fail                           45289      17234      2  violated:NoSsiFailW        violated:NoSsiFailW        yes
+MV_wit_half_commit                         1973        926      1  violated:NoHalfCommitW     violated:NoHalfCommitW     yes
+MV_wit_pin                                 4526       2161      2  violated:NoPinW            violated:NoPinW            yes
+MV_wit_drain                              94715      36625      2  violated:NoDrainW          violated:NoDrainW          yes
+MV_wit_unstable                             773        413      1  violated:NoUnstableW       violated:NoUnstableW       yes
+MV_inert_unregister_first                 14423       4409      2  pass                       pass                       yes
+
+results matching EXPECTED.txt: 53 of 53
