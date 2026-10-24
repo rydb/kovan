@@ -180,7 +180,7 @@ State 1: <Initial predicate>
 /\ xl = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ xq = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE @@ 3 :> FALSE)
 
-State 2: <T1 line 5131, col 13 to line 5576, col 81 of module Channel>
+State 2: <T1 line 5165, col 13 to line 5610, col 81 of module Channel>
 /\ xv = ( 0 :> defaultInitValue @@
   1 :> defaultInitValue @@
   2 :> defaultInitValue @@
@@ -368,7 +368,7 @@ State 2: <T1 line 5131, col 13 to line 5576, col 81 of module Channel>
 /\ xl = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ xq = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE @@ 3 :> FALSE)
 
-State 3: <AR0 line 3985, col 14 to line 4001, col 76 of module Channel>
+State 3: <AR0 line 4019, col 14 to line 4035, col 76 of module Channel>
 /\ xv = ( 0 :> defaultInitValue @@
   1 :> defaultInitValue @@
   2 :> defaultInitValue @@
@@ -556,7 +556,7 @@ State 3: <AR0 line 3985, col 14 to line 4001, col 76 of module Channel>
 /\ xl = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ xq = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE @@ 3 :> FALSE)
 
-State 4: <AR1 line 4003, col 14 to line 4066, col 50 of module Channel>
+State 4: <AR1 line 4037, col 14 to line 4100, col 50 of module Channel>
 /\ xv = ( 0 :> defaultInitValue @@
   1 :> defaultInitValue @@
   2 :> defaultInitValue @@
@@ -744,7 +744,7 @@ State 4: <AR1 line 4003, col 14 to line 4066, col 50 of module Channel>
 /\ xl = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ xq = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE @@ 3 :> FALSE)
 
-State 5: <AR2 line 4068, col 14 to line 4101, col 47 of module Channel>
+State 5: <AR2 line 4102, col 14 to line 4135, col 47 of module Channel>
 /\ xv = ( 0 :> defaultInitValue @@
   1 :> defaultInitValue @@
   2 :> defaultInitValue @@
@@ -932,7 +932,7 @@ State 5: <AR2 line 4068, col 14 to line 4101, col 47 of module Channel>
 /\ xl = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ xq = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE @@ 3 :> FALSE)
 
-State 6: <AR3 line 4103, col 14 to line 4145, col 76 of module Channel>
+State 6: <AR3 line 4137, col 14 to line 4179, col 76 of module Channel>
 /\ xv = ( 0 :> defaultInitValue @@
   1 :> defaultInitValue @@
   2 :> defaultInitValue @@
@@ -1121,7 +1121,7 @@ State 6: <AR3 line 4103, col 14 to line 4145, col 76 of module Channel>
 /\ xl = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ xq = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE @@ 3 :> FALSE)
 
-State 7: <RG1 line 1600, col 14 to line 1629, col 79 of module Channel>
+State 7: <RG1 line 1634, col 14 to line 1663, col 79 of module Channel>
 /\ xv = ( 0 :> defaultInitValue @@
   1 :> defaultInitValue @@
   2 :> defaultInitValue @@
@@ -1310,7 +1310,7 @@ State 7: <RG1 line 1600, col 14 to line 1629, col 79 of module Channel>
 /\ xl = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ xq = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE @@ 3 :> FALSE)
 
-State 8: <RG2 line 1631, col 14 to line 1644, col 64 of module Channel>
+State 8: <RG2 line 1665, col 14 to line 1678, col 64 of module Channel>
 /\ xv = ( 0 :> defaultInitValue @@
   1 :> defaultInitValue @@
   2 :> defaultInitValue @@
@@ -1499,7 +1499,7 @@ State 8: <RG2 line 1631, col 14 to line 1644, col 64 of module Channel>
 /\ xl = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ xq = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE @@ 3 :> FALSE)
 
-State 9: <RG3 line 1646, col 14 to line 1665, col 58 of module Channel>
+State 9: <RG3 line 1680, col 14 to line 1699, col 58 of module Channel>
 /\ xv = ( 0 :> defaultInitValue @@
   1 :> defaultInitValue @@
   2 :> defaultInitValue @@
@@ -1687,7 +1687,7 @@ State 9: <RG3 line 1646, col 14 to line 1665, col 58 of module Channel>
 /\ xl = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ xq = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE @@ 3 :> FALSE)
 
-State 10: <AR5 line 4147, col 14 to line 4161, col 64 of module Channel>
+State 10: <AR5 line 4181, col 14 to line 4195, col 64 of module Channel>
 /\ xv = ( 0 :> defaultInitValue @@
   1 :> defaultInitValue @@
   2 :> defaultInitValue @@
@@ -1875,7 +1875,7 @@ State 10: <AR5 line 4147, col 14 to line 4161, col 64 of module Channel>
 /\ xl = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ xq = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE @@ 3 :> FALSE)
 
-State 11: <AR5r line 4163, col 15 to line 4192, col 65 of module Channel>
+State 11: <AR5r line 4197, col 15 to line 4226, col 65 of module Channel>
 /\ xv = ( 0 :> defaultInitValue @@
   1 :> defaultInitValue @@
   2 :> defaultInitValue @@
@@ -2063,7 +2063,7 @@ State 11: <AR5r line 4163, col 15 to line 4192, col 65 of module Channel>
 /\ xl = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ xq = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE @@ 3 :> FALSE)
 
-State 12: <AR6 line 4194, col 14 to line 4239, col 64 of module Channel>
+State 12: <AR6 line 4228, col 14 to line 4273, col 64 of module Channel>
 /\ xv = ( 0 :> defaultInitValue @@
   1 :> defaultInitValue @@
   2 :> defaultInitValue @@
@@ -2251,7 +2251,7 @@ State 12: <AR6 line 4194, col 14 to line 4239, col 64 of module Channel>
 /\ xl = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ xq = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE @@ 3 :> FALSE)
 
-State 13: <AR7 line 4241, col 14 to line 4309, col 71 of module Channel>
+State 13: <AR7 line 4275, col 14 to line 4343, col 71 of module Channel>
 /\ xv = ( 0 :> defaultInitValue @@
   1 :> defaultInitValue @@
   2 :> defaultInitValue @@
@@ -2439,7 +2439,7 @@ State 13: <AR7 line 4241, col 14 to line 4309, col 71 of module Channel>
 /\ xl = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ xq = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE @@ 3 :> FALSE)
 
-State 14: <AR9 line 4311, col 14 to line 4353, col 71 of module Channel>
+State 14: <AR9 line 4345, col 14 to line 4387, col 71 of module Channel>
 /\ xv = ( 0 :> defaultInitValue @@
   1 :> defaultInitValue @@
   2 :> defaultInitValue @@
@@ -2627,4 +2627,4 @@ State 14: <AR9 line 4311, col 14 to line 4353, col 71 of module Channel>
 /\ xl = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ xq = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE @@ 3 :> FALSE)
 
-1763 states generated, 806 distinct states found, 171 states left on queue.
+1758 states generated, 803 distinct states found, 169 states left on queue.

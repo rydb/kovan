@@ -1,0 +1,2379 @@
+Error: Invariant NoRepollW is violated.
+Error: The behavior up to this point is:
+State 1: <Initial predicate>
+/\ xv = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ yc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ yq = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ nside = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ ndata = (1 :> 0 @@ 11 :> 0 @@ 12 :> 0)
+/\ ac = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ head = <<1>>
+/\ links = <<0>>
+/\ zc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ skind = << "thread",
+   "thread",
+   "thread",
+   "thread",
+   "thread",
+   "thread",
+   "thread",
+   "thread" >>
+/\ aq = <<<<>>>>
+/\ dsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ bc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ bl = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ elinks = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ bv = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ ene = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ xsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ allocated = 1..1
+/\ i = <<1, 1>>
+/\ j = (0 :> 1 @@ 1 :> 1 @@ 2 :> 1)
+/\ aside = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ rgone = <<FALSE>>
+/\ stack = (0 :> <<>> @@ 1 :> <<>> @@ 2 :> <<>>)
+/\ dc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ late = <<FALSE, FALSE>>
+/\ dj = (0 :> 1 @@ 1 :> 1 @@ 2 :> 1)
+/\ bside = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ ec = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ eh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ final = <<FALSE, FALSE>>
+/\ et = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ took = {}
+/\ dws = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ rcount = <<1>>
+/\ fw = (0 :> {} @@ 1 :> {} @@ 2 :> {})
+/\ bound = FALSE
+/\ cell = <<FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE>>
+/\ rlc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ qsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ ysg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ scount = <<1>>
+/\ dc_ = 1
+/\ retired = {}
+/\ disc = <<FALSE>>
+/\ dropped = {}
+/\ tail = <<1>>
+/\ stake = <<0, 0>>
+/\ aws = <<0, 0, 0, 0, 0, 0, 0, 0>>
+/\ holders = (1 :> {} @@ 11 :> {} @@ 12 :> {})
+/\ lh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ ln = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ lt = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ incell = <<{}, {}, {}, {}, {}, {}, {}, {}>>
+/\ errs = {}
+/\ drops = (11 :> 0 @@ 12 :> 0)
+/\ apop = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ len = <<0>>
+/\ ready = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ bsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ nc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ ns = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ said = {}
+/\ rdone = <<{}, {}>>
+/\ nstore = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ zsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ token = <<FALSE, FALSE>>
+/\ nnext = (1 :> 0 @@ 11 :> 0 @@ 12 :> 0)
+/\ owed = <<FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE>>
+/\ pc = (0 :> "TD1" @@ 1 :> "T1" @@ 2 :> "T1")
+/\ freed = {}
+/\ regd = (0 :> {} @@ 1 :> {} @@ 2 :> {})
+/\ sown = <<0, 0, 0, 0, 0, 0, 0, 0>>
+/\ rc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ created = {}
+/\ rs = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ rv = <<0, 0>>
+/\ sc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ sn = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ st = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ sv = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ busy = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ woken = <<FALSE, FALSE>>
+/\ bsig = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ sst = <<0, 0, 0, 0, 0, 0, 0, 0>>
+/\ popd = <<0, 0>>
+/\ cur = 0
+/\ bch = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ wk = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ dpc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ wl = (<<"S", 1>> :> <<>> @@ <<"R", 1>> :> <<>>)
+/\ ws = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ nsig = 0
+/\ xc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ xl = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ xq = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+
+State 2: <T1 line 5165, col 13 to line 5610, col 81 of module Channel>
+/\ xv = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ yc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> 1)
+/\ yq = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ nside = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ ndata = (1 :> 0 @@ 11 :> 0 @@ 12 :> 0)
+/\ ac = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ head = <<1>>
+/\ links = <<0>>
+/\ zc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ skind = << "thread",
+   "thread",
+   "thread",
+   "thread",
+   "thread",
+   "thread",
+   "thread",
+   "thread" >>
+/\ aq = <<<<>>>>
+/\ dsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ bc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ bl = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ elinks = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ bv = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ ene = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ xsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ allocated = 1..1
+/\ i = <<1, 2>>
+/\ j = (0 :> 1 @@ 1 :> 1 @@ 2 :> 1)
+/\ aside = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ rgone = <<FALSE>>
+/\ stack = ( 0 :> <<>> @@
+  1 :> <<>> @@
+  2 :>
+      << [ pc |-> "T1",
+           yc |-> defaultInitValue,
+           ysg |-> 0,
+           yq |-> FALSE,
+           procedure |-> "RecvAsync" ] >> )
+/\ dc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ late = <<FALSE, FALSE>>
+/\ dj = (0 :> 1 @@ 1 :> 1 @@ 2 :> 1)
+/\ bside = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ ec = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ eh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ final = <<FALSE, FALSE>>
+/\ et = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ took = {}
+/\ dws = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ rcount = <<1>>
+/\ fw = (0 :> {} @@ 1 :> {} @@ 2 :> {})
+/\ bound = FALSE
+/\ cell = <<FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE>>
+/\ rlc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ qsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ ysg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ scount = <<1>>
+/\ dc_ = 1
+/\ retired = {}
+/\ disc = <<FALSE>>
+/\ dropped = {}
+/\ tail = <<1>>
+/\ stake = <<0, 0>>
+/\ aws = <<0, 0, 0, 0, 0, 0, 0, 0>>
+/\ holders = (1 :> {} @@ 11 :> {} @@ 12 :> {})
+/\ lh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ ln = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ lt = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ incell = <<{}, {}, {}, {}, {}, {}, {}, {}>>
+/\ errs = {}
+/\ drops = (11 :> 0 @@ 12 :> 0)
+/\ apop = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ len = <<0>>
+/\ ready = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ bsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ nc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ ns = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ said = {}
+/\ rdone = <<{}, {}>>
+/\ nstore = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ zsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ token = <<FALSE, FALSE>>
+/\ nnext = (1 :> 0 @@ 11 :> 0 @@ 12 :> 0)
+/\ owed = <<FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE>>
+/\ pc = (0 :> "TD1" @@ 1 :> "T1" @@ 2 :> "AR0")
+/\ freed = {}
+/\ regd = (0 :> {} @@ 1 :> {} @@ 2 :> {})
+/\ sown = <<0, 0, 0, 0, 0, 0, 0, 0>>
+/\ rc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ created = {}
+/\ rs = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ rv = <<0, 0>>
+/\ sc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ sn = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ st = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ sv = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ busy = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ woken = <<FALSE, FALSE>>
+/\ bsig = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ sst = <<0, 0, 0, 0, 0, 0, 0, 0>>
+/\ popd = <<0, 0>>
+/\ cur = 0
+/\ bch = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ wk = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ dpc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ wl = (<<"S", 1>> :> <<>> @@ <<"R", 1>> :> <<>>)
+/\ ws = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ nsig = 0
+/\ xc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ xl = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ xq = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+
+State 3: <AR0 line 4019, col 14 to line 4035, col 76 of module Channel>
+/\ xv = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ yc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> 1)
+/\ yq = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ nside = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ ndata = (1 :> 0 @@ 11 :> 0 @@ 12 :> 0)
+/\ ac = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ head = <<1>>
+/\ links = <<0>>
+/\ zc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ skind = << "thread",
+   "thread",
+   "thread",
+   "thread",
+   "thread",
+   "thread",
+   "thread",
+   "thread" >>
+/\ aq = <<<<>>>>
+/\ dsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ bc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ bl = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ elinks = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ bv = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ ene = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ xsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ allocated = 1..1
+/\ i = <<1, 2>>
+/\ j = (0 :> 1 @@ 1 :> 1 @@ 2 :> 1)
+/\ aside = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ rgone = <<FALSE>>
+/\ stack = ( 0 :> <<>> @@
+  1 :> <<>> @@
+  2 :>
+      << [ pc |-> "T1",
+           yc |-> defaultInitValue,
+           ysg |-> 0,
+           yq |-> FALSE,
+           procedure |-> "RecvAsync" ] >> )
+/\ dc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ late = <<FALSE, FALSE>>
+/\ dj = (0 :> 1 @@ 1 :> 1 @@ 2 :> 1)
+/\ bside = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ ec = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ eh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ final = <<FALSE, FALSE>>
+/\ et = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ took = {}
+/\ dws = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ rcount = <<1>>
+/\ fw = (0 :> {} @@ 1 :> {} @@ 2 :> {})
+/\ bound = FALSE
+/\ cell = <<FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE>>
+/\ rlc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ qsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ ysg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ scount = <<1>>
+/\ dc_ = 1
+/\ retired = {}
+/\ disc = <<FALSE>>
+/\ dropped = {}
+/\ tail = <<1>>
+/\ stake = <<0, 0>>
+/\ aws = <<0, 0, 0, 0, 0, 0, 0, 0>>
+/\ holders = (1 :> {} @@ 11 :> {} @@ 12 :> {})
+/\ lh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ ln = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ lt = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ incell = <<{}, {}, {}, {}, {}, {}, {}, {}>>
+/\ errs = {}
+/\ drops = (11 :> 0 @@ 12 :> 0)
+/\ apop = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ len = <<0>>
+/\ ready = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ bsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ nc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ ns = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ said = {}
+/\ rdone = <<{}, {}>>
+/\ nstore = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ zsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ token = <<FALSE, FALSE>>
+/\ nnext = (1 :> 0 @@ 11 :> 0 @@ 12 :> 0)
+/\ owed = <<FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE>>
+/\ pc = (0 :> "TD1" @@ 1 :> "T1" @@ 2 :> "AR1")
+/\ freed = {}
+/\ regd = (0 :> {} @@ 1 :> {} @@ 2 :> {})
+/\ sown = <<0, 0, 0, 0, 0, 0, 0, 0>>
+/\ rc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ created = {}
+/\ rs = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ rv = <<0, 0>>
+/\ sc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ sn = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ st = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ sv = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ busy = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ woken = <<FALSE, FALSE>>
+/\ bsig = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ sst = <<0, 0, 0, 0, 0, 0, 0, 0>>
+/\ popd = <<0, 0>>
+/\ cur = 0
+/\ bch = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ wk = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ dpc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ wl = (<<"S", 1>> :> <<>> @@ <<"R", 1>> :> <<>>)
+/\ ws = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ nsig = 0
+/\ xc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ xl = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ xq = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+
+State 4: <AR1 line 4037, col 14 to line 4100, col 50 of module Channel>
+/\ xv = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ yc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> 1)
+/\ yq = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ nside = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ ndata = (1 :> 0 @@ 11 :> 0 @@ 12 :> 0)
+/\ ac = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ head = <<1>>
+/\ links = <<0>>
+/\ zc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ skind = << "thread",
+   "thread",
+   "thread",
+   "thread",
+   "thread",
+   "thread",
+   "thread",
+   "thread" >>
+/\ aq = <<<<>>>>
+/\ dsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ bc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ bl = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ elinks = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ bv = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ ene = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ xsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ allocated = 1..1
+/\ i = <<1, 2>>
+/\ j = (0 :> 1 @@ 1 :> 1 @@ 2 :> 1)
+/\ aside = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ rgone = <<FALSE>>
+/\ stack = ( 0 :> <<>> @@
+  1 :> <<>> @@
+  2 :>
+      << [ pc |-> "T1",
+           yc |-> defaultInitValue,
+           ysg |-> 0,
+           yq |-> FALSE,
+           procedure |-> "RecvAsync" ] >> )
+/\ dc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ late = <<FALSE, FALSE>>
+/\ dj = (0 :> 1 @@ 1 :> 1 @@ 2 :> 1)
+/\ bside = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ ec = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ eh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ final = <<FALSE, FALSE>>
+/\ et = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ took = {}
+/\ dws = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ rcount = <<1>>
+/\ fw = (0 :> {} @@ 1 :> {} @@ 2 :> {})
+/\ bound = FALSE
+/\ cell = <<FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE>>
+/\ rlc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ qsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ ysg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ scount = <<1>>
+/\ dc_ = 1
+/\ retired = {}
+/\ disc = <<FALSE>>
+/\ dropped = {}
+/\ tail = <<1>>
+/\ stake = <<0, 0>>
+/\ aws = <<0, 0, 0, 0, 0, 0, 0, 0>>
+/\ holders = (1 :> {} @@ 11 :> {} @@ 12 :> {})
+/\ lh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ ln = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ lt = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ incell = <<{}, {}, {}, {}, {}, {}, {}, {}>>
+/\ errs = {}
+/\ drops = (11 :> 0 @@ 12 :> 0)
+/\ apop = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ len = <<0>>
+/\ ready = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ bsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ nc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ ns = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ said = {}
+/\ rdone = <<{}, {}>>
+/\ nstore = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ zsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ token = <<FALSE, FALSE>>
+/\ nnext = (1 :> 0 @@ 11 :> 0 @@ 12 :> 0)
+/\ owed = <<FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE>>
+/\ pc = (0 :> "TD1" @@ 1 :> "T1" @@ 2 :> "AR2")
+/\ freed = {}
+/\ regd = (0 :> {} @@ 1 :> {} @@ 2 :> {})
+/\ sown = <<0, 0, 0, 0, 0, 0, 0, 0>>
+/\ rc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ created = {}
+/\ rs = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ rv = <<0, 0>>
+/\ sc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ sn = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ st = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ sv = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ busy = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ woken = <<FALSE, FALSE>>
+/\ bsig = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ sst = <<0, 0, 0, 0, 0, 0, 0, 0>>
+/\ popd = <<0, 0>>
+/\ cur = 0
+/\ bch = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ wk = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ dpc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ wl = (<<"S", 1>> :> <<>> @@ <<"R", 1>> :> <<>>)
+/\ ws = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ nsig = 0
+/\ xc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ xl = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ xq = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+
+State 5: <AR2 line 4102, col 14 to line 4135, col 47 of module Channel>
+/\ xv = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ yc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> 1)
+/\ yq = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ nside = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ ndata = (1 :> 0 @@ 11 :> 0 @@ 12 :> 0)
+/\ ac = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ head = <<1>>
+/\ links = <<0>>
+/\ zc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ skind = << "thread",
+   "thread",
+   "thread",
+   "thread",
+   "thread",
+   "thread",
+   "thread",
+   "thread" >>
+/\ aq = <<<<>>>>
+/\ dsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ bc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ bl = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ elinks = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ bv = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ ene = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ xsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ allocated = 1..1
+/\ i = <<1, 2>>
+/\ j = (0 :> 1 @@ 1 :> 1 @@ 2 :> 1)
+/\ aside = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ rgone = <<FALSE>>
+/\ stack = ( 0 :> <<>> @@
+  1 :> <<>> @@
+  2 :>
+      << [ pc |-> "T1",
+           yc |-> defaultInitValue,
+           ysg |-> 0,
+           yq |-> FALSE,
+           procedure |-> "RecvAsync" ] >> )
+/\ dc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ late = <<FALSE, FALSE>>
+/\ dj = (0 :> 1 @@ 1 :> 1 @@ 2 :> 1)
+/\ bside = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ ec = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ eh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ final = <<FALSE, FALSE>>
+/\ et = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ took = {}
+/\ dws = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ rcount = <<1>>
+/\ fw = (0 :> {} @@ 1 :> {} @@ 2 :> {})
+/\ bound = FALSE
+/\ cell = <<FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE>>
+/\ rlc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ qsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ ysg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ scount = <<1>>
+/\ dc_ = 1
+/\ retired = {}
+/\ disc = <<FALSE>>
+/\ dropped = {}
+/\ tail = <<1>>
+/\ stake = <<0, 0>>
+/\ aws = <<0, 0, 0, 0, 0, 0, 0, 0>>
+/\ holders = (1 :> {} @@ 11 :> {} @@ 12 :> {})
+/\ lh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ ln = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ lt = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ incell = <<{}, {}, {}, {}, {}, {}, {}, {}>>
+/\ errs = {}
+/\ drops = (11 :> 0 @@ 12 :> 0)
+/\ apop = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ len = <<0>>
+/\ ready = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ bsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ nc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ ns = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ said = {}
+/\ rdone = <<{}, {}>>
+/\ nstore = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ zsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ token = <<FALSE, FALSE>>
+/\ nnext = (1 :> 0 @@ 11 :> 0 @@ 12 :> 0)
+/\ owed = <<FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE>>
+/\ pc = (0 :> "TD1" @@ 1 :> "T1" @@ 2 :> "AR3")
+/\ freed = {}
+/\ regd = (0 :> {} @@ 1 :> {} @@ 2 :> {})
+/\ sown = <<0, 0, 0, 0, 0, 0, 0, 0>>
+/\ rc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ created = {}
+/\ rs = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ rv = <<0, 0>>
+/\ sc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ sn = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ st = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ sv = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ busy = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ woken = <<FALSE, FALSE>>
+/\ bsig = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ sst = <<0, 0, 0, 0, 0, 0, 0, 0>>
+/\ popd = <<0, 0>>
+/\ cur = 0
+/\ bch = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ wk = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ dpc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ wl = (<<"S", 1>> :> <<>> @@ <<"R", 1>> :> <<>>)
+/\ ws = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ nsig = 0
+/\ xc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ xl = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ xq = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+
+State 6: <AR3 line 4137, col 14 to line 4179, col 76 of module Channel>
+/\ xv = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ yc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> 1)
+/\ yq = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ nside = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ ndata = (1 :> 0 @@ 11 :> 0 @@ 12 :> 0)
+/\ ac = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ head = <<1>>
+/\ links = <<0>>
+/\ zc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ skind = << "async",
+   "thread",
+   "thread",
+   "thread",
+   "thread",
+   "thread",
+   "thread",
+   "thread" >>
+/\ aq = <<<<>>>>
+/\ dsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ bc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ bl = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ elinks = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ bv = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ ene = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ xsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ allocated = 1..1
+/\ i = <<1, 2>>
+/\ j = (0 :> 1 @@ 1 :> 1 @@ 2 :> 1)
+/\ aside = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ rgone = <<FALSE>>
+/\ stack = ( 0 :> <<>> @@
+  1 :> <<>> @@
+  2 :>
+      << [pc |-> "AR5", rs |-> defaultInitValue, procedure |-> "AwRegister"],
+         [ pc |-> "T1",
+           yc |-> defaultInitValue,
+           ysg |-> 0,
+           yq |-> FALSE,
+           procedure |-> "RecvAsync" ] >> )
+/\ dc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ late = <<FALSE, FALSE>>
+/\ dj = (0 :> 1 @@ 1 :> 1 @@ 2 :> 1)
+/\ bside = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ ec = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ eh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ final = <<FALSE, FALSE>>
+/\ et = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ took = {}
+/\ dws = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ rcount = <<1>>
+/\ fw = (0 :> {} @@ 1 :> {} @@ 2 :> {})
+/\ bound = FALSE
+/\ cell = <<FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE>>
+/\ rlc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ qsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ ysg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 1)
+/\ scount = <<1>>
+/\ dc_ = 1
+/\ retired = {}
+/\ disc = <<FALSE>>
+/\ dropped = {}
+/\ tail = <<1>>
+/\ stake = <<0, 0>>
+/\ aws = <<0, 0, 0, 0, 0, 0, 0, 0>>
+/\ holders = (1 :> {} @@ 11 :> {} @@ 12 :> {})
+/\ lh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ ln = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ lt = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ incell = <<{}, {}, {}, {}, {}, {}, {}, {}>>
+/\ errs = {}
+/\ drops = (11 :> 0 @@ 12 :> 0)
+/\ apop = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ len = <<0>>
+/\ ready = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ bsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ nc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ ns = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ said = {}
+/\ rdone = <<{}, {}>>
+/\ nstore = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ zsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ token = <<FALSE, FALSE>>
+/\ nnext = (1 :> 0 @@ 11 :> 0 @@ 12 :> 0)
+/\ owed = <<FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE>>
+/\ pc = (0 :> "TD1" @@ 1 :> "T1" @@ 2 :> "RG1")
+/\ freed = {}
+/\ regd = (0 :> {} @@ 1 :> {} @@ 2 :> {})
+/\ sown = <<2, 0, 0, 0, 0, 0, 0, 0>>
+/\ rc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ created = {}
+/\ rs = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> 1)
+/\ rv = <<0, 0>>
+/\ sc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ sn = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ st = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ sv = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ busy = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ woken = <<FALSE, FALSE>>
+/\ bsig = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ sst = <<0, 0, 0, 0, 0, 0, 0, 0>>
+/\ popd = <<0, 0>>
+/\ cur = 0
+/\ bch = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ wk = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ dpc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ wl = (<<"S", 1>> :> <<>> @@ <<"R", 1>> :> <<>>)
+/\ ws = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ nsig = 1
+/\ xc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ xl = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ xq = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+
+State 7: <RG1 line 1634, col 14 to line 1663, col 79 of module Channel>
+/\ xv = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ yc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> 1)
+/\ yq = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ nside = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ ndata = (1 :> 0 @@ 11 :> 0 @@ 12 :> 0)
+/\ ac = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ head = <<1>>
+/\ links = <<0>>
+/\ zc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ skind = << "async",
+   "thread",
+   "thread",
+   "thread",
+   "thread",
+   "thread",
+   "thread",
+   "thread" >>
+/\ aq = <<<<>>>>
+/\ dsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ bc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ bl = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ elinks = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ bv = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ ene = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ xsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ allocated = 1..1
+/\ i = <<1, 2>>
+/\ j = (0 :> 1 @@ 1 :> 1 @@ 2 :> 1)
+/\ aside = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ rgone = <<FALSE>>
+/\ stack = ( 0 :> <<>> @@
+  1 :> <<>> @@
+  2 :>
+      << [pc |-> "AR5", rs |-> defaultInitValue, procedure |-> "AwRegister"],
+         [ pc |-> "T1",
+           yc |-> defaultInitValue,
+           ysg |-> 0,
+           yq |-> FALSE,
+           procedure |-> "RecvAsync" ] >> )
+/\ dc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ late = <<FALSE, FALSE>>
+/\ dj = (0 :> 1 @@ 1 :> 1 @@ 2 :> 1)
+/\ bside = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ ec = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ eh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ final = <<FALSE, FALSE>>
+/\ et = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ took = {}
+/\ dws = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ rcount = <<1>>
+/\ fw = (0 :> {} @@ 1 :> {} @@ 2 :> {})
+/\ bound = FALSE
+/\ cell = <<FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE>>
+/\ rlc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ qsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ ysg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 1)
+/\ scount = <<1>>
+/\ dc_ = 1
+/\ retired = {}
+/\ disc = <<FALSE>>
+/\ dropped = {}
+/\ tail = <<1>>
+/\ stake = <<0, 0>>
+/\ aws = <<1, 0, 0, 0, 0, 0, 0, 0>>
+/\ holders = (1 :> {} @@ 11 :> {} @@ 12 :> {})
+/\ lh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ ln = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ lt = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ incell = <<{2}, {}, {}, {}, {}, {}, {}, {}>>
+/\ errs = {}
+/\ drops = (11 :> 0 @@ 12 :> 0)
+/\ apop = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ len = <<0>>
+/\ ready = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ bsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ nc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ ns = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ said = {}
+/\ rdone = <<{}, {}>>
+/\ nstore = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ zsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ token = <<FALSE, FALSE>>
+/\ nnext = (1 :> 0 @@ 11 :> 0 @@ 12 :> 0)
+/\ owed = <<FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE>>
+/\ pc = (0 :> "TD1" @@ 1 :> "T1" @@ 2 :> "RG2")
+/\ freed = {}
+/\ regd = (0 :> {} @@ 1 :> {} @@ 2 :> {})
+/\ sown = <<2, 0, 0, 0, 0, 0, 0, 0>>
+/\ rc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ created = {}
+/\ rs = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> 1)
+/\ rv = <<0, 0>>
+/\ sc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ sn = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ st = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ sv = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ busy = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ woken = <<FALSE, FALSE>>
+/\ bsig = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ sst = <<0, 0, 0, 0, 0, 0, 0, 0>>
+/\ popd = <<0, 0>>
+/\ cur = 0
+/\ bch = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ wk = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ dpc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ wl = (<<"S", 1>> :> <<>> @@ <<"R", 1>> :> <<>>)
+/\ ws = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ nsig = 1
+/\ xc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ xl = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ xq = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+
+State 8: <RG2 line 1665, col 14 to line 1678, col 64 of module Channel>
+/\ xv = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ yc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> 1)
+/\ yq = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ nside = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ ndata = (1 :> 0 @@ 11 :> 0 @@ 12 :> 0)
+/\ ac = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ head = <<1>>
+/\ links = <<0>>
+/\ zc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ skind = << "async",
+   "thread",
+   "thread",
+   "thread",
+   "thread",
+   "thread",
+   "thread",
+   "thread" >>
+/\ aq = <<<<>>>>
+/\ dsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ bc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ bl = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ elinks = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ bv = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ ene = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ xsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ allocated = 1..1
+/\ i = <<1, 2>>
+/\ j = (0 :> 1 @@ 1 :> 1 @@ 2 :> 1)
+/\ aside = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ rgone = <<FALSE>>
+/\ stack = ( 0 :> <<>> @@
+  1 :> <<>> @@
+  2 :>
+      << [pc |-> "AR5", rs |-> defaultInitValue, procedure |-> "AwRegister"],
+         [ pc |-> "T1",
+           yc |-> defaultInitValue,
+           ysg |-> 0,
+           yq |-> FALSE,
+           procedure |-> "RecvAsync" ] >> )
+/\ dc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ late = <<FALSE, FALSE>>
+/\ dj = (0 :> 1 @@ 1 :> 1 @@ 2 :> 1)
+/\ bside = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ ec = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ eh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ final = <<FALSE, FALSE>>
+/\ et = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ took = {}
+/\ dws = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ rcount = <<1>>
+/\ fw = (0 :> {} @@ 1 :> {} @@ 2 :> {})
+/\ bound = FALSE
+/\ cell = <<TRUE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE>>
+/\ rlc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ qsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ ysg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 1)
+/\ scount = <<1>>
+/\ dc_ = 1
+/\ retired = {}
+/\ disc = <<FALSE>>
+/\ dropped = {}
+/\ tail = <<1>>
+/\ stake = <<0, 0>>
+/\ aws = <<1, 0, 0, 0, 0, 0, 0, 0>>
+/\ holders = (1 :> {} @@ 11 :> {} @@ 12 :> {})
+/\ lh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ ln = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ lt = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ incell = <<{2}, {}, {}, {}, {}, {}, {}, {}>>
+/\ errs = {}
+/\ drops = (11 :> 0 @@ 12 :> 0)
+/\ apop = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ len = <<0>>
+/\ ready = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ bsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ nc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ ns = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ said = {}
+/\ rdone = <<{}, {}>>
+/\ nstore = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ zsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ token = <<FALSE, FALSE>>
+/\ nnext = (1 :> 0 @@ 11 :> 0 @@ 12 :> 0)
+/\ owed = <<FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE>>
+/\ pc = (0 :> "TD1" @@ 1 :> "T1" @@ 2 :> "RG3")
+/\ freed = {}
+/\ regd = (0 :> {} @@ 1 :> {} @@ 2 :> {})
+/\ sown = <<2, 0, 0, 0, 0, 0, 0, 0>>
+/\ rc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ created = {}
+/\ rs = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> 1)
+/\ rv = <<0, 0>>
+/\ sc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ sn = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ st = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ sv = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ busy = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ woken = <<FALSE, FALSE>>
+/\ bsig = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ sst = <<0, 0, 0, 0, 0, 0, 0, 0>>
+/\ popd = <<0, 0>>
+/\ cur = 0
+/\ bch = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ wk = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ dpc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ wl = (<<"S", 1>> :> <<>> @@ <<"R", 1>> :> <<>>)
+/\ ws = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ nsig = 1
+/\ xc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ xl = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ xq = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+
+State 9: <RG3 line 1680, col 14 to line 1699, col 58 of module Channel>
+/\ xv = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ yc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> 1)
+/\ yq = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ nside = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ ndata = (1 :> 0 @@ 11 :> 0 @@ 12 :> 0)
+/\ ac = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ head = <<1>>
+/\ links = <<0>>
+/\ zc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ skind = << "async",
+   "thread",
+   "thread",
+   "thread",
+   "thread",
+   "thread",
+   "thread",
+   "thread" >>
+/\ aq = <<<<>>>>
+/\ dsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ bc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ bl = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ elinks = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ bv = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ ene = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ xsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ allocated = 1..1
+/\ i = <<1, 2>>
+/\ j = (0 :> 1 @@ 1 :> 1 @@ 2 :> 1)
+/\ aside = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ rgone = <<FALSE>>
+/\ stack = ( 0 :> <<>> @@
+  1 :> <<>> @@
+  2 :>
+      << [ pc |-> "T1",
+           yc |-> defaultInitValue,
+           ysg |-> 0,
+           yq |-> FALSE,
+           procedure |-> "RecvAsync" ] >> )
+/\ dc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ late = <<FALSE, FALSE>>
+/\ dj = (0 :> 1 @@ 1 :> 1 @@ 2 :> 1)
+/\ bside = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ ec = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ eh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ final = <<FALSE, FALSE>>
+/\ et = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ took = {}
+/\ dws = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ rcount = <<1>>
+/\ fw = (0 :> {} @@ 1 :> {} @@ 2 :> {})
+/\ bound = FALSE
+/\ cell = <<TRUE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE>>
+/\ rlc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ qsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ ysg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 1)
+/\ scount = <<1>>
+/\ dc_ = 1
+/\ retired = {}
+/\ disc = <<FALSE>>
+/\ dropped = {}
+/\ tail = <<1>>
+/\ stake = <<0, 0>>
+/\ aws = <<0, 0, 0, 0, 0, 0, 0, 0>>
+/\ holders = (1 :> {} @@ 11 :> {} @@ 12 :> {})
+/\ lh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ ln = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ lt = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ incell = <<{}, {}, {}, {}, {}, {}, {}, {}>>
+/\ errs = {}
+/\ drops = (11 :> 0 @@ 12 :> 0)
+/\ apop = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ len = <<0>>
+/\ ready = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ bsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ nc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ ns = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ said = {}
+/\ rdone = <<{}, {}>>
+/\ nstore = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ zsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ token = <<FALSE, FALSE>>
+/\ nnext = (1 :> 0 @@ 11 :> 0 @@ 12 :> 0)
+/\ owed = <<FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE>>
+/\ pc = (0 :> "TD1" @@ 1 :> "T1" @@ 2 :> "AR5")
+/\ freed = {}
+/\ regd = (0 :> {} @@ 1 :> {} @@ 2 :> {})
+/\ sown = <<2, 0, 0, 0, 0, 0, 0, 0>>
+/\ rc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ created = {}
+/\ rs = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ rv = <<0, 0>>
+/\ sc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ sn = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ st = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ sv = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ busy = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ woken = <<FALSE, FALSE>>
+/\ bsig = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ sst = <<0, 0, 0, 0, 0, 0, 0, 0>>
+/\ popd = <<0, 0>>
+/\ cur = 0
+/\ bch = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ wk = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ dpc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ wl = (<<"S", 1>> :> <<>> @@ <<"R", 1>> :> <<>>)
+/\ ws = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ nsig = 1
+/\ xc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ xl = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ xq = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+
+State 10: <AR5 line 4181, col 14 to line 4195, col 64 of module Channel>
+/\ xv = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ yc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> 1)
+/\ yq = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> TRUE)
+/\ nside = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ ndata = (1 :> 0 @@ 11 :> 0 @@ 12 :> 0)
+/\ ac = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ head = <<1>>
+/\ links = <<0>>
+/\ zc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ skind = << "async",
+   "thread",
+   "thread",
+   "thread",
+   "thread",
+   "thread",
+   "thread",
+   "thread" >>
+/\ aq = <<<<>>>>
+/\ dsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ bc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ bl = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ elinks = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ bv = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ ene = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ xsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ allocated = 1..1
+/\ i = <<1, 2>>
+/\ j = (0 :> 1 @@ 1 :> 1 @@ 2 :> 1)
+/\ aside = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ rgone = <<FALSE>>
+/\ stack = ( 0 :> <<>> @@
+  1 :> <<>> @@
+  2 :>
+      << [ pc |-> "T1",
+           yc |-> defaultInitValue,
+           ysg |-> 0,
+           yq |-> FALSE,
+           procedure |-> "RecvAsync" ] >> )
+/\ dc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ late = <<FALSE, FALSE>>
+/\ dj = (0 :> 1 @@ 1 :> 1 @@ 2 :> 1)
+/\ bside = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ ec = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ eh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ final = <<FALSE, FALSE>>
+/\ et = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ took = {}
+/\ dws = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ rcount = <<1>>
+/\ fw = (0 :> {} @@ 1 :> {} @@ 2 :> {})
+/\ bound = FALSE
+/\ cell = <<TRUE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE>>
+/\ rlc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ qsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ ysg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 1)
+/\ scount = <<1>>
+/\ dc_ = 1
+/\ retired = {}
+/\ disc = <<FALSE>>
+/\ dropped = {}
+/\ tail = <<1>>
+/\ stake = <<0, 0>>
+/\ aws = <<0, 0, 0, 0, 0, 0, 0, 0>>
+/\ holders = (1 :> {} @@ 11 :> {} @@ 12 :> {})
+/\ lh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ ln = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ lt = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ incell = <<{}, {}, {}, {}, {}, {}, {}, {}>>
+/\ errs = {}
+/\ drops = (11 :> 0 @@ 12 :> 0)
+/\ apop = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ len = <<0>>
+/\ ready = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ bsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ nc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ ns = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ said = {}
+/\ rdone = <<{}, {}>>
+/\ nstore = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ zsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ token = <<FALSE, FALSE>>
+/\ nnext = (1 :> 0 @@ 11 :> 0 @@ 12 :> 0)
+/\ owed = <<FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE>>
+/\ pc = (0 :> "TD1" @@ 1 :> "T1" @@ 2 :> "AR5r")
+/\ freed = {}
+/\ regd = (0 :> {} @@ 1 :> {} @@ 2 :> {})
+/\ sown = <<2, 0, 0, 0, 0, 0, 0, 0>>
+/\ rc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ created = {}
+/\ rs = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ rv = <<0, 0>>
+/\ sc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ sn = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ st = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ sv = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ busy = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ woken = <<FALSE, FALSE>>
+/\ bsig = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ sst = <<0, 0, 0, 0, 0, 0, 0, 0>>
+/\ popd = <<0, 0>>
+/\ cur = 0
+/\ bch = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ wk = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ dpc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ wl = (<<"S", 1>> :> <<>> @@ <<"R", 1>> :> <<1>>)
+/\ ws = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ nsig = 1
+/\ xc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ xl = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ xq = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+
+State 11: <AR5r line 4197, col 15 to line 4226, col 65 of module Channel>
+/\ xv = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ yc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> 1)
+/\ yq = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> TRUE)
+/\ nside = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ ndata = (1 :> 0 @@ 11 :> 0 @@ 12 :> 0)
+/\ ac = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ head = <<1>>
+/\ links = <<0>>
+/\ zc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ skind = << "async",
+   "thread",
+   "thread",
+   "thread",
+   "thread",
+   "thread",
+   "thread",
+   "thread" >>
+/\ aq = <<<<>>>>
+/\ dsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ bc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ bl = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ elinks = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ bv = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ ene = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ xsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ allocated = 1..1
+/\ i = <<1, 2>>
+/\ j = (0 :> 1 @@ 1 :> 1 @@ 2 :> 1)
+/\ aside = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ rgone = <<FALSE>>
+/\ stack = ( 0 :> <<>> @@
+  1 :> <<>> @@
+  2 :>
+      << [ pc |-> "T1",
+           yc |-> defaultInitValue,
+           ysg |-> 0,
+           yq |-> FALSE,
+           procedure |-> "RecvAsync" ] >> )
+/\ dc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ late = <<FALSE, FALSE>>
+/\ dj = (0 :> 1 @@ 1 :> 1 @@ 2 :> 1)
+/\ bside = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ ec = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ eh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ final = <<FALSE, FALSE>>
+/\ et = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ took = {}
+/\ dws = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ rcount = <<1>>
+/\ fw = (0 :> {} @@ 1 :> {} @@ 2 :> {})
+/\ bound = FALSE
+/\ cell = <<TRUE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE>>
+/\ rlc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ qsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ ysg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 1)
+/\ scount = <<1>>
+/\ dc_ = 1
+/\ retired = {}
+/\ disc = <<FALSE>>
+/\ dropped = {}
+/\ tail = <<1>>
+/\ stake = <<0, 0>>
+/\ aws = <<0, 0, 0, 0, 0, 0, 0, 0>>
+/\ holders = (1 :> {} @@ 11 :> {} @@ 12 :> {})
+/\ lh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ ln = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ lt = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ incell = <<{}, {}, {}, {}, {}, {}, {}, {}>>
+/\ errs = {}
+/\ drops = (11 :> 0 @@ 12 :> 0)
+/\ apop = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ len = <<0>>
+/\ ready = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ bsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ nc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ ns = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ said = {}
+/\ rdone = <<{}, {}>>
+/\ nstore = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ zsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ token = <<FALSE, FALSE>>
+/\ nnext = (1 :> 0 @@ 11 :> 0 @@ 12 :> 0)
+/\ owed = <<FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE>>
+/\ pc = (0 :> "TD1" @@ 1 :> "T1" @@ 2 :> "AR6")
+/\ freed = {}
+/\ regd = (0 :> {} @@ 1 :> {} @@ 2 :> {})
+/\ sown = <<2, 0, 0, 0, 0, 0, 0, 0>>
+/\ rc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ created = {}
+/\ rs = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ rv = <<0, 0>>
+/\ sc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ sn = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ st = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ sv = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ busy = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ woken = <<FALSE, FALSE>>
+/\ bsig = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ sst = <<0, 0, 0, 0, 0, 0, 0, 0>>
+/\ popd = <<0, 0>>
+/\ cur = 0
+/\ bch = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ wk = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ dpc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ wl = (<<"S", 1>> :> <<>> @@ <<"R", 1>> :> <<1>>)
+/\ ws = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ nsig = 1
+/\ xc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ xl = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ xq = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+
+State 12: <AR6 line 4228, col 14 to line 4273, col 64 of module Channel>
+/\ xv = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ yc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> 1)
+/\ yq = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> TRUE)
+/\ nside = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ ndata = (1 :> 0 @@ 11 :> 0 @@ 12 :> 0)
+/\ ac = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ head = <<1>>
+/\ links = <<0>>
+/\ zc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ skind = << "async",
+   "thread",
+   "thread",
+   "thread",
+   "thread",
+   "thread",
+   "thread",
+   "thread" >>
+/\ aq = <<<<>>>>
+/\ dsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ bc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ bl = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ elinks = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ bv = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ ene = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ xsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ allocated = 1..1
+/\ i = <<1, 2>>
+/\ j = (0 :> 1 @@ 1 :> 1 @@ 2 :> 1)
+/\ aside = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ rgone = <<FALSE>>
+/\ stack = ( 0 :> <<>> @@
+  1 :> <<>> @@
+  2 :>
+      << [ pc |-> "T1",
+           yc |-> defaultInitValue,
+           ysg |-> 0,
+           yq |-> FALSE,
+           procedure |-> "RecvAsync" ] >> )
+/\ dc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ late = <<FALSE, FALSE>>
+/\ dj = (0 :> 1 @@ 1 :> 1 @@ 2 :> 1)
+/\ bside = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ ec = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ eh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ final = <<FALSE, FALSE>>
+/\ et = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ took = {}
+/\ dws = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ rcount = <<1>>
+/\ fw = (0 :> {} @@ 1 :> {} @@ 2 :> {})
+/\ bound = FALSE
+/\ cell = <<TRUE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE>>
+/\ rlc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ qsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ ysg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 1)
+/\ scount = <<1>>
+/\ dc_ = 1
+/\ retired = {}
+/\ disc = <<FALSE>>
+/\ dropped = {}
+/\ tail = <<1>>
+/\ stake = <<0, 0>>
+/\ aws = <<0, 0, 0, 0, 0, 0, 0, 0>>
+/\ holders = (1 :> {} @@ 11 :> {} @@ 12 :> {})
+/\ lh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ ln = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ lt = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ incell = <<{}, {}, {}, {}, {}, {}, {}, {}>>
+/\ errs = {}
+/\ drops = (11 :> 0 @@ 12 :> 0)
+/\ apop = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ len = <<0>>
+/\ ready = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ bsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ nc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ ns = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ said = {}
+/\ rdone = <<{}, {}>>
+/\ nstore = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ zsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ token = <<FALSE, FALSE>>
+/\ nnext = (1 :> 0 @@ 11 :> 0 @@ 12 :> 0)
+/\ owed = <<FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE>>
+/\ pc = (0 :> "TD1" @@ 1 :> "T1" @@ 2 :> "AR7")
+/\ freed = {}
+/\ regd = (0 :> {} @@ 1 :> {} @@ 2 :> {})
+/\ sown = <<2, 0, 0, 0, 0, 0, 0, 0>>
+/\ rc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ created = {}
+/\ rs = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ rv = <<0, 0>>
+/\ sc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ sn = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ st = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ sv = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ busy = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ woken = <<FALSE, FALSE>>
+/\ bsig = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ sst = <<0, 0, 0, 0, 0, 0, 0, 0>>
+/\ popd = <<0, 0>>
+/\ cur = 0
+/\ bch = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ wk = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ dpc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ wl = (<<"S", 1>> :> <<>> @@ <<"R", 1>> :> <<1>>)
+/\ ws = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ nsig = 1
+/\ xc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ xl = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ xq = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+
+State 13: <AR7 line 4275, col 14 to line 4343, col 71 of module Channel>
+/\ xv = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ yc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> 1)
+/\ yq = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> TRUE)
+/\ nside = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ ndata = (1 :> 0 @@ 11 :> 0 @@ 12 :> 0)
+/\ ac = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ head = <<1>>
+/\ links = <<0>>
+/\ zc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ skind = << "async",
+   "thread",
+   "thread",
+   "thread",
+   "thread",
+   "thread",
+   "thread",
+   "thread" >>
+/\ aq = <<<<>>>>
+/\ dsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ bc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ bl = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ elinks = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ bv = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ ene = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ xsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ allocated = 1..1
+/\ i = <<1, 2>>
+/\ j = (0 :> 1 @@ 1 :> 1 @@ 2 :> 1)
+/\ aside = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ rgone = <<FALSE>>
+/\ stack = ( 0 :> <<>> @@
+  1 :> <<>> @@
+  2 :>
+      << [ pc |-> "T1",
+           yc |-> defaultInitValue,
+           ysg |-> 0,
+           yq |-> FALSE,
+           procedure |-> "RecvAsync" ] >> )
+/\ dc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ late = <<FALSE, FALSE>>
+/\ dj = (0 :> 1 @@ 1 :> 1 @@ 2 :> 1)
+/\ bside = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ ec = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ eh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ final = <<FALSE, FALSE>>
+/\ et = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ took = {}
+/\ dws = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ rcount = <<1>>
+/\ fw = (0 :> {} @@ 1 :> {} @@ 2 :> {})
+/\ bound = FALSE
+/\ cell = <<TRUE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE>>
+/\ rlc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ qsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ ysg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 1)
+/\ scount = <<1>>
+/\ dc_ = 1
+/\ retired = {}
+/\ disc = <<FALSE>>
+/\ dropped = {}
+/\ tail = <<1>>
+/\ stake = <<0, 0>>
+/\ aws = <<0, 0, 0, 0, 0, 0, 0, 0>>
+/\ holders = (1 :> {} @@ 11 :> {} @@ 12 :> {})
+/\ lh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ ln = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ lt = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ incell = <<{}, {}, {}, {}, {}, {}, {}, {}>>
+/\ errs = {}
+/\ drops = (11 :> 0 @@ 12 :> 0)
+/\ apop = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ len = <<0>>
+/\ ready = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ bsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ nc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ ns = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ said = {}
+/\ rdone = <<{}, {}>>
+/\ nstore = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ zsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ token = <<FALSE, FALSE>>
+/\ nnext = (1 :> 0 @@ 11 :> 0 @@ 12 :> 0)
+/\ owed = <<FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE>>
+/\ pc = (0 :> "TD1" @@ 1 :> "T1" @@ 2 :> "AR9")
+/\ freed = {}
+/\ regd = (0 :> {} @@ 1 :> {} @@ 2 :> {})
+/\ sown = <<2, 0, 0, 0, 0, 0, 0, 0>>
+/\ rc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ created = {}
+/\ rs = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ rv = <<0, 0>>
+/\ sc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ sn = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ st = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ sv = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ busy = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ woken = <<FALSE, FALSE>>
+/\ bsig = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ sst = <<0, 0, 0, 0, 0, 0, 0, 0>>
+/\ popd = <<0, 0>>
+/\ cur = 0
+/\ bch = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ wk = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ dpc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ wl = (<<"S", 1>> :> <<>> @@ <<"R", 1>> :> <<1>>)
+/\ ws = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ nsig = 1
+/\ xc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ xl = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ xq = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+
+State 14: <T1 line 5165, col 13 to line 5610, col 81 of module Channel>
+/\ xv = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ yc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> 1)
+/\ yq = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> TRUE)
+/\ nside = (0 :> defaultInitValue @@ 1 :> "R" @@ 2 :> defaultInitValue)
+/\ ndata = (1 :> 0 @@ 11 :> 11 @@ 12 :> 0)
+/\ ac = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ head = <<1>>
+/\ links = <<1>>
+/\ zc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ skind = << "async",
+   "thread",
+   "thread",
+   "thread",
+   "thread",
+   "thread",
+   "thread",
+   "thread" >>
+/\ aq = <<<<11>>>>
+/\ dsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ bc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ bl = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ elinks = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ bv = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ ene = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ xsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ allocated = {1, 11}
+/\ i = <<2, 2>>
+/\ j = (0 :> 1 @@ 1 :> 1 @@ 2 :> 1)
+/\ aside = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ rgone = <<FALSE>>
+/\ stack = ( 0 :> <<>> @@
+  1 :>
+      << [ pc |-> "T1",
+           nside |-> defaultInitValue,
+           nc |-> defaultInitValue,
+           procedure |-> "NotifyOne" ] >> @@
+  2 :>
+      << [ pc |-> "T1",
+           yc |-> defaultInitValue,
+           ysg |-> 0,
+           yq |-> FALSE,
+           procedure |-> "RecvAsync" ] >> )
+/\ dc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ late = <<FALSE, FALSE>>
+/\ dj = (0 :> 1 @@ 1 :> 1 @@ 2 :> 1)
+/\ bside = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ ec = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ eh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ final = <<FALSE, FALSE>>
+/\ et = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ took = {}
+/\ dws = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ rcount = <<1>>
+/\ fw = (0 :> {} @@ 1 :> {} @@ 2 :> {})
+/\ bound = FALSE
+/\ cell = <<TRUE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE>>
+/\ rlc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ qsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ ysg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 1)
+/\ scount = <<1>>
+/\ dc_ = 1
+/\ retired = {}
+/\ disc = <<FALSE>>
+/\ dropped = {}
+/\ tail = <<11>>
+/\ stake = <<0, 0>>
+/\ aws = <<0, 0, 0, 0, 0, 0, 0, 0>>
+/\ holders = (1 :> {} @@ 11 :> {} @@ 12 :> {})
+/\ lh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ ln = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ lt = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ incell = <<{}, {}, {}, {}, {}, {}, {}, {}>>
+/\ errs = {}
+/\ drops = (11 :> 0 @@ 12 :> 0)
+/\ apop = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ len = <<0>>
+/\ ready = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ bsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ nc = (0 :> defaultInitValue @@ 1 :> 1 @@ 2 :> defaultInitValue)
+/\ ns = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ said = {}
+/\ rdone = <<{}, {}>>
+/\ nstore = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ zsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ token = <<FALSE, FALSE>>
+/\ nnext = (1 :> 11 @@ 11 :> 0 @@ 12 :> 0)
+/\ owed = <<FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE>>
+/\ pc = (0 :> "TD1" @@ 1 :> "NO1" @@ 2 :> "AR9")
+/\ freed = {}
+/\ regd = (0 :> {} @@ 1 :> {} @@ 2 :> {})
+/\ sown = <<2, 0, 0, 0, 0, 0, 0, 0>>
+/\ rc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ created = {11}
+/\ rs = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ rv = <<0, 0>>
+/\ sc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ sn = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ st = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ sv = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ busy = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ woken = <<FALSE, FALSE>>
+/\ bsig = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ sst = <<0, 0, 0, 0, 0, 0, 0, 0>>
+/\ popd = <<0, 0>>
+/\ cur = 0
+/\ bch = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ wk = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ dpc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ wl = (<<"S", 1>> :> <<>> @@ <<"R", 1>> :> <<1>>)
+/\ ws = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ nsig = 1
+/\ xc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ xl = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ xq = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+
+State 15: <NO1 line 1838, col 14 to line 1860, col 47 of module Channel>
+/\ xv = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ yc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> 1)
+/\ yq = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> TRUE)
+/\ nside = (0 :> defaultInitValue @@ 1 :> "R" @@ 2 :> defaultInitValue)
+/\ ndata = (1 :> 0 @@ 11 :> 11 @@ 12 :> 0)
+/\ ac = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ head = <<1>>
+/\ links = <<1>>
+/\ zc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ skind = << "async",
+   "thread",
+   "thread",
+   "thread",
+   "thread",
+   "thread",
+   "thread",
+   "thread" >>
+/\ aq = <<<<11>>>>
+/\ dsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ bc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ bl = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ elinks = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ bv = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ ene = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ xsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ allocated = {1, 11}
+/\ i = <<2, 2>>
+/\ j = (0 :> 1 @@ 1 :> 1 @@ 2 :> 1)
+/\ aside = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ rgone = <<FALSE>>
+/\ stack = ( 0 :> <<>> @@
+  1 :>
+      << [ pc |-> "T1",
+           nside |-> defaultInitValue,
+           nc |-> defaultInitValue,
+           procedure |-> "NotifyOne" ] >> @@
+  2 :>
+      << [ pc |-> "T1",
+           yc |-> defaultInitValue,
+           ysg |-> 0,
+           yq |-> FALSE,
+           procedure |-> "RecvAsync" ] >> )
+/\ dc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ late = <<FALSE, FALSE>>
+/\ dj = (0 :> 1 @@ 1 :> 1 @@ 2 :> 1)
+/\ bside = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ ec = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ eh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ final = <<FALSE, FALSE>>
+/\ et = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ took = {}
+/\ dws = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ rcount = <<1>>
+/\ fw = (0 :> {} @@ 1 :> {} @@ 2 :> {})
+/\ bound = FALSE
+/\ cell = <<TRUE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE>>
+/\ rlc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ qsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ ysg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 1)
+/\ scount = <<1>>
+/\ dc_ = 1
+/\ retired = {}
+/\ disc = <<FALSE>>
+/\ dropped = {}
+/\ tail = <<11>>
+/\ stake = <<0, 0>>
+/\ aws = <<0, 0, 0, 0, 0, 0, 0, 0>>
+/\ holders = (1 :> {} @@ 11 :> {} @@ 12 :> {})
+/\ lh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ ln = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ lt = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ incell = <<{}, {}, {}, {}, {}, {}, {}, {}>>
+/\ errs = {}
+/\ drops = (11 :> 0 @@ 12 :> 0)
+/\ apop = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ len = <<0>>
+/\ ready = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ bsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ nc = (0 :> defaultInitValue @@ 1 :> 1 @@ 2 :> defaultInitValue)
+/\ ns = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ said = {}
+/\ rdone = <<{}, {}>>
+/\ nstore = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ zsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ token = <<FALSE, FALSE>>
+/\ nnext = (1 :> 11 @@ 11 :> 0 @@ 12 :> 0)
+/\ owed = <<FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE>>
+/\ pc = (0 :> "TD1" @@ 1 :> "NO2" @@ 2 :> "AR9")
+/\ freed = {}
+/\ regd = (0 :> {} @@ 1 :> {} @@ 2 :> {})
+/\ sown = <<2, 0, 0, 0, 0, 0, 0, 0>>
+/\ rc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ created = {11}
+/\ rs = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ rv = <<0, 0>>
+/\ sc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ sn = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ st = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ sv = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ busy = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ woken = <<FALSE, FALSE>>
+/\ bsig = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ sst = <<0, 0, 0, 0, 0, 0, 0, 0>>
+/\ popd = <<1, 0>>
+/\ cur = 0
+/\ bch = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ wk = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ dpc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ wl = (<<"S", 1>> :> <<>> @@ <<"R", 1>> :> <<>>)
+/\ ws = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ nsig = 1
+/\ xc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ xl = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ xq = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+
+State 16: <NO2 line 1862, col 14 to line 1903, col 35 of module Channel>
+/\ xv = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ yc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> 1)
+/\ yq = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> TRUE)
+/\ nside = (0 :> defaultInitValue @@ 1 :> "R" @@ 2 :> defaultInitValue)
+/\ ndata = (1 :> 0 @@ 11 :> 11 @@ 12 :> 0)
+/\ ac = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ head = <<1>>
+/\ links = <<1>>
+/\ zc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ skind = << "async",
+   "thread",
+   "thread",
+   "thread",
+   "thread",
+   "thread",
+   "thread",
+   "thread" >>
+/\ aq = <<<<11>>>>
+/\ dsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ bc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ bl = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ elinks = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ bv = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ ene = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ xsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ allocated = {1, 11}
+/\ i = <<2, 2>>
+/\ j = (0 :> 1 @@ 1 :> 1 @@ 2 :> 1)
+/\ aside = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ rgone = <<FALSE>>
+/\ stack = ( 0 :> <<>> @@
+  1 :>
+      << [ pc |-> "T1",
+           ns |-> defaultInitValue,
+           nstore |-> defaultInitValue,
+           wk |-> FALSE,
+           procedure |-> "Notify" ] >> @@
+  2 :>
+      << [ pc |-> "T1",
+           yc |-> defaultInitValue,
+           ysg |-> 0,
+           yq |-> FALSE,
+           procedure |-> "RecvAsync" ] >> )
+/\ dc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ late = <<FALSE, FALSE>>
+/\ dj = (0 :> 1 @@ 1 :> 1 @@ 2 :> 1)
+/\ bside = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ ec = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ eh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ final = <<FALSE, FALSE>>
+/\ et = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ took = {}
+/\ dws = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ rcount = <<1>>
+/\ fw = (0 :> {} @@ 1 :> {} @@ 2 :> {})
+/\ bound = FALSE
+/\ cell = <<TRUE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE>>
+/\ rlc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ qsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ ysg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 1)
+/\ scount = <<1>>
+/\ dc_ = 1
+/\ retired = {}
+/\ disc = <<FALSE>>
+/\ dropped = {}
+/\ tail = <<11>>
+/\ stake = <<0, 0>>
+/\ aws = <<0, 0, 0, 0, 0, 0, 0, 0>>
+/\ holders = (1 :> {} @@ 11 :> {} @@ 12 :> {})
+/\ lh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ ln = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ lt = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ incell = <<{}, {}, {}, {}, {}, {}, {}, {}>>
+/\ errs = {}
+/\ drops = (11 :> 0 @@ 12 :> 0)
+/\ apop = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ len = <<0>>
+/\ ready = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ bsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ nc = (0 :> defaultInitValue @@ 1 :> 1 @@ 2 :> defaultInitValue)
+/\ ns = (0 :> defaultInitValue @@ 1 :> 1 @@ 2 :> defaultInitValue)
+/\ said = {}
+/\ rdone = <<{}, {}>>
+/\ nstore = (0 :> defaultInitValue @@ 1 :> FALSE @@ 2 :> defaultInitValue)
+/\ zsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ token = <<FALSE, FALSE>>
+/\ nnext = (1 :> 11 @@ 11 :> 0 @@ 12 :> 0)
+/\ owed = <<TRUE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE>>
+/\ pc = (0 :> "TD1" @@ 1 :> "NT1" @@ 2 :> "AR9")
+/\ freed = {}
+/\ regd = (0 :> {} @@ 1 :> {} @@ 2 :> {})
+/\ sown = <<2, 0, 0, 0, 0, 0, 0, 0>>
+/\ rc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ created = {11}
+/\ rs = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ rv = <<0, 0>>
+/\ sc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ sn = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ st = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ sv = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ busy = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ woken = <<FALSE, FALSE>>
+/\ bsig = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ sst = <<1, 0, 0, 0, 0, 0, 0, 0>>
+/\ popd = <<1, 0>>
+/\ cur = 0
+/\ bch = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ wk = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ dpc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ wl = (<<"S", 1>> :> <<>> @@ <<"R", 1>> :> <<>>)
+/\ ws = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ nsig = 1
+/\ xc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ xl = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ xq = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+
+State 17: <NT1 line 1479, col 14 to line 1522, col 58 of module Channel>
+/\ xv = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ yc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> 1)
+/\ yq = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> TRUE)
+/\ nside = (0 :> defaultInitValue @@ 1 :> "R" @@ 2 :> defaultInitValue)
+/\ ndata = (1 :> 0 @@ 11 :> 11 @@ 12 :> 0)
+/\ ac = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ head = <<1>>
+/\ links = <<1>>
+/\ zc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ skind = << "async",
+   "thread",
+   "thread",
+   "thread",
+   "thread",
+   "thread",
+   "thread",
+   "thread" >>
+/\ aq = <<<<11>>>>
+/\ dsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ bc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ bl = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ elinks = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ bv = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ ene = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ xsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ allocated = {1, 11}
+/\ i = <<2, 2>>
+/\ j = (0 :> 1 @@ 1 :> 1 @@ 2 :> 1)
+/\ aside = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ rgone = <<FALSE>>
+/\ stack = ( 0 :> <<>> @@
+  1 :>
+      << [ pc |-> "T1",
+           ns |-> defaultInitValue,
+           nstore |-> defaultInitValue,
+           wk |-> FALSE,
+           procedure |-> "Notify" ] >> @@
+  2 :>
+      << [ pc |-> "T1",
+           yc |-> defaultInitValue,
+           ysg |-> 0,
+           yq |-> FALSE,
+           procedure |-> "RecvAsync" ] >> )
+/\ dc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ late = <<FALSE, FALSE>>
+/\ dj = (0 :> 1 @@ 1 :> 1 @@ 2 :> 1)
+/\ bside = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ ec = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ eh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ final = <<FALSE, FALSE>>
+/\ et = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ took = {}
+/\ dws = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ rcount = <<1>>
+/\ fw = (0 :> {} @@ 1 :> {} @@ 2 :> {})
+/\ bound = FALSE
+/\ cell = <<TRUE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE>>
+/\ rlc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ qsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ ysg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 1)
+/\ scount = <<1>>
+/\ dc_ = 1
+/\ retired = {}
+/\ disc = <<FALSE>>
+/\ dropped = {}
+/\ tail = <<11>>
+/\ stake = <<0, 0>>
+/\ aws = <<2, 0, 0, 0, 0, 0, 0, 0>>
+/\ holders = (1 :> {} @@ 11 :> {} @@ 12 :> {})
+/\ lh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ ln = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ lt = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ incell = <<{1}, {}, {}, {}, {}, {}, {}, {}>>
+/\ errs = {}
+/\ drops = (11 :> 0 @@ 12 :> 0)
+/\ apop = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ len = <<0>>
+/\ ready = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ bsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ nc = (0 :> defaultInitValue @@ 1 :> 1 @@ 2 :> defaultInitValue)
+/\ ns = (0 :> defaultInitValue @@ 1 :> 1 @@ 2 :> defaultInitValue)
+/\ said = {}
+/\ rdone = <<{}, {}>>
+/\ nstore = (0 :> defaultInitValue @@ 1 :> FALSE @@ 2 :> defaultInitValue)
+/\ zsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ token = <<FALSE, FALSE>>
+/\ nnext = (1 :> 11 @@ 11 :> 0 @@ 12 :> 0)
+/\ owed = <<TRUE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE>>
+/\ pc = (0 :> "TD1" @@ 1 :> "TK2" @@ 2 :> "AR9")
+/\ freed = {}
+/\ regd = (0 :> {} @@ 1 :> {} @@ 2 :> {})
+/\ sown = <<2, 0, 0, 0, 0, 0, 0, 0>>
+/\ rc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ created = {11}
+/\ rs = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ rv = <<0, 0>>
+/\ sc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ sn = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ st = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ sv = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ busy = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ woken = <<FALSE, FALSE>>
+/\ bsig = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ sst = <<1, 0, 0, 0, 0, 0, 0, 0>>
+/\ popd = <<0, 0>>
+/\ cur = 0
+/\ bch = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ wk = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ dpc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ wl = (<<"S", 1>> :> <<>> @@ <<"R", 1>> :> <<>>)
+/\ ws = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ nsig = 1
+/\ xc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ xl = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ xq = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+
+State 18: <TK2 line 1575, col 14 to line 1590, col 64 of module Channel>
+/\ xv = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ yc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> 1)
+/\ yq = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> TRUE)
+/\ nside = (0 :> defaultInitValue @@ 1 :> "R" @@ 2 :> defaultInitValue)
+/\ ndata = (1 :> 0 @@ 11 :> 11 @@ 12 :> 0)
+/\ ac = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ head = <<1>>
+/\ links = <<1>>
+/\ zc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ skind = << "async",
+   "thread",
+   "thread",
+   "thread",
+   "thread",
+   "thread",
+   "thread",
+   "thread" >>
+/\ aq = <<<<11>>>>
+/\ dsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ bc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ bl = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ elinks = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ bv = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ ene = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ xsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ allocated = {1, 11}
+/\ i = <<2, 2>>
+/\ j = (0 :> 1 @@ 1 :> 1 @@ 2 :> 1)
+/\ aside = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ rgone = <<FALSE>>
+/\ stack = ( 0 :> <<>> @@
+  1 :>
+      << [ pc |-> "T1",
+           ns |-> defaultInitValue,
+           nstore |-> defaultInitValue,
+           wk |-> FALSE,
+           procedure |-> "Notify" ] >> @@
+  2 :>
+      << [ pc |-> "T1",
+           yc |-> defaultInitValue,
+           ysg |-> 0,
+           yq |-> FALSE,
+           procedure |-> "RecvAsync" ] >> )
+/\ dc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ late = <<FALSE, FALSE>>
+/\ dj = (0 :> 1 @@ 1 :> 1 @@ 2 :> 1)
+/\ bside = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ ec = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ eh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ final = <<FALSE, FALSE>>
+/\ et = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ took = {}
+/\ dws = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ rcount = <<1>>
+/\ fw = (0 :> {} @@ 1 :> {} @@ 2 :> {})
+/\ bound = FALSE
+/\ cell = <<FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE>>
+/\ rlc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ qsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ ysg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 1)
+/\ scount = <<1>>
+/\ dc_ = 1
+/\ retired = {}
+/\ disc = <<FALSE>>
+/\ dropped = {}
+/\ tail = <<11>>
+/\ stake = <<0, 0>>
+/\ aws = <<2, 0, 0, 0, 0, 0, 0, 0>>
+/\ holders = (1 :> {} @@ 11 :> {} @@ 12 :> {})
+/\ lh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ ln = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ lt = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ incell = <<{1}, {}, {}, {}, {}, {}, {}, {}>>
+/\ errs = {}
+/\ drops = (11 :> 0 @@ 12 :> 0)
+/\ apop = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ len = <<0>>
+/\ ready = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ bsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ nc = (0 :> defaultInitValue @@ 1 :> 1 @@ 2 :> defaultInitValue)
+/\ ns = (0 :> defaultInitValue @@ 1 :> 1 @@ 2 :> defaultInitValue)
+/\ said = {}
+/\ rdone = <<{}, {}>>
+/\ nstore = (0 :> defaultInitValue @@ 1 :> FALSE @@ 2 :> defaultInitValue)
+/\ zsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ token = <<FALSE, FALSE>>
+/\ nnext = (1 :> 11 @@ 11 :> 0 @@ 12 :> 0)
+/\ owed = <<TRUE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE>>
+/\ pc = (0 :> "TD1" @@ 1 :> "TK3" @@ 2 :> "AR9")
+/\ freed = {}
+/\ regd = (0 :> {} @@ 1 :> {} @@ 2 :> {})
+/\ sown = <<2, 0, 0, 0, 0, 0, 0, 0>>
+/\ rc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ created = {11}
+/\ rs = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ rv = <<0, 0>>
+/\ sc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ sn = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ st = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ sv = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ busy = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ woken = <<FALSE, FALSE>>
+/\ bsig = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ sst = <<1, 0, 0, 0, 0, 0, 0, 0>>
+/\ popd = <<0, 0>>
+/\ cur = 0
+/\ bch = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ wk = (0 :> FALSE @@ 1 :> TRUE @@ 2 :> FALSE)
+/\ dpc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ wl = (<<"S", 1>> :> <<>> @@ <<"R", 1>> :> <<>>)
+/\ ws = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ nsig = 1
+/\ xc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ xl = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ xq = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+
+State 19: <TK3 line 1592, col 14 to line 1606, col 64 of module Channel>
+/\ xv = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ yc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> 1)
+/\ yq = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> TRUE)
+/\ nside = (0 :> defaultInitValue @@ 1 :> "R" @@ 2 :> defaultInitValue)
+/\ ndata = (1 :> 0 @@ 11 :> 11 @@ 12 :> 0)
+/\ ac = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ head = <<1>>
+/\ links = <<1>>
+/\ zc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ skind = << "async",
+   "thread",
+   "thread",
+   "thread",
+   "thread",
+   "thread",
+   "thread",
+   "thread" >>
+/\ aq = <<<<11>>>>
+/\ dsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ bc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ bl = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ elinks = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ bv = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ ene = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ xsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ allocated = {1, 11}
+/\ i = <<2, 2>>
+/\ j = (0 :> 1 @@ 1 :> 1 @@ 2 :> 1)
+/\ aside = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ rgone = <<FALSE>>
+/\ stack = ( 0 :> <<>> @@
+  1 :>
+      << [ pc |-> "T1",
+           ns |-> defaultInitValue,
+           nstore |-> defaultInitValue,
+           wk |-> FALSE,
+           procedure |-> "Notify" ] >> @@
+  2 :>
+      << [ pc |-> "T1",
+           yc |-> defaultInitValue,
+           ysg |-> 0,
+           yq |-> FALSE,
+           procedure |-> "RecvAsync" ] >> )
+/\ dc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ late = <<FALSE, FALSE>>
+/\ dj = (0 :> 1 @@ 1 :> 1 @@ 2 :> 1)
+/\ bside = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ ec = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ eh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ final = <<FALSE, FALSE>>
+/\ et = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ took = {}
+/\ dws = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ rcount = <<1>>
+/\ fw = (0 :> {} @@ 1 :> {} @@ 2 :> {})
+/\ bound = FALSE
+/\ cell = <<FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE>>
+/\ rlc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ qsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ ysg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 1)
+/\ scount = <<1>>
+/\ dc_ = 1
+/\ retired = {}
+/\ disc = <<FALSE>>
+/\ dropped = {}
+/\ tail = <<11>>
+/\ stake = <<0, 0>>
+/\ aws = <<0, 0, 0, 0, 0, 0, 0, 0>>
+/\ holders = (1 :> {} @@ 11 :> {} @@ 12 :> {})
+/\ lh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ ln = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ lt = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ incell = <<{}, {}, {}, {}, {}, {}, {}, {}>>
+/\ errs = {}
+/\ drops = (11 :> 0 @@ 12 :> 0)
+/\ apop = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ len = <<0>>
+/\ ready = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ bsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ nc = (0 :> defaultInitValue @@ 1 :> 1 @@ 2 :> defaultInitValue)
+/\ ns = (0 :> defaultInitValue @@ 1 :> 1 @@ 2 :> defaultInitValue)
+/\ said = {}
+/\ rdone = <<{}, {}>>
+/\ nstore = (0 :> defaultInitValue @@ 1 :> FALSE @@ 2 :> defaultInitValue)
+/\ zsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ token = <<FALSE, FALSE>>
+/\ nnext = (1 :> 11 @@ 11 :> 0 @@ 12 :> 0)
+/\ owed = <<TRUE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE>>
+/\ pc = (0 :> "TD1" @@ 1 :> "TK4" @@ 2 :> "AR9")
+/\ freed = {}
+/\ regd = (0 :> {} @@ 1 :> {} @@ 2 :> {})
+/\ sown = <<2, 0, 0, 0, 0, 0, 0, 0>>
+/\ rc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ created = {11}
+/\ rs = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ rv = <<0, 0>>
+/\ sc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ sn = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ st = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ sv = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ busy = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ woken = <<FALSE, FALSE>>
+/\ bsig = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ sst = <<1, 0, 0, 0, 0, 0, 0, 0>>
+/\ popd = <<0, 0>>
+/\ cur = 0
+/\ bch = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ wk = (0 :> FALSE @@ 1 :> TRUE @@ 2 :> FALSE)
+/\ dpc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ wl = (<<"S", 1>> :> <<>> @@ <<"R", 1>> :> <<>>)
+/\ ws = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ nsig = 1
+/\ xc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ xl = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ xq = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+
+State 20: <TK4 line 1608, col 14 to line 1629, col 47 of module Channel>
+/\ xv = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ yc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> 1)
+/\ yq = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> TRUE)
+/\ nside = (0 :> defaultInitValue @@ 1 :> "R" @@ 2 :> defaultInitValue)
+/\ ndata = (1 :> 0 @@ 11 :> 11 @@ 12 :> 0)
+/\ ac = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ head = <<1>>
+/\ links = <<1>>
+/\ zc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ skind = << "async",
+   "thread",
+   "thread",
+   "thread",
+   "thread",
+   "thread",
+   "thread",
+   "thread" >>
+/\ aq = <<<<11>>>>
+/\ dsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ bc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ bl = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ elinks = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ bv = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ ene = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ xsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ allocated = {1, 11}
+/\ i = <<2, 2>>
+/\ j = (0 :> 1 @@ 1 :> 1 @@ 2 :> 1)
+/\ aside = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ rgone = <<FALSE>>
+/\ stack = ( 0 :> <<>> @@
+  1 :> <<>> @@
+  2 :>
+      << [ pc |-> "T1",
+           yc |-> defaultInitValue,
+           ysg |-> 0,
+           yq |-> FALSE,
+           procedure |-> "RecvAsync" ] >> )
+/\ dc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ late = <<FALSE, FALSE>>
+/\ dj = (0 :> 1 @@ 1 :> 1 @@ 2 :> 1)
+/\ bside = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ ec = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ eh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ final = <<FALSE, FALSE>>
+/\ et = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ took = {}
+/\ dws = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ rcount = <<1>>
+/\ fw = (0 :> {} @@ 1 :> {} @@ 2 :> {})
+/\ bound = FALSE
+/\ cell = <<FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE>>
+/\ rlc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ qsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ ysg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 1)
+/\ scount = <<1>>
+/\ dc_ = 1
+/\ retired = {}
+/\ disc = <<FALSE>>
+/\ dropped = {}
+/\ tail = <<11>>
+/\ stake = <<0, 0>>
+/\ aws = <<0, 0, 0, 0, 0, 0, 0, 0>>
+/\ holders = (1 :> {} @@ 11 :> {} @@ 12 :> {})
+/\ lh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ ln = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ lt = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ incell = <<{}, {}, {}, {}, {}, {}, {}, {}>>
+/\ errs = {}
+/\ drops = (11 :> 0 @@ 12 :> 0)
+/\ apop = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ len = <<0>>
+/\ ready = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ bsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ nc = (0 :> defaultInitValue @@ 1 :> 1 @@ 2 :> defaultInitValue)
+/\ ns = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ said = {}
+/\ rdone = <<{}, {}>>
+/\ nstore = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ zsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ token = <<FALSE, FALSE>>
+/\ nnext = (1 :> 11 @@ 11 :> 0 @@ 12 :> 0)
+/\ owed = <<FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE>>
+/\ pc = (0 :> "TD1" @@ 1 :> "T1" @@ 2 :> "AR9")
+/\ freed = {}
+/\ regd = (0 :> {} @@ 1 :> {} @@ 2 :> {})
+/\ sown = <<2, 0, 0, 0, 0, 0, 0, 0>>
+/\ rc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ created = {11}
+/\ rs = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ rv = <<0, 0>>
+/\ sc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ sn = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ st = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ sv = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ busy = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ woken = <<FALSE, TRUE>>
+/\ bsig = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ sst = <<1, 0, 0, 0, 0, 0, 0, 0>>
+/\ popd = <<0, 0>>
+/\ cur = 0
+/\ bch = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ wk = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ dpc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ wl = (<<"S", 1>> :> <<>> @@ <<"R", 1>> :> <<>>)
+/\ ws = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ nsig = 1
+/\ xc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ xl = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ xq = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+
+State 21: <AR9 line 4345, col 14 to line 4387, col 71 of module Channel>
+/\ xv = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ yc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> 1)
+/\ yq = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> TRUE)
+/\ nside = (0 :> defaultInitValue @@ 1 :> "R" @@ 2 :> defaultInitValue)
+/\ ndata = (1 :> 0 @@ 11 :> 11 @@ 12 :> 0)
+/\ ac = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ head = <<1>>
+/\ links = <<1>>
+/\ zc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ skind = << "async",
+   "thread",
+   "thread",
+   "thread",
+   "thread",
+   "thread",
+   "thread",
+   "thread" >>
+/\ aq = <<<<11>>>>
+/\ dsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ bc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ bl = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ elinks = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ bv = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ ene = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ xsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ allocated = {1, 11}
+/\ i = <<2, 2>>
+/\ j = (0 :> 1 @@ 1 :> 1 @@ 2 :> 1)
+/\ aside = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ rgone = <<FALSE>>
+/\ stack = ( 0 :> <<>> @@
+  1 :> <<>> @@
+  2 :>
+      << [ pc |-> "T1",
+           yc |-> defaultInitValue,
+           ysg |-> 0,
+           yq |-> FALSE,
+           procedure |-> "RecvAsync" ] >> )
+/\ dc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ late = <<FALSE, FALSE>>
+/\ dj = (0 :> 1 @@ 1 :> 1 @@ 2 :> 1)
+/\ bside = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ ec = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ eh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ final = <<FALSE, FALSE>>
+/\ et = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ took = {}
+/\ dws = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ rcount = <<1>>
+/\ fw = (0 :> {} @@ 1 :> {} @@ 2 :> {})
+/\ bound = FALSE
+/\ cell = <<FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE>>
+/\ rlc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ qsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ ysg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 1)
+/\ scount = <<1>>
+/\ dc_ = 1
+/\ retired = {}
+/\ disc = <<FALSE>>
+/\ dropped = {}
+/\ tail = <<11>>
+/\ stake = <<0, 0>>
+/\ aws = <<0, 0, 0, 0, 0, 0, 0, 0>>
+/\ holders = (1 :> {} @@ 11 :> {} @@ 12 :> {})
+/\ lh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ ln = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ lt = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ incell = <<{}, {}, {}, {}, {}, {}, {}, {}>>
+/\ errs = {}
+/\ drops = (11 :> 0 @@ 12 :> 0)
+/\ apop = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ len = <<0>>
+/\ ready = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ bsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ nc = (0 :> defaultInitValue @@ 1 :> 1 @@ 2 :> defaultInitValue)
+/\ ns = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ said = {"repoll"}
+/\ rdone = <<{}, {}>>
+/\ nstore = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ zsg = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ token = <<FALSE, FALSE>>
+/\ nnext = (1 :> 11 @@ 11 :> 0 @@ 12 :> 0)
+/\ owed = <<FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE>>
+/\ pc = (0 :> "TD1" @@ 1 :> "T1" @@ 2 :> "AR0")
+/\ freed = {}
+/\ regd = (0 :> {} @@ 1 :> {} @@ 2 :> {})
+/\ sown = <<2, 0, 0, 0, 0, 0, 0, 0>>
+/\ rc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ created = {11}
+/\ rs = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ rv = <<0, 0>>
+/\ sc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ sn = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ st = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ sv = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ busy = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ woken = <<FALSE, FALSE>>
+/\ bsig = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ sst = <<1, 0, 0, 0, 0, 0, 0, 0>>
+/\ popd = <<0, 0>>
+/\ cur = 0
+/\ bch = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ wk = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+/\ dpc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ wl = (<<"S", 1>> :> <<>> @@ <<"R", 1>> :> <<>>)
+/\ ws = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ nsig = 1
+/\ xc = (0 :> defaultInitValue @@ 1 :> defaultInitValue @@ 2 :> defaultInitValue)
+/\ xl = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0)
+/\ xq = (0 :> FALSE @@ 1 :> FALSE @@ 2 :> FALSE)
+
+753 states generated, 452 distinct states found, 58 states left on queue.

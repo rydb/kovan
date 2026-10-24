@@ -12,6 +12,7 @@ State 1: <Initial predicate>
 /\ claimsP = {}
 /\ lp = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ lt = <<0, 0>>
+/\ prot = <<{}, {}, {}>>
 /\ before = <<{}, {}>>
 /\ hptr = 0
 /\ nx = <<-1, -1>>
@@ -65,7 +66,7 @@ State 1: <Initial predicate>
 /\ retired = {}
 /\ claimsC = {}
 
-State 2: <PU1 line 993, col 14 to line 1006, col 59 of module SegQueue>
+State 2: <PU1 line 1214, col 14 to line 1228, col 59 of module SegQueue>
 /\ done = {}
 /\ lh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ cst = ( 0 :> (0 :> "EMPTY" @@ 1 :> "EMPTY") @@
@@ -77,6 +78,7 @@ State 2: <PU1 line 993, col 14 to line 1006, col 59 of module SegQueue>
 /\ claimsP = {}
 /\ lp = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ lt = <<0, 0>>
+/\ prot = <<{0}, {}, {}>>
 /\ before = <<{}, {}>>
 /\ hptr = 0
 /\ nx = <<-1, -1>>
@@ -130,7 +132,7 @@ State 2: <PU1 line 993, col 14 to line 1006, col 59 of module SegQueue>
 /\ retired = {}
 /\ claimsC = {}
 
-State 3: <CO1 line 1207, col 14 to line 1251, col 45 of module SegQueue>
+State 3: <CO1 line 1439, col 14 to line 1483, col 45 of module SegQueue>
 /\ done = {}
 /\ lh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ cst = ( 0 :> (0 :> "EMPTY" @@ 1 :> "EMPTY") @@
@@ -142,6 +144,7 @@ State 3: <CO1 line 1207, col 14 to line 1251, col 45 of module SegQueue>
 /\ claimsP = {}
 /\ lp = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ lt = <<0, 0>>
+/\ prot = <<{0}, {}, {}>>
 /\ before = <<{}, {}>>
 /\ hptr = 0
 /\ nx = <<-1, -1>>
@@ -195,7 +198,7 @@ State 3: <CO1 line 1207, col 14 to line 1251, col 45 of module SegQueue>
 /\ retired = {}
 /\ claimsC = {}
 
-State 4: <PO1 line 658, col 14 to line 671, col 48 of module SegQueue>
+State 4: <PO1 line 757, col 14 to line 770, col 48 of module SegQueue>
 /\ done = {}
 /\ lh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ cst = ( 0 :> (0 :> "EMPTY" @@ 1 :> "EMPTY") @@
@@ -207,6 +210,7 @@ State 4: <PO1 line 658, col 14 to line 671, col 48 of module SegQueue>
 /\ claimsP = {}
 /\ lp = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ lt = <<0, 0>>
+/\ prot = <<{0}, {}, {}>>
 /\ before = <<{}, {}>>
 /\ hptr = 0
 /\ nx = <<-1, -1>>
@@ -260,7 +264,7 @@ State 4: <PO1 line 658, col 14 to line 671, col 48 of module SegQueue>
 /\ retired = {}
 /\ claimsC = {}
 
-State 5: <PU3 line 1020, col 14 to line 1033, col 64 of module SegQueue>
+State 5: <PU3 line 1243, col 14 to line 1256, col 68 of module SegQueue>
 /\ done = {}
 /\ lh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ cst = ( 0 :> (0 :> "EMPTY" @@ 1 :> "EMPTY") @@
@@ -272,6 +276,7 @@ State 5: <PU3 line 1020, col 14 to line 1033, col 64 of module SegQueue>
 /\ claimsP = {0}
 /\ lp = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ lt = <<0, 0>>
+/\ prot = <<{0}, {}, {}>>
 /\ before = <<{}, {}>>
 /\ hptr = 0
 /\ nx = <<-1, -1>>
@@ -325,7 +330,7 @@ State 5: <PU3 line 1020, col 14 to line 1033, col 64 of module SegQueue>
 /\ retired = {}
 /\ claimsC = {}
 
-State 6: <PU4 line 1046, col 14 to line 1059, col 76 of module SegQueue>
+State 6: <PU4 line 1270, col 14 to line 1287, col 76 of module SegQueue>
 /\ done = {}
 /\ lh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ cst = ( 0 :> (0 :> "EMPTY" @@ 1 :> "EMPTY") @@
@@ -337,6 +342,7 @@ State 6: <PU4 line 1046, col 14 to line 1059, col 76 of module SegQueue>
 /\ claimsP = {0}
 /\ lp = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ lt = <<0, 0>>
+/\ prot = <<{0}, {}, {}>>
 /\ before = <<{}, {}>>
 /\ hptr = 0
 /\ nx = <<-1, -1>>
@@ -390,7 +396,7 @@ State 6: <PU4 line 1046, col 14 to line 1059, col 76 of module SegQueue>
 /\ retired = {}
 /\ claimsC = {}
 
-State 7: <PU4b line 1073, col 15 to line 1097, col 70 of module SegQueue>
+State 7: <PU4b line 1302, col 15 to line 1327, col 34 of module SegQueue>
 /\ done = {101}
 /\ lh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ cst = ( 0 :> (0 :> "FULL" @@ 1 :> "EMPTY") @@
@@ -402,6 +408,7 @@ State 7: <PU4b line 1073, col 15 to line 1097, col 70 of module SegQueue>
 /\ claimsP = {0}
 /\ lp = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ lt = <<0, 0>>
+/\ prot = <<{0}, {}, {}>>
 /\ before = <<{}, {}>>
 /\ hptr = 0
 /\ nx = <<-1, -1>>
@@ -455,7 +462,7 @@ State 7: <PU4b line 1073, col 15 to line 1097, col 70 of module SegQueue>
 /\ retired = {}
 /\ claimsC = {}
 
-State 8: <PO2 line 673, col 14 to line 697, col 52 of module SegQueue>
+State 8: <PO2 line 772, col 14 to line 796, col 52 of module SegQueue>
 /\ done = {101}
 /\ lh = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ cst = ( 0 :> (0 :> "FULL" @@ 1 :> "EMPTY") @@
@@ -467,6 +474,7 @@ State 8: <PO2 line 673, col 14 to line 697, col 52 of module SegQueue>
 /\ claimsP = {0}
 /\ lp = (0 :> 0 @@ 1 :> 0 @@ 2 :> 0 @@ 3 :> 0)
 /\ lt = <<0, 0>>
+/\ prot = <<{0}, {}, {}>>
 /\ before = <<{}, {}>>
 /\ hptr = 0
 /\ nx = <<-1, -1>>
