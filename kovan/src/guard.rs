@@ -1115,18 +1115,6 @@ impl Handle {
         unsafe { self.enqueue_node(node_ptr) };
     }
 
-    /// Retire a raw RetiredNode whose destructor and birth_epoch are already set.
-    ///
-    /// # Safety
-    ///
-    /// - `node_ptr` must point to a valid, heap-allocated `RetiredNode` at offset 0.
-    /// - `destructor` must already be set on the node.
-    /// - `birth_epoch` must already be correctly set (typically from allocation time).
-    /// - The node must not be retired more than once.
-    unsafe fn retire_raw(&self, node_ptr: *mut RetiredNode) {
-        unsafe { self.enqueue_node(node_ptr) };
-    }
-
     /// Detach the accumulating batch, if any, and finalize it: the
     /// refs-node's batch_link becomes RNODE(batch_first). Returns
     /// `(batch_first, refs)`.
@@ -2148,36 +2136,6 @@ pub fn flush() {
         // handle (a no-op: its exit is reclaiming), else nothing.
         if HANDLE.try_with(|handle| handle.flush()).is_err() {
             on_exiting_handle(Handle::flush);
-        }
-    }
-}
-
-/// Retire a raw RetiredNode whose destructor and birth_epoch are already set.
-///
-/// Used internally by `retire_node_dealloc_only` to retire an AtomNode's
-/// embedded RetiredNode directly, preserving its original birth_epoch.
-///
-/// # Safety
-///
-/// - `node_ptr` must point to a valid, heap-allocated object with `RetiredNode` at offset 0.
-/// - `destructor` must already be set on the node.
-/// - `birth_epoch` must be correctly set (typically from allocation time).
-/// - The node must not be retired more than once.
-#[inline]
-pub(crate) unsafe fn retire_raw(node_ptr: *mut RetiredNode) {
-    #[cfg(feature = "nightly")]
-    {
-        unsafe { HANDLE.retire_raw(node_ptr) }
-    }
-    #[cfg(not(feature = "nightly"))]
-    {
-        // During process teardown TLS may be destroyed. Retire through the
-        // exiting handle (a destructor the exit runs), else leak the node.
-        if HANDLE
-            .try_with(|handle| unsafe { handle.retire_raw(node_ptr) })
-            .is_err()
-        {
-            on_exiting_handle(|handle| unsafe { handle.retire_raw(node_ptr) });
         }
     }
 }

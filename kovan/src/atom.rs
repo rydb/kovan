@@ -38,7 +38,6 @@ use crate::node::{alloc_node, drop_node, free_node, retire_node};
 use crate::retired::RetiredNode;
 use core::fmt;
 use core::marker::PhantomData as marker;
-use core::mem::ManuallyDrop;
 use core::ops::Deref;
 use core::sync::atomic::Ordering;
 
@@ -145,35 +144,30 @@ impl<T: fmt::Display> fmt::Display for AtomGuard<'_, T> {
 // same thread that created it.
 
 // ---------------------------------------------------------------------------
-// Removed<T>: deferred-drop wrapper from swap/take
+// Removed<T>: the value a swap or take unlinked, in its node
 // ---------------------------------------------------------------------------
 
 /// A value removed from an [`Atom`] or [`AtomOption`].
 ///
-/// The value can be read via [`Deref`]. When this wrapper is dropped,
-/// `T`'s destructor is **deferred** through the reclamation system:
-/// it will only run once all concurrent readers have moved on.
-///
-/// This prevents use-after-free when concurrent readers hold an
-/// [`AtomGuard`] that references the same value's internal heap
-/// allocations (e.g. a `String`'s buffer or `Vec`'s backing array).
+/// The value stays in the node it had in the `Atom`, where readers that
+/// loaded it before the swap or take still read it: this wrapper derefs to
+/// that same object, never to a copy, so a value with interior mutability (a
+/// `Mutex`, an atomic) is one object to all of them. Dropping the wrapper
+/// retires the node, and `T`'s destructor runs once no reader is left.
 ///
 /// To take ownership without deferral (e.g. when you know no readers
 /// exist), use [`into_inner_unchecked`](Removed::into_inner_unchecked).
 pub struct Removed<T: Send + Sync + 'static> {
-    value: ManuallyDrop<T>,
-    /// Original birth_epoch from the AtomNode, preserved for safe reclamation.
-    /// DeferDrop's RetiredNode must use this instead of a fresh epoch to prevent
-    /// try_retire from prematurely reclaiming the wrapper while readers may still
-    /// reference T's heap internals (e.g. String buffer, Vec backing array).
-    birth_epoch: u64,
+    /// The unlinked node, retired by this wrapper's drop and by nothing else.
+    node: *mut AtomNode<T>,
 }
 
 impl<T: Send + Sync + 'static> Deref for Removed<T> {
     type Target = T;
     #[inline]
     fn deref(&self) -> &T {
-        &self.value
+        // SAFETY: the node is not retired before this wrapper's drop.
+        unsafe { &*AtomNode::val_ptr(self.node) }
     }
 }
 
@@ -183,42 +177,23 @@ impl<T: Send + Sync + 'static> Removed<T> {
     ///
     /// # Safety
     ///
-    /// The caller must guarantee no concurrent reader can still access
-    /// the in-memory copy of this value (e.g. through an [`AtomGuard`]
-    /// obtained before the swap/take).
-    pub unsafe fn into_inner_unchecked(mut self) -> T {
-        let val = unsafe { ManuallyDrop::take(&mut self.value) };
+    /// The caller must guarantee that no reader can still reach the value:
+    /// no [`AtomGuard`] (nor `compare_and_swap`'s `Ok` guard) obtained
+    /// before the swap or take is alive, on any thread.
+    pub unsafe fn into_inner_unchecked(self) -> T {
+        let node = self.node;
         core::mem::forget(self); // skip Removed::drop
-        val
+        // SAFETY: the caller's contract: nobody else reaches the node.
+        unsafe { AtomNode::into_val(node) }
     }
 }
 
 impl<T: Send + Sync + 'static> Drop for Removed<T> {
     fn drop(&mut self) {
-        // Move T into a heap-allocated wrapper with RetiredNode at offset 0,
-        // then retire it. T's destructor will run when the reclamation
-        // system confirms no readers exist.
-        #[repr(C)]
-        struct DeferDrop<U> {
-            _retired: RetiredNode,
-            value: U,
-        }
-
-        let val = unsafe { ManuallyDrop::take(&mut self.value) };
-        let wrapper = alloc_node(DeferDrop {
-            _retired: RetiredNode::new(),
-            value: val,
-        });
-        // Override fresh birth_epoch with the original from the AtomNode.
-        // A fresh epoch could be right after a reader's pinned epoch, causing
-        // try_retire to skip protection and free while readers still
-        // reference T's heap internals (e.g. String buffer, Vec backing).
-        unsafe {
-            (*(wrapper as *mut RetiredNode)).set_birth_epoch(self.birth_epoch);
-        }
-        // SAFETY: DeferDrop<U> is #[repr(C)] with RetiredNode at offset 0.
-        // Allocated via alloc_node above.
-        unsafe { retire_node(wrapper) };
+        // SAFETY: the swap or take that made this unlinked the node, so no
+        // load reaches it any more; readers that loaded it before are pinned
+        // and keep it. It came from `AtomNode::boxed` and is retired once.
+        unsafe { retire_node(self.node) };
     }
 }
 
@@ -246,8 +221,9 @@ impl<T: Send + Sync + 'static + fmt::Display> fmt::Display for Removed<T> {
     }
 }
 
-// SAFETY: Removed<T> is Send + Sync if T is, because the inner value
-// is exclusively owned and only accessed through deref.
+// SAFETY: the value is only reached through `&T`, as readers on other
+// threads reach it (`T: Sync`), and whichever thread drops the wrapper
+// retires the node, so `T`'s destructor may run on another thread (`T: Send`).
 unsafe impl<T: Send + Sync + 'static> Send for Removed<T> {}
 unsafe impl<T: Send + Sync + 'static> Sync for Removed<T> {}
 
@@ -441,14 +417,11 @@ impl<T: Send + Sync + 'static> Atom<T> {
     /// Atomically replaces the current value and returns the previous one
     /// wrapped in [`Removed<T>`].
     ///
-    /// The returned [`Removed<T>`] defers `T`'s destructor through the
-    /// reclamation system, preventing use-after-free when concurrent
-    /// readers still reference the old value's heap internals. The value
-    /// can be read via `Deref`.
-    ///
-    /// Unlike [`store()`](Atom::store), the old value is **not** retired
-    /// immediately: ownership is transferred to the caller via `Removed<T>`.
-    /// The memory backing the old node is retired for deallocation only.
+    /// The old value stays in its node, where readers that loaded it before
+    /// the swap still read it, and the returned [`Removed<T>`] derefs to that
+    /// same object. Unlike [`store()`](Atom::store), the old node is not
+    /// retired at once: dropping the `Removed<T>` retires it, and `T`'s
+    /// destructor runs once no reader is left.
     ///
     /// # Examples
     ///
@@ -467,20 +440,9 @@ impl<T: Send + Sync + 'static> Atom<T> {
         // SAFETY: new_ptr is a valid heap allocation.
         let new_shared = unsafe { crate::atomic::Shared::from_raw(new_ptr) };
         let old = self.inner.swap(new_shared, Ordering::AcqRel, &guard);
-        let old_ptr = old.as_raw();
-        // SAFETY: old_ptr was allocated via AtomNode::boxed.
-        // We read the value out via ptr::read, then schedule the
-        // AtomNode shell for deallocation only (no Drop on T).
-        let old_val = unsafe { core::ptr::read(AtomNode::val_ptr(old_ptr)) };
-        // Capture birth_epoch before retiring. Removed::drop will
-        // use it on the DeferDrop wrapper to prevent epoch-skip UAF.
-        let birth_epoch = unsafe { (*(old_ptr as *mut RetiredNode)).birth_epoch() };
-        // SAFETY: old_ptr was allocated via AtomNode::boxed, val moved out via ptr::read.
-        unsafe { retire_node_dealloc_only::<T>(old_ptr) };
-        Removed {
-            value: ManuallyDrop::new(old_val),
-            birth_epoch,
-        }
+        // The old value stays in its node, where readers that loaded it
+        // before the swap read it: the wrapper reads that object, not a copy.
+        Removed { node: old.as_raw() }
     }
 
     /// Compare-and-swap: atomically replace the value if it hasn't changed.
@@ -803,17 +765,8 @@ impl<T: Send + Sync + 'static> AtomOption<T> {
         if old_ptr.is_null() {
             None
         } else {
-            // SAFETY: old_ptr was allocated via AtomNode::boxed.
-            // We read the value out and schedule the node shell for dealloc only.
-            let val = unsafe { core::ptr::read(AtomNode::val_ptr(old_ptr)) };
-            // Same as swap.
-            let birth_epoch = unsafe { (*(old_ptr as *mut RetiredNode)).birth_epoch() };
-            // SAFETY: old_ptr was allocated via AtomNode::boxed, val moved out via ptr::read.
-            unsafe { retire_node_dealloc_only::<T>(old_ptr) };
-            Some(Removed {
-                value: ManuallyDrop::new(val),
-                birth_epoch,
-            })
+            // As in `Atom::swap`: the value stays in its node.
+            Some(Removed { node: old_ptr })
         }
     }
 }
@@ -912,31 +865,3 @@ where
 // The AtomNode already has RetiredNode at offset 0, but we can't drop
 // it normally (that would double-drop T). Instead we schedule deallocation
 // of the AtomNode's memory without running T's destructor.
-
-/// Retires an `AtomNode<T>` for deferred deallocation only (does not drop T).
-///
-/// Reuses the original AtomNode's embedded RetiredNode instead of allocating
-/// a wrapper. This preserves the correct birth_epoch from allocation time
-/// and avoids an extra heap allocation.
-///
-/// # Safety
-///
-/// - `ptr` must have been allocated via `AtomNode::boxed`
-/// - The `val` field must have already been moved out (e.g. via `ptr::read`)
-unsafe fn retire_node_dealloc_only<T: 'static>(ptr: *mut AtomNode<T>) {
-    // Type-erased destructor that only deallocates the AtomNode's memory
-    // without running T's destructor (T was already moved out via ptr::read).
-    unsafe fn dealloc_destructor<T>(p: *mut RetiredNode) {
-        // SAFETY: the node came from `AtomNode::boxed`; its value was moved out.
-        unsafe { free_node(p.cast::<AtomNode<T>>()) }
-    }
-
-    let node_ptr = ptr as *mut RetiredNode;
-    unsafe {
-        (*node_ptr).set_destructor(Some(dealloc_destructor::<T>));
-    }
-    // SAFETY: AtomNode<T> is #[repr(C)] with RetiredNode at offset 0.
-    // birth_epoch is preserved from allocation time.
-    // destructor set above to dealloc-only.
-    unsafe { guard::retire_raw(node_ptr) };
-}
