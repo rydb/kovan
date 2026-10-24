@@ -292,3 +292,110 @@ fn shuttle_channel_blocking_recv_sees_message_published_just_before_disconnect()
         5,
     );
 }
+
+/// The schedules (h) and (j) need, a few preemptions at the right steps,
+/// are rare: PCT at these depths over this many runs found each on the code
+/// before the fix in every attempt made. (i)'s window no shuttle search made
+/// reached on that code (PCT at depths 2 to 4 and the random scheduler, at
+/// 300,000 runs each): it is checked by the TLA+ model (`CH_send_stale`,
+/// `proofs/tla/channel`), and (i) runs the path as plain coverage.
+const WINDOW_RUNS: usize = 100_000;
+
+/// (h) The window `proofs/tla/channel` found between a blocking receiver's
+/// recheck and its abandoning of its own entry (`CH_recv_stale`): the
+/// recheck finds the first value, and before the entry is withdrawn the
+/// second send's `notify_one` pops it and spends its one wakeup there,
+/// leaving the other receiver parked with a value in the channel. A spare
+/// sender stays alive until both receivers are done, so no disconnect wakes
+/// a lost receiver: a lost wakeup is a deadlock shuttle reports.
+fn blocking_recv_stale_entry_does_not_take_a_wakeup() {
+    let (tx1, rx1) = unbounded::<u64>();
+    let tx2 = tx1.clone();
+    let spare = tx1.clone();
+    let rx2 = rx1.clone();
+    let r1 = shuttle::thread::spawn(move || rx1.recv());
+    let r2 = shuttle::thread::spawn(move || rx2.recv());
+    let s1 = shuttle::thread::spawn(move || tx1.send(1u64));
+    let s2 = shuttle::thread::spawn(move || tx2.send(2u64));
+    s1.join().unwrap();
+    s2.join().unwrap();
+    let mut got: Vec<u64> = [r1.join().unwrap(), r2.join().unwrap()]
+        .into_iter()
+        .flatten()
+        .collect();
+    got.sort_unstable();
+    assert_eq!(got, vec![1, 2]);
+    drop(spare);
+}
+
+#[test]
+fn shuttle_channel_blocking_recv_stale_entry_does_not_take_a_wakeup() {
+    shuttle::check_pct(
+        blocking_recv_stale_entry_does_not_take_a_wakeup,
+        WINDOW_RUNS,
+        4,
+    );
+}
+
+/// (i) The same window on the bounded senders' wait list
+/// (`CH_send_stale`, the model's program): two senders sending two values
+/// each on a channel of one slot, a receiver taking three; no handle is
+/// dropped until all are done.
+fn bounded_send_stale_entry_does_not_take_a_wakeup() {
+    let (tx1, rx) = bounded::<u64>(1);
+    let tx2 = tx1.clone();
+    let spare = rx.clone();
+    let s1 = shuttle::thread::spawn(move || {
+        tx1.send(1u64);
+        tx1.send(2u64);
+        tx1
+    });
+    let s2 = shuttle::thread::spawn(move || {
+        tx2.send(3u64);
+        tx2.send(4u64);
+        tx2
+    });
+    let r = shuttle::thread::spawn(move || (0..3).filter_map(|_| rx.recv()).count());
+    assert_eq!(r.join().unwrap(), 3);
+    let (_kept1, _kept2) = (s1.join().unwrap(), s2.join().unwrap());
+    drop(spare);
+}
+
+#[test]
+fn shuttle_channel_bounded_send_stale_entry_does_not_take_a_wakeup() {
+    shuttle::check_pct(bounded_send_stale_entry_does_not_take_a_wakeup, 8000, 5);
+}
+
+/// (j) `select!`'s recheck finding a value and looping (`CH_select_stale`,
+/// the model's program): one thread runs two `select!`s, another sends two
+/// values. The first `select!`'s signal, still registered after its loop,
+/// must not take the second value's wakeup from the second `select!`.
+fn select_stale_signal_does_not_take_a_wakeup() {
+    let (tx1, rx1) = unbounded::<u64>();
+    let (tx2, rx2) = unbounded::<u64>();
+    let sel = shuttle::thread::spawn(move || {
+        let a = kovan_channel::select! {
+            v = rx1 => v,
+            w = rx2 => w,
+        };
+        let b = kovan_channel::select! {
+            v = rx1 => v,
+            w = rx2 => w,
+        };
+        (a, b)
+    });
+    let sender = shuttle::thread::spawn(move || {
+        tx1.send(1u64);
+        tx1.send(2u64);
+        tx1
+    });
+    let (a, b) = sel.join().unwrap();
+    assert_eq!((a, b), (1, 2));
+    let _kept = sender.join().unwrap();
+    drop(tx2);
+}
+
+#[test]
+fn shuttle_channel_select_stale_signal_does_not_take_a_wakeup() {
+    shuttle::check_pct(select_stale_signal_does_not_take_a_wakeup, WINDOW_RUNS, 3);
+}
