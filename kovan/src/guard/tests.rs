@@ -763,4 +763,141 @@ fn flushed_idle_thread_holds_nothing_back() {
     idler.join().unwrap();
 }
 
+/// The story. Thread C pins and stays pinned. Thread A retires one value
+/// and exits. A's batch holds just that value, and C's slot is eligible for
+/// it (the value is born at the first epoch), so the batch cannot be placed
+/// (a batch needs more values than there are eligible slots): A's exit
+/// parks it on A's thread ID, for a later `flush()` to adopt. Four such
+/// threads A exit one after the other, and a hook at the park counts that
+/// each of them parked. Then C exits; an exit adopts nothing. Thread B has
+/// never pinned, so it has no thread ID, and it only calls `flush()`: at
+/// most once per thread ID handed out, a call adopting one ID's chain.
+///
+/// Before the fix, B's `flush()` returned at once because B had no ID: all
+/// four values stayed parked and this test failed. With the fix, B's first
+/// `flush()` sees that some ID holds parked batches, claims an ID the way a
+/// first pin does and adopts; no slot is eligible any more, so the values
+/// are freed. The test checks that every parked value is freed, that B's
+/// flush claimed an ID, and that B's exit released it.
+#[test]
+#[cfg_attr(miri, ignore)] // multi-threaded: hits the intentional mixed-size DCAS, outside Miri's model
+fn flush_without_a_tid_adopts_orphans() {
+    const EXITING: usize = 4;
+    let _l = lock();
+    let live = Arc::new(AtomicUsize::new(0));
+    let parks = Arc::new(AtomicUsize::new(0));
+
+    let (pinned_up, pinned_done) = (Hold::new(), Hold::new());
+    let pinned = {
+        let (up, done) = (pinned_up.clone(), pinned_done.clone());
+        thread::spawn(move || {
+            let guard = pin();
+            up.arrived.store(true, Ordering::SeqCst);
+            assert!(eventually(|| done.go.load(Ordering::SeqCst)));
+            drop(guard);
+        })
+    };
+    pinned_up.reached("the pinned thread");
+
+    for _ in 0..EXITING {
+        let (l, p) = (Arc::clone(&live), Arc::clone(&parks));
+        let tid = thread::spawn(move || {
+            let tid = own_tid();
+            stall::arm(Step::OrphanPark, tid, move || {
+                p.fetch_add(1, Ordering::SeqCst);
+                false
+            });
+            Counted::retire_oldest(&l);
+            tid
+        })
+        .join()
+        .unwrap();
+        stall::disarm(Step::OrphanPark, tid);
+    }
+    assert_eq!(
+        parks.load(Ordering::SeqCst),
+        EXITING,
+        "an exiting thread placed or freed its value instead of parking it"
+    );
+    pinned_done.release();
+    pinned.join().unwrap();
+    assert_eq!(live.load(Ordering::SeqCst), EXITING);
+
+    let l = Arc::clone(&live);
+    let claimed = thread::spawn(move || {
+        assert_eq!(with_handle(|h| h.tid.get()), None, "the flusher has a tid");
+        for _ in 0..=crate::slot::global().max_threads() {
+            if l.load(Ordering::SeqCst) == 0 {
+                break;
+            }
+            flush();
+        }
+        let left = l.load(Ordering::SeqCst);
+        assert_eq!(
+            left, 0,
+            "{left} values parked by exited threads outlived the flushes of a thread that never pinned"
+        );
+        with_handle(|h| h.tid.get()).expect("the flusher adopted without a tid")
+    })
+    .join()
+    .unwrap();
+    assert!(
+        crate::slot::global().tid_is_released(claimed),
+        "the flusher's exit kept the tid its flush claimed"
+    );
+}
+
+/// The other side of the story. Thread B has never pinned, and no batch is
+/// parked anywhere (a thread with an ID first adopts whatever an earlier
+/// test left). B's `flush()` has nothing to adopt, so it must not claim a
+/// thread ID: B would hold that ID, for nothing, until it exits. The test
+/// checks that B still has no ID after two flushes, and that no ID was taken
+/// (none handed out anew, no released one taken back).
+#[test]
+fn flush_without_a_tid_or_orphans_claims_none() {
+    let _l = lock();
+    let global = crate::slot::global();
+    // What an earlier test left parked, adopted by a thread with an ID: one
+    // chain per flush, freed at once, no other slot being eligible.
+    thread::spawn(|| {
+        own_tid();
+        let global = crate::slot::global();
+        for _ in 0..=global.max_threads() {
+            if !crate::slot::orphans_parked() {
+                break;
+            }
+            flush();
+        }
+    })
+    .join()
+    .unwrap();
+    assert!(
+        !crate::slot::orphans_parked(),
+        "a parked batch was not adopted"
+    );
+
+    let handed_out = global.max_threads();
+    let released: Vec<bool> = (0..handed_out).map(|t| global.tid_is_released(t)).collect();
+    thread::spawn(|| {
+        flush();
+        flush();
+        assert_eq!(
+            with_handle(|h| h.tid.get()),
+            None,
+            "a flush with nothing to adopt claimed a tid"
+        );
+    })
+    .join()
+    .unwrap();
+    assert_eq!(
+        global.max_threads(),
+        handed_out,
+        "a flush with nothing to adopt took a fresh tid"
+    );
+    assert!(
+        (0..handed_out).all(|t| global.tid_is_released(t) == released[t]),
+        "a flush with nothing to adopt took a released tid"
+    );
+}
+
 mod progress;

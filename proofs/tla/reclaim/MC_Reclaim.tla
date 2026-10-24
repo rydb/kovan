@@ -101,6 +101,43 @@ P_exit_chain == [t \in {1} |-> <<P, Wr(1), U, Ex>>]
 \* tid, adopted by thread 2's flush.
 P_orphan == [t \in {1, 2} |-> IF t = 1 THEN <<P, Wr(1), U, Ex>>
                                      ELSE <<P, Ld(1), U, Fl, Ex>>]
+\* A flush on a thread that never pinned (README.md tells the story).
+\* Thread 1 pins, replaces cell 1's value (retiring the old one, a batch of one node), unpins and
+\* exits. If thread 2 has pinned and not yet exited at that moment (its slot still reserves an
+\* epoch, so the slot is eligible), the batch cannot be placed (a batch needs more nodes than
+\* there are eligible slots) and the exit parks it on thread 1's tid.
+\* Thread 2 pins, loads cell 1, unpins and exits; it never flushes, so it never adopts.
+\* Thread 3 never pins: it flushes twice, at any moment (before the park, so with nothing to
+\* adopt, or after it, claiming a tid to adopt), then exits.
+P_flush_orphan == [t \in {1, 2, 3} |-> CASE t = 1 -> <<P, Wr(1), U, Ex>>
+                                        [] t = 2 -> <<P, Ld(1), U, Ex>>
+                                        [] t = 3 -> <<Fl, Fl, Ex>>]
+\* The same threads 1 and 2; thread 3 waits until thread 1 has ended (so after any park), then
+\* flushes once and stops, without exiting (an exit could park the adopted batch again).
+P_flush_orphan_live == [t \in {1, 2, 3} |-> CASE t = 1 -> <<P, Wr(1), U, Ex>>
+                                             [] t = 2 -> <<P, Ld(1), U, Ex>>
+                                             [] t = 3 -> <<Join(1), Fl>>]
+\* Values retired by threads that never pin (README.md tells the story). With a batch of two
+\* (RetireFreq 2), one retire does not submit: the value waits in the thread's own batch, and the
+\* thread has no tid (a pin claims one, as do a flush or an exit that needs one and the epoch
+\* advance of every EpochFreq-th retire; with EpochFreq 2, one retire makes no advance).
+\* Thread 1 retires one value, flushes, then exits: the flush must claim a tid and submit.
+\* Thread 2 retires one value, then just exits: the exit must claim a tid and submit.
+\* Thread 3 pins, unpins and exits: from its pin to its exit its slot reserves an epoch, and a
+\* one-value batch cannot be placed then, so a submission may also have to keep or park it.
+P_unpinned == [t \in {1, 2, 3} |-> CASE t = 1 -> <<Rt, Fl, Ex>>
+                                    [] t = 2 -> <<Rt, Ex>>
+                                    [] t = 3 -> <<P, U, Ex>>]
+\* The same, one claim at a time and small enough to count every step (README.md). With a batch of
+\* two, one retire does not submit, so thread 1 holds one value and no tid; thread 2 pins, unpins
+\* and exits, so from its pin to its exit a one-value batch cannot be placed.
+\* The exit claims: thread 1 retires one value, then exits.
+P_wf_unpinned_exit == [t \in {1, 2} |-> IF t = 1 THEN <<Rt, Ex>> ELSE <<P, U, Ex>>]
+\* The flush claims: thread 1 retires one value, flushes, then exits (with the tid its flush took).
+P_wf_unpinned_flush == [t \in {1, 2} |-> IF t = 1 THEN <<Rt, Fl, Ex>> ELSE <<P, U, Ex>>]
+\* One thread that retires one value, flushes, then keeps pinning and unpinning forever without
+\* exiting: only its flush can submit the value while it lives.
+P_unpinned_flush_live == [t \in {1} |-> <<Rt, Fl, Idle>>]
 
 \* ------------------------------------------------------------ re-entrance with helping
 
@@ -173,4 +210,15 @@ Fair2 == SpecW /\ WF_allvars(StepW(2))
 Released(n) == LET r == IF nbl[n] < 0 THEN n ELSE nbl[n]
                IN r \in Nodes /\ nro[r] = 0 /\ nbl[r] < 0
 DrainLive == <>[](\A n \in Nodes : nst[n] = "retired" => Released(n))
+\* Every batch an exit parked is eventually adopted. In words: from some moment on ("<>[]",
+\* eventually and then for good), no tid's orphan word holds a chain ("orw[i] = NULL" for every
+\* tid i). The scenario that checks it runs a flush after any park, on a thread with no tid:
+\* that flush must take the chain; if it does not, the chain stays parked forever and the
+\* property breaks.
+OrphansAdopted == <>[](\A i \in Tids : orw[i] = NULL)
+\* Every retired value is eventually freed. In words: from some moment on ("<>[]", eventually and
+\* then for good), no node is in the state "retired" (each one retired has been freed). The
+\* scenario that checks it has one thread retire a value without pinning, flush, and then live on
+\* without exiting: unless that flush submits the value, nothing ever frees it.
+RetiredFreed == <>[](\A n \in Nodes : nst[n] # "retired")
 =============================================================================

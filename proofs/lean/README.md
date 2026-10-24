@@ -12,7 +12,7 @@ The models here are sequential: one thread doing one operation at a time. That s
 about arithmetic and bookkeeping, such as a threshold or a bound on how much work any sequence
 of operations can cause. How threads interleave is checked by the TLA+ models in `../tla/`.
 
-### The example proved so far: the hopscotch map's shrink threshold
+### The first proof: the hopscotch map's shrink threshold
 
 A `HopscotchMap` keeps its entries in a table of buckets. Take a table of 256 buckets holding
 40 entries: 20 whose keys belong to bucket 0 and 20 whose keys belong to bucket 128 (the test
@@ -75,6 +75,31 @@ larger one). That last kind writes the threshold like any failed shrink but is n
 the bound: no threshold holds it back. The TLA+ model in `../tla/hopscotch` checks the per
 thread rule, as `ShrinkWorkBound`, in its configurations with several threads.
 
+### The second proof: flush and exit on a thread that never pinned
+
+A thread gets a thread ID (a tid) the first time it pins. Take thread B, which never pins: it
+only drops `Removed` values another thread handed it, and each such drop retires the value
+without a pin. B has no tid, and the values wait in its batch. Elsewhere, thread A exits with
+a batch it cannot place and parks it on its tid, as a chain for a later `flush()` to adopt.
+
+1. What used to happen: B's `flush()` returned at once because B had no tid, and so did B's
+   exit. B's values were never submitted, so never freed, and A's chain was never adopted by B.
+2. What happens now: B's `flush()` claims a tid, as a first pin does, when its own batch holds
+   a value or some tid holds a parked chain; then it adopts one chain and submits its batch.
+   With nothing to do it still returns at once and claims nothing. B's exit, finding no tid and
+   a value in its batch, claims a tid and runs the exit every thread runs: submit, park what
+   cannot be placed, release the tid.
+3. So, whatever B does (retire, flush, pin, then exit) and whatever happens to each
+   submission, every value B retired or adopted is submitted or parked once B has exited.
+4. And a B that keeps flushing adopts every chain parked on any of `maxThreads` tids within
+   `maxThreads` flushes, so within `maxThreads + 1`.
+
+`Kovan/FlushExit.lean` proves steps 2 to 4 for the code as it is now, and shows step 1 for
+the old exit: with it, a thread that retires one value and exits keeps it nowhere. It models
+one thread doing one operation at a time; the TLA+ model in `../tla/reclaim` checks the same
+paths with several threads (`RC_unpinned_retire`, `RC_wf_unpinned_exit`,
+`RC_wf_unpinned_flush`, `RC_flush_orphan`, and the mutations that put the old returns back).
+
 ## What is proved
 
 `Kovan/HopscotchShrink.lean`, a model of `kovan-map/src/hopscotch.rs` (`shrink_at`,
@@ -122,6 +147,31 @@ resize no remove asked for. The theorems are about any run between two erasures.
 Both files explain every definition and every proof step in plain words, with a small example
 for each statement. Every theorem rests only on Lean's own axioms (`propext`, `Quot.sound`,
 `Classical.choice`), or on none: `check.sh axioms` checks it for every theorem of the library.
+
+`Kovan/FlushExit.lean`, a model of `kovan/src/guard.rs` (`Handle::flush`, `Handle::cleanup`,
+`retire`, `pin`) and `kovan/src/slot.rs` (`adopt_orphans`, `orphans_parked`): the start of
+each of flush and exit is a function of what the handle tells it (a tid or not, an empty batch
+or not, a chain parked or not, the exit still to run or not, inside a reclamation or not); a
+run is one thread's retires, flushes, pins and exit, each submission placed or not as the run
+chooses, over the orphan words of every tid.
+
+| theorem | what it says |
+|---------|--------------|
+| `flush_returns_iff` | `flush()` returns at once exactly when the thread has no tid and either nothing to submit or adopt or its exit already ran, or when it runs inside a reclamation |
+| `flush_claims_iff` | `flush()` claims a tid exactly when the thread has none, runs outside any reclamation before its exit, and has a value in its batch or finds a chain parked |
+| `flush_runs_iff` | `flush()` runs with the tid it has exactly when the thread has one, outside any reclamation |
+| `flush_idle_claims_none` | a flush with no tid, an empty batch and nothing parked claims no tid |
+| `exit_returns_iff`, `exit_claims_iff`, `exit_runs_iff` | the exit returns at once exactly with no tid and an empty batch, claims a tid exactly with no tid and a value in its batch, and runs exactly with a tid |
+| `leak_free` | once the thread has exited, every value it retired or adopted, over any run, is submitted or parked |
+| `retired_is_kept` | every value the thread retires before its exit is submitted or parked once it has exited |
+| `old_exit_loses` | with the exit as it was before the fix, a thread that retires one value and exits keeps it nowhere |
+| `adopted_within_max_threads` | a thread that has not exited, with a tid or not, empties every orphan word of `maxThreads` tids within `maxThreads` flushes |
+| `adopted_within` | the same within `maxThreads + 1` flushes |
+
+All of them use only Lean's standard axioms (`propext`, `Classical.choice`, `Quot.sound`), or
+none; `#print axioms` lists them.
+
+The file explains every definition and every proof step in plain words.
 
 ## How to check it
 

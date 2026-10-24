@@ -1,3 +1,4 @@
+import Kovan.FlushExit
 import Kovan.HopscotchShrink
 import Kovan.HopscotchShrinkThreads
 

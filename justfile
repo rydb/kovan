@@ -187,7 +187,7 @@ bench-ab *args:
 tla family *configs:
     bash proofs/tla/run_tlc.sh {{ family }} {{ configs }}
 
-# Model-check every TLA+ family, as CI does (CI: tla.yml; reclaim alone takes about 37 minutes)
+# Model-check every TLA+ family, as CI does (CI: tla.yml; reclaim alone takes 32 to 73 minutes, by the machine's load)
 [group("proofs")]
 tla-all:
     bash proofs/tla/run_tlc.sh all

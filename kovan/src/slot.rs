@@ -451,11 +451,23 @@ pub(crate) struct ASMRState {
     /// [`alloc_tid`](Self::alloc_tid) that takes the ID over. An ID never
     /// handed out has its bit clear, so only its first owner takes it.
     released: [AtomicU64; MAX_THREADS / 64],
-    /// Number of thread IDs whose orphan word holds a chain (see
-    /// [`ThreadSlots`]): lets an adopter skip the pass over the IDs with one
-    /// load while no exited thread left anything. Exact whenever no thread
-    /// is between the two steps of a park or an adoption.
-    orphaned: AtomicUsize,
+}
+
+/// Number of thread IDs whose orphan word holds a chain (see [`ThreadSlots`]):
+/// lets an adopter skip the pass over the IDs with one load while no exited
+/// thread left anything. Exact whenever no thread is between the two steps of
+/// a park or an adoption. A static beside [`ASMRState`], of which there is one,
+/// so a flush on a thread that never pinned reads it with one load, without
+/// reaching the state first.
+static ORPHANED: AtomicUsize = AtomicUsize::new(0);
+
+/// Whether some thread ID's orphan word holds a chain, by one load of the
+/// count of such IDs (exact whenever no thread is between the steps of a park
+/// or an adoption). Relaxed: a park this load does not see yet waits for a
+/// later adoption, which loads the count again.
+#[inline]
+pub(crate) fn orphans_parked() -> bool {
+    ORPHANED.load(Ordering::Relaxed) != 0
 }
 
 /// Global epoch counter (starts at 1).
@@ -502,7 +514,6 @@ impl ASMRState {
             slow_counter: AtomicU64::new(0),
             next_tid: AtomicUsize::new(0),
             released: [const { AtomicU64::new(0) }; MAX_THREADS / 64],
-            orphaned: AtomicUsize::new(0),
         }
     }
 
@@ -694,7 +705,7 @@ impl ASMRState {
         unsafe { (*tail).next.store(earlier, Ordering::Relaxed) };
         word.store(head, Ordering::Release);
         if earlier.is_null() {
-            self.orphaned.fetch_add(1, Ordering::Relaxed);
+            ORPHANED.fetch_add(1, Ordering::Relaxed);
         }
     }
 
@@ -707,7 +718,7 @@ impl ASMRState {
     /// taken is fixed by that swap: what exiting threads park afterwards
     /// waits for the next adoption.
     pub(crate) fn adopt_orphans(&self) -> *mut RetiredNode {
-        if self.orphaned.load(Ordering::Relaxed) == 0 {
+        if !orphans_parked() {
             return core::ptr::null_mut();
         }
         for tid in 0..self.max_threads() {
@@ -718,7 +729,7 @@ impl ASMRState {
             // Acquire: pairs with the release store of `park_orphans`.
             let chain = word.swap(core::ptr::null_mut(), Ordering::Acquire);
             if !chain.is_null() {
-                self.orphaned.fetch_sub(1, Ordering::Relaxed);
+                ORPHANED.fetch_sub(1, Ordering::Relaxed);
                 return chain;
             }
         }
