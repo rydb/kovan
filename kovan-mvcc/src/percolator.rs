@@ -7,6 +7,14 @@ use kovan_map::HopscotchMap;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicU64, Ordering};
 
+/// A timestamp from the oracle, recorded in `issued`, the instance's greatest
+/// one taken: every timestamp the oracle hands out later is above it.
+fn take_timestamp(oracle: &dyn TimestampOracle, issued: &AtomicU64) -> u64 {
+    let ts = oracle.get_timestamp();
+    issued.fetch_max(ts, Ordering::SeqCst);
+    ts
+}
+
 /// Registry of active transactions, used for GC watermark computation.
 pub struct ActiveTxnRegistry {
     txns: kovan_map::HashMap<u128, u64>, // txn_id -> start_ts
@@ -31,6 +39,11 @@ impl ActiveTxnRegistry {
 
     /// Returns the minimum start_ts across all active transactions.
     /// Returns None if no transactions are active.
+    ///
+    /// A walk can miss a transaction that registers while it runs, so this
+    /// alone is not a GC watermark: [`KovanMVCC::gc_watermark`] bounds it by
+    /// a timestamp taken before the walk, below every one such a transaction
+    /// can start at.
     pub fn min_active_ts(&self) -> Option<u64> {
         let mut min = None;
         for (_, ts) in self.txns.iter() {
@@ -116,7 +129,7 @@ impl InflightWriteRegistry {
 
     /// Register a write txn as in-flight (idempotent; keeps first start_ts).
     pub fn register(&self, txn_id: u128, start_ts: u64) {
-        self.writers.insert(txn_id, start_ts);
+        self.writers.insert_if_absent(txn_id, start_ts);
         // AFTER the insert: a min_ts pass that read the epoch before this
         // bump and again after sees the change and retries, so the insert's
         // relocations can never hide an entry from a "stable" pass.
@@ -197,11 +210,15 @@ pub struct KovanMVCC {
     ts_oracle: Arc<dyn TimestampOracle>,
     backoff: Arc<dyn BackoffStrategy>,
     active_txns: Arc<ActiveTxnRegistry>,
-    /// In-flight write transactions (see `InflightWriteRegistry`). A writer
-    /// is registered at its first buffered write and unregistered when its
-    /// effects are durably visible (at `commit` standalone, or via
-    /// `mark_txn_applied` in external-apply mode).
+    /// In-flight write transactions (see `InflightWriteRegistry`). The
+    /// embedder registers a writer at its first write intent; kovan
+    /// unregisters it when its effects are durably visible (at `commit`
+    /// standalone, or via `mark_txn_applied` in external-apply mode).
     inflight_writes: Arc<InflightWriteRegistry>,
+    /// The greatest timestamp this instance has taken from its oracle, a
+    /// bound below every timestamp the oracle hands out after it (see
+    /// `gc_watermark`).
+    issued: Arc<AtomicU64>,
     /// When true, `commit` leaves the writer registered for the embedder to
     /// `mark_txn_applied` after its external physical apply; when false
     /// (default) commit unregisters immediately (standalone contract).
@@ -240,6 +257,7 @@ impl KovanMVCC {
             active_txns: Arc::new(ActiveTxnRegistry::new()),
             inflight_writes: Arc::new(InflightWriteRegistry::new()),
             external_apply: false,
+            issued: Arc::new(AtomicU64::new(0)),
             ssi_commit_lock: Arc::new(parking_lot::Mutex::new(())),
         }
     }
@@ -252,6 +270,7 @@ impl KovanMVCC {
             active_txns: Arc::new(ActiveTxnRegistry::new()),
             inflight_writes: Arc::new(InflightWriteRegistry::new()),
             external_apply: false,
+            issued: Arc::new(AtomicU64::new(0)),
             ssi_commit_lock: Arc::new(parking_lot::Mutex::new(())),
         }
     }
@@ -267,6 +286,7 @@ impl KovanMVCC {
             active_txns: Arc::new(ActiveTxnRegistry::new()),
             inflight_writes: Arc::new(InflightWriteRegistry::new()),
             external_apply: false,
+            issued: Arc::new(AtomicU64::new(0)),
             ssi_commit_lock: Arc::new(parking_lot::Mutex::new(())),
         }
     }
@@ -287,7 +307,7 @@ impl KovanMVCC {
     }
 
     /// Enable external-apply mode: `commit` leaves each commit_ts pending for
-    /// the embedder to `mark_commit_applied` after its own physical apply is
+    /// the embedder to `mark_txn_applied` after its own physical apply is
     /// durably visible. Off by default (commit self-completes). Set once at
     /// construction time by an embedder that applies effects outside kovan.
     pub fn set_external_apply(&mut self, enabled: bool) {
@@ -353,6 +373,22 @@ impl KovanMVCC {
         }
     }
 
+    /// The watermark a GC may collect versions below (`Storage::gc_writes`,
+    /// `Storage::gc_data`): no active transaction reads below it, nor any
+    /// that begins after.
+    ///
+    /// It is the least `start_ts` in the active registry, bounded by the
+    /// greatest timestamp taken before the registry's walk. A transaction
+    /// registers before it takes its `start_ts` (under a bound of its own, at
+    /// most that `start_ts`), so one the walk misses registered after the
+    /// walk began, and the oracle hands it a `start_ts` above the bound.
+    pub fn gc_watermark(&self) -> u64 {
+        let bound = self.issued.load(Ordering::SeqCst);
+        self.active_txns
+            .min_active_ts()
+            .map_or(bound, |least| least.min(bound))
+    }
+
     /// Get a reference to the timestamp oracle.
     pub fn ts_oracle(&self) -> &Arc<dyn TimestampOracle> {
         &self.ts_oracle
@@ -372,10 +408,14 @@ impl KovanMVCC {
     }
 
     pub fn begin_with_isolation(&self, isolation_level: IsolationLevel) -> Txn {
-        let start_ts = self.ts_oracle.get_timestamp();
         let txn_id = uuid::Uuid::new_v4().as_u128();
 
-        // Register in active transaction registry
+        // Registered before start_ts is taken, under a bound at most start_ts,
+        // so no GC watermark passes this transaction between the two steps
+        // (`gc_watermark`); then under start_ts itself.
+        self.active_txns
+            .register(txn_id, self.issued.load(Ordering::SeqCst));
+        let start_ts = take_timestamp(&*self.ts_oracle, &self.issued);
         self.active_txns.register(txn_id, start_ts);
 
         let read_set = if isolation_level == IsolationLevel::Serializable {
@@ -393,6 +433,7 @@ impl KovanMVCC {
             active_txns: self.active_txns.clone(),
             inflight_writes: self.inflight_writes.clone(),
             external_apply: self.external_apply,
+            issued: self.issued.clone(),
             writes: HopscotchMap::new(),
             primary_key: None,
             committed: false,
@@ -414,6 +455,8 @@ pub struct Txn {
     inflight_writes: Arc<InflightWriteRegistry>,
     /// Whether commit leaves the writer registered for external apply.
     external_apply: bool,
+    /// The instance's greatest timestamp taken (`KovanMVCC::issued`).
+    issued: Arc<AtomicU64>,
     /// Buffered writes: key -> (lock_type, value)
     writes: HopscotchMap<Vec<u8>, (LockType, Option<Value>)>,
     /// Primary key for 2PC
@@ -444,13 +487,19 @@ impl Txn {
         self.isolation_level
     }
 
-    /// Get operation (Snapshot Read)
+    /// Get operation (Snapshot Read): the key's value in the snapshot, or
+    /// `None` when it holds none there.
     ///
     /// Behavior varies by isolation level:
     /// - ReadCommitted: uses a fresh timestamp per read call
     /// - RepeatableRead: uses start_ts (standard SI)
     /// - Serializable: uses start_ts + tracks key in read_set
-    pub fn read(&self, key: impl AsRef<[u8]>) -> Option<Vec<u8>> {
+    ///
+    /// A key locked by another transaction that started at or before the
+    /// read's timestamp may be about to commit into the snapshot, so the read
+    /// waits as the backoff strategy says; when it gives up, the answer is
+    /// [`MvccError::LockConflict`], never a guess.
+    pub fn read(&self, key: impl AsRef<[u8]>) -> Result<Option<Vec<u8>>, MvccError> {
         let key = key.as_ref();
         // 0. Check local write buffer first (read-your-own-writes, even before
         // prewrite). Skip the guarded map lookup entirely when there are no
@@ -469,15 +518,15 @@ impl Txn {
                     read_set.insert(key.to_vec(), ());
                 }
             }
-            return match lock_type {
+            return Ok(match lock_type {
                 LockType::Put => value_opt.map(|arc| (*arc).clone()),
                 LockType::Delete => None,
-            };
+            });
         }
 
         // Determine read timestamp based on isolation level
         let read_ts = match self.isolation_level {
-            IsolationLevel::ReadCommitted => self.ts_oracle.get_timestamp(),
+            IsolationLevel::ReadCommitted => take_timestamp(&*self.ts_oracle, &self.issued),
             IsolationLevel::RepeatableRead | IsolationLevel::Serializable => self.start_ts,
         };
 
@@ -490,10 +539,10 @@ impl Txn {
                 // Key is locked by an active transaction that started before us.
                 if lock.txn_id == self.txn_id {
                     // Read-your-own-writes (already prewritten)
-                    return self
+                    return Ok(self
                         .writes
                         .get(key)
-                        .and_then(|(_, v)| v.map(|arc| (*arc).clone()));
+                        .and_then(|(_, v)| v.map(|arc| (*arc).clone())));
                 }
 
                 // Locked by another transaction.
@@ -509,25 +558,25 @@ impl Txn {
                         continue;
                     }
                     BackoffAction::Abort => {
-                        eprintln!(
-                            "[READ_CONFLICT] key={} locked by txn={} at ts={}",
-                            crate::error::render_key(key),
-                            lock.txn_id,
-                            lock.start_ts
-                        );
-                        // Track in read_set for Serializable even on misses
+                        // The lock's holder may commit into this snapshot, so
+                        // no answer would be sound: the caller decides. The
+                        // key is still tracked, so a Serializable commit
+                        // validates it.
                         if let Some(ref read_set) = self.read_set
                             && !read_set.contains_key(key)
                         {
                             read_set.insert(key.to_vec(), ());
                         }
-                        return None;
+                        return Err(MvccError::LockConflict {
+                            key: key.to_vec(),
+                            holder_txn: lock.txn_id,
+                        });
                     }
                 }
             }
 
             // 2. Find latest non-rollback write in CF_WRITE with commit_ts <= read_ts
-            if let Some((_commit_ts, write_info)) = self.storage.get_latest_commit(key, read_ts) {
+            if let Some((commit_ts, write_info)) = self.storage.get_latest_commit(key, read_ts) {
                 // Track in read_set for Serializable
                 if let Some(ref read_set) = self.read_set
                     && !read_set.contains_key(key)
@@ -537,12 +586,18 @@ impl Txn {
                 match write_info.kind {
                     WriteKind::Put => {
                         // 3. Retrieve data from CF_DATA using start_ts from WriteInfo
-                        if let Some(value) = self.storage.get_data(key, write_info.start_ts) {
-                            return Some(value.as_ref().clone());
-                        }
+                        return match self.storage.get_data(key, write_info.start_ts) {
+                            Some(value) => Ok(Some(value.as_ref().clone())),
+                            // A commit names data the storage no longer has.
+                            None => Err(MvccError::StorageError(format!(
+                                "the data of key '{}' committed at {} is missing",
+                                crate::error::render_key(key),
+                                commit_ts
+                            ))),
+                        };
                     }
                     WriteKind::Delete => {
-                        return None; // Deleted
+                        return Ok(None); // Deleted
                     }
                     WriteKind::Rollback => {
                         unreachable!("get_latest_commit should never return Rollback");
@@ -560,7 +615,7 @@ impl Txn {
                     read_set.insert(key.to_vec(), ());
                 }
             }
-            return None;
+            return Ok(None);
         }
     }
 
@@ -585,10 +640,14 @@ impl Txn {
 
     pub fn commit(mut self) -> Result<u64, MvccError> {
         self.committed = true;
-
-        // Unregister from active transactions
+        let result = self.commit_registered();
+        // Unregistered only now: until its data is committed or rolled back, a
+        // GC watermark must not pass this transaction's prewrite.
         self.active_txns.unregister(self.txn_id);
+        result
+    }
 
+    fn commit_registered(&mut self) -> Result<u64, MvccError> {
         if self.writes.is_empty() {
             return Ok(self.start_ts);
         }
@@ -618,8 +677,9 @@ impl Txn {
             && let Some(ref read_set) = self.read_set
         {
             for (key, _) in read_set.iter() {
-                if let Some((commit_ts, write_info)) = self.storage.get_latest_write(&key, u64::MAX)
-                    && write_info.kind != WriteKind::Rollback
+                // The latest commit, not the latest record: a Rollback record
+                // above a commit must not hide it.
+                if let Some((commit_ts, _)) = self.storage.get_latest_commit(&key, u64::MAX)
                     && commit_ts > self.start_ts
                 {
                     self.rollback();
@@ -636,7 +696,7 @@ impl Txn {
         // existed - no gap), so a concurrent reader's `safe_read_ts`
         // already excludes it; a kovan-native txn has no entry and needs
         // none (this commit IS its visibility point).
-        let commit_ts = self.ts_oracle.get_timestamp();
+        let commit_ts = take_timestamp(&*self.ts_oracle, &self.issued);
 
         // Phase 2: Commit
         if let Err(e) = self.commit_primary(&primary_key, commit_ts) {
@@ -818,9 +878,9 @@ impl Txn {
 impl Drop for Txn {
     fn drop(&mut self) {
         if !self.committed {
-            // Unregister from active transactions
-            self.active_txns.unregister(self.txn_id);
             self.rollback();
+            // Unregistered once its data is rolled back, as in `commit`.
+            self.active_txns.unregister(self.txn_id);
         }
     }
 }

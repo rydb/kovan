@@ -41,12 +41,12 @@ fn sequential_two_key_transfer_conflict_preserves_total() {
     // T1 and T2: both transfer 10 from acc_0 to acc_1. Both read before
     // either writes/commits, matching the original's barrier point.
     let txn1 = db.begin();
-    let t1_v0 = u64::from_le_bytes(txn1.read("acc_0").unwrap().try_into().unwrap());
-    let t1_v1 = u64::from_le_bytes(txn1.read("acc_1").unwrap().try_into().unwrap());
+    let t1_v0 = u64::from_le_bytes(txn1.read("acc_0").unwrap().unwrap().try_into().unwrap());
+    let t1_v1 = u64::from_le_bytes(txn1.read("acc_1").unwrap().unwrap().try_into().unwrap());
 
     let txn2 = db.begin();
-    let t2_v0 = u64::from_le_bytes(txn2.read("acc_0").unwrap().try_into().unwrap());
-    let t2_v1 = u64::from_le_bytes(txn2.read("acc_1").unwrap().try_into().unwrap());
+    let t2_v0 = u64::from_le_bytes(txn2.read("acc_0").unwrap().unwrap().try_into().unwrap());
+    let t2_v1 = u64::from_le_bytes(txn2.read("acc_1").unwrap().unwrap().try_into().unwrap());
 
     let commit1 = |mut txn: kovan_mvcc::Txn, v0: u64, v1: u64| -> bool {
         if txn
@@ -71,8 +71,8 @@ fn sequential_two_key_transfer_conflict_preserves_total() {
 
     // Check final balance
     let txn = db.begin();
-    let v0 = u64::from_le_bytes(txn.read("acc_0").unwrap().try_into().unwrap());
-    let v1 = u64::from_le_bytes(txn.read("acc_1").unwrap().try_into().unwrap());
+    let v0 = u64::from_le_bytes(txn.read("acc_0").unwrap().unwrap().try_into().unwrap());
+    let v1 = u64::from_le_bytes(txn.read("acc_1").unwrap().unwrap().try_into().unwrap());
     eprintln!("[FINAL] acc_0={}, acc_1={}, total={}", v0, v1, v0 + v1);
 
     assert_eq!(v0 + v1, 2000, "Money was created or destroyed!");

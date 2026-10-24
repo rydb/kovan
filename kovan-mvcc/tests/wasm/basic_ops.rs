@@ -29,7 +29,7 @@ fn test_single_txn_read_write() {
 
     // 2. Read back
     let txn = db.begin();
-    let val = txn.read("key1").expect("Should find key");
+    let val = txn.read("key1").unwrap().expect("Should find key");
     assert_eq!(val, b"value1");
 }
 
@@ -44,7 +44,7 @@ fn test_overwrite_and_delete() {
 
     // Verify V1
     let t2 = db.begin();
-    assert_eq!(t2.read("doc").unwrap(), b"v1");
+    assert_eq!(t2.read("doc").unwrap().unwrap(), b"v1");
 
     // Update: A -> B
     let mut t3 = db.begin();
@@ -53,7 +53,7 @@ fn test_overwrite_and_delete() {
 
     // Verify V2
     let t4 = db.begin();
-    assert_eq!(t4.read("doc").unwrap(), b"v2");
+    assert_eq!(t4.read("doc").unwrap().unwrap(), b"v2");
 
     // Delete
     let mut t5 = db.begin();
@@ -62,7 +62,7 @@ fn test_overwrite_and_delete() {
 
     // Verify Gone
     let t6 = db.begin();
-    assert!(t6.read("doc").is_none());
+    assert!(t6.read("doc").unwrap().is_none());
 }
 
 #[test]
@@ -75,7 +75,7 @@ fn test_multiple_keys() {
     t1.commit().unwrap();
 
     let t2 = db.begin();
-    assert_eq!(t2.read("a").unwrap(), b"1");
-    assert_eq!(t2.read("b").unwrap(), b"2");
-    assert!(t2.read("c").is_none());
+    assert_eq!(t2.read("a").unwrap().unwrap(), b"1");
+    assert_eq!(t2.read("b").unwrap().unwrap(), b"2");
+    assert!(t2.read("c").unwrap().is_none());
 }

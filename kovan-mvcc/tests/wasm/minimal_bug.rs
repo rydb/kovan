@@ -43,10 +43,10 @@ fn sequential_lost_update_prevented() {
     // Both transactions begin and read the balance before either commits,
     // matching the original's barrier point.
     let mut txn1 = db.begin();
-    let val1 = u64::from_le_bytes(txn1.read("balance").unwrap().try_into().unwrap());
+    let val1 = u64::from_le_bytes(txn1.read("balance").unwrap().unwrap().try_into().unwrap());
 
     let mut txn2 = db.begin();
-    let val2 = u64::from_le_bytes(txn2.read("balance").unwrap().try_into().unwrap());
+    let val2 = u64::from_le_bytes(txn2.read("balance").unwrap().unwrap().try_into().unwrap());
 
     txn1.write("balance", (val1 + 10).to_le_bytes().to_vec())
         .unwrap();
@@ -61,7 +61,7 @@ fn sequential_lost_update_prevented() {
 
     // Check final balance
     let txn = db.begin();
-    let final_val = u64::from_le_bytes(txn.read("balance").unwrap().try_into().unwrap());
+    let final_val = u64::from_le_bytes(txn.read("balance").unwrap().unwrap().try_into().unwrap());
 
     if r1 && !r2 {
         assert_eq!(final_val, 110, "T1 succeeded, expected 110");

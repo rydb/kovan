@@ -27,7 +27,7 @@ fn test_minimal_lost_update() {
     // Both transactions try to add 10 to the balance
     let h1 = thread::spawn(move || {
         let mut txn = db1.begin();
-        let val = u64::from_le_bytes(txn.read("balance").unwrap().try_into().unwrap());
+        let val = u64::from_le_bytes(txn.read("balance").unwrap().unwrap().try_into().unwrap());
         b1.wait(); // ensure both have read before either commits
         txn.write("balance", (val + 10).to_le_bytes().to_vec())
             .unwrap();
@@ -36,7 +36,7 @@ fn test_minimal_lost_update() {
 
     let h2 = thread::spawn(move || {
         let mut txn = db2.begin();
-        let val = u64::from_le_bytes(txn.read("balance").unwrap().try_into().unwrap());
+        let val = u64::from_le_bytes(txn.read("balance").unwrap().unwrap().try_into().unwrap());
         b2.wait(); // ensure both have read before either commits
         txn.write("balance", (val + 10).to_le_bytes().to_vec())
             .unwrap();
@@ -51,7 +51,7 @@ fn test_minimal_lost_update() {
 
     // Check final balance
     let txn = db.begin();
-    let final_val = u64::from_le_bytes(txn.read("balance").unwrap().try_into().unwrap());
+    let final_val = u64::from_le_bytes(txn.read("balance").unwrap().unwrap().try_into().unwrap());
 
     if r1 && !r2 {
         assert_eq!(final_val, 110, "T1 succeeded, expected 110");

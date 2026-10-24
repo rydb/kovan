@@ -18,7 +18,7 @@ fn test_large_blob_handling() {
 
     // Read
     let t2 = db.begin();
-    let read_data = t2.read("model_v1").expect("Should read blob");
+    let read_data = t2.read("model_v1").unwrap().expect("Should read blob");
 
     // Verify content (Arc ensures zero-copy internally, but we check equality)
     assert_eq!(read_data.len(), size);

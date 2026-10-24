@@ -43,8 +43,8 @@ fn test_simple_concurrent_transfer() {
                 loop {
                     let mut txn = db_clone.begin();
                     // Read phase
-                    let b_from_bytes = txn.read(&k_from).unwrap();
-                    let b_to_bytes = txn.read(&k_to).unwrap();
+                    let b_from_bytes = txn.read(&k_from).unwrap().unwrap();
+                    let b_to_bytes = txn.read(&k_to).unwrap().unwrap();
 
                     let b_from = u64::from_le_bytes(b_from_bytes.try_into().unwrap());
                     let b_to = u64::from_le_bytes(b_to_bytes.try_into().unwrap());
@@ -85,7 +85,7 @@ fn test_simple_concurrent_transfer() {
     let mut total = 0;
     let txn = db.begin();
     for i in 0..num_accounts {
-        let val = txn.read(format!("acc_{}", i)).unwrap();
+        let val = txn.read(format!("acc_{}", i)).unwrap().unwrap();
         total += u64::from_le_bytes(val.try_into().unwrap());
     }
 

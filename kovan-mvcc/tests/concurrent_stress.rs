@@ -33,7 +33,7 @@ fn test_concurrent_writes_different_keys() {
             let key = format!("t{}_{}", t, i);
             let expected = format!("value_{}_{}", t, i);
             let txn = db.begin();
-            let val = txn.read(&key).expect("key should exist");
+            let val = txn.read(&key).unwrap().expect("key should exist");
             assert_eq!(val, expected.into_bytes());
         }
     }
@@ -57,7 +57,7 @@ fn test_concurrent_readers() {
         handles.push(thread::spawn(move || {
             for i in 0..50 {
                 let txn = db.begin();
-                let val = txn.read(format!("key_{}", i)).unwrap();
+                let val = txn.read(format!("key_{}", i)).unwrap().unwrap();
                 assert_eq!(val, vec![i as u8]);
             }
         }));
@@ -80,7 +80,7 @@ fn test_overwrite_same_key() {
     }
 
     let txn = db.begin();
-    let val = txn.read("key").unwrap();
+    let val = txn.read("key").unwrap().unwrap();
     assert_eq!(val, vec![99u8]);
 }
 
@@ -98,14 +98,14 @@ fn test_delete_and_reinsert() {
     txn.commit().unwrap();
 
     let txn = db.begin();
-    assert!(txn.read("key").is_none());
+    assert!(txn.read("key").unwrap().is_none());
 
     let mut txn = db.begin();
     txn.write("key", b"second".to_vec()).unwrap();
     txn.commit().unwrap();
 
     let txn = db.begin();
-    assert_eq!(txn.read("key").unwrap(), b"second".to_vec());
+    assert_eq!(txn.read("key").unwrap().unwrap(), b"second".to_vec());
 }
 
 #[test]
@@ -128,8 +128,8 @@ fn test_snapshot_consistency() {
     txn.commit().unwrap();
 
     // Read transaction should see old values (snapshot isolation)
-    let a = read_txn.read("a").unwrap();
-    let b = read_txn.read("b").unwrap();
+    let a = read_txn.read("a").unwrap().unwrap();
+    let b = read_txn.read("b").unwrap().unwrap();
     assert_eq!(a, b, "snapshot should be consistent");
 }
 
@@ -147,7 +147,7 @@ fn test_many_keys_single_txn() {
 
     let txn = db.begin();
     for i in 0..500 {
-        let val = txn.read(format!("key_{}", i)).unwrap();
+        let val = txn.read(format!("key_{}", i)).unwrap().unwrap();
         assert_eq!(val, format!("value_{}", i).into_bytes());
     }
 }

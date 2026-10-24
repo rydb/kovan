@@ -3,6 +3,7 @@ import Kovan.FlushExit
 import Kovan.HopscotchShrink
 import Kovan.HopscotchShrinkThreads
 import Kovan.Magazine
+import Kovan.Mvcc
 import Kovan.Recycle
 import Kovan.SegQueue
 import Kovan.Stm

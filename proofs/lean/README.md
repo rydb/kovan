@@ -298,6 +298,22 @@ batch birth, `try_retire`'s skip, `current_birth_epoch`).
 | `reader_not_skipped`, `removed_node_not_skipped`, `cas_guard_not_skipped` | a reader of a node, the node a `Removed`'s drop retires, and `compare_and_swap`'s success guard are never skipped |
 | `fresh_stamp_skipped` | a stamp above a reader's epoch skips it (the rule before 6b1cb09): why the node keeps its own birth |
 
+`Kovan/Mvcc.lean`, a model of `kovan-mvcc/src/timestamp_oracle.rs` (`get_timestamp`),
+`backoff.rs` (`DefaultBackoff`), `percolator.rs` (`safe_read_ts`, prewrite's pass 2, the SSI
+validation) and `storage.rs` (the version chains, `gc_writes`, `gc_data`).
+
+| theorem | what it says |
+|---------|--------------|
+| `answer_eq`, `answer_increasing`, `answer_overflows`, `answer_repeats`, `years_to_wrap` | the oracle answers `c + k + 1`, increasing until the counter wraps after `2^64 - 1 - c` calls, 584 years at one a nanosecond |
+| `gives_up_at_ninth_look`, `sleep_before_giving_up`, `shifts_fit` | `DefaultBackoff` gives up at the ninth look, after 3.1 ms of sleep, and its shifts fit |
+| `turn_le_now`, `turn_below_writers`, `turn_at_cap`, `pauses_le`, `merge_le` | `safe_read_ts` answers at most `oracle_now` and below every registered writer's `commit_ts`, answers by its cap, and `min_ts`'s merge keeps the least value |
+| `latest_some`, `latest_none`, `latest_ge`, `latest_congr` | the search from the top of a version chain |
+| `prewriteRejects_iff` | prewrite's check on the latest record rejects exactly when some record lies at or after `start_ts` |
+| `isCommit_isSome`, `ssiFails_exact` | the SSI validation on the latest commit fails a key exactly when it was committed after `start_ts` |
+| `ssiFailsRecord_exact`, `ssi_masked` | the rule before the fix, on the latest record, was exact only without a Rollback record above, and a concrete key it passed |
+| `gcWrites_keeps_reads`, `gcWrites_keeps_prewrite`, `gcWrites_loses_under_rollback` | `gc_writes` changes no read and no prewrite check at or above the watermark; the old rule lost a commit under a Rollback record |
+| `gcData_keeps_reads`, `gcData_loses_under_prewrite` | `gc_data` keeps every read's data at or above the watermark; the old rule lost it under a prewrite |
+
 `Kovan/Stm.lean`, a model of `kovan-stm/src/var.rs` (the lock word), `transaction.rs` (locking,
 unlocking, the version checks) and `lib.rs` (the clock).
 

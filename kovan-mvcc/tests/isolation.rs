@@ -13,7 +13,7 @@ fn test_snapshot_isolation_readers_ignore_new_commits() {
 
     // 2. Start Long-Running Reader with RepeatableRead (Snapshot T1)
     let reader_txn = db.begin_with_isolation(IsolationLevel::RepeatableRead);
-    let val_start = reader_txn.read("x").unwrap();
+    let val_start = reader_txn.read("x").unwrap().unwrap();
     assert_eq!(val_start, b"initial");
 
     // 3. Concurrent Writer updates 'x' (Commits at T2)
@@ -27,7 +27,7 @@ fn test_snapshot_isolation_readers_ignore_new_commits() {
 
     // 4. Reader should still see "initial" (Snapshot T1)
     // It must NOT see "updated" because T2 > T1
-    let val_end = reader_txn.read("x").unwrap();
+    let val_end = reader_txn.read("x").unwrap().unwrap();
     assert_eq!(
         val_end, b"initial",
         "Snapshot isolation violated! Reader saw future data."
@@ -35,7 +35,7 @@ fn test_snapshot_isolation_readers_ignore_new_commits() {
 
     // 5. New reader should see "updated"
     let new_reader = db.begin();
-    assert_eq!(new_reader.read("x").unwrap(), b"updated");
+    assert_eq!(new_reader.read("x").unwrap().unwrap(), b"updated");
 }
 
 #[test]
@@ -49,7 +49,7 @@ fn test_read_your_own_writes() {
     // Begin T2
     let mut t2 = db.begin();
     // Read old
-    assert_eq!(t2.read("key").unwrap(), b"old");
+    assert_eq!(t2.read("key").unwrap().unwrap(), b"old");
 
     // Write new
     t2.write("key", b"new".to_vec()).unwrap();
@@ -78,5 +78,5 @@ fn test_read_your_own_writes() {
     t2.commit().unwrap();
 
     let t3 = db.begin();
-    assert_eq!(t3.read("key").unwrap(), b"new");
+    assert_eq!(t3.read("key").unwrap().unwrap(), b"new");
 }

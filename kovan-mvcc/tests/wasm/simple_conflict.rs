@@ -51,13 +51,13 @@ fn sequential_simple_conflict_preserves_total() {
     // T1 and T2: both transfer 10 from acc_0 to acc_1, both reading before
     // either writes/commits, matching the original's barrier point.
     let txn1 = db.begin();
-    let t1_b0 = u64::from_le_bytes(txn1.read("acc_0").unwrap().try_into().unwrap());
-    let t1_b1 = u64::from_le_bytes(txn1.read("acc_1").unwrap().try_into().unwrap());
+    let t1_b0 = u64::from_le_bytes(txn1.read("acc_0").unwrap().unwrap().try_into().unwrap());
+    let t1_b1 = u64::from_le_bytes(txn1.read("acc_1").unwrap().unwrap().try_into().unwrap());
     eprintln!("[T1] Read: acc_0={}, acc_1={}", t1_b0, t1_b1);
 
     let txn2 = db.begin();
-    let t2_b0 = u64::from_le_bytes(txn2.read("acc_0").unwrap().try_into().unwrap());
-    let t2_b1 = u64::from_le_bytes(txn2.read("acc_1").unwrap().try_into().unwrap());
+    let t2_b0 = u64::from_le_bytes(txn2.read("acc_0").unwrap().unwrap().try_into().unwrap());
+    let t2_b1 = u64::from_le_bytes(txn2.read("acc_1").unwrap().unwrap().try_into().unwrap());
     eprintln!("[T2] Read: acc_0={}, acc_1={}", t2_b0, t2_b1);
 
     let r1 = transfer(txn1, t1_b0, t1_b1);
@@ -70,8 +70,8 @@ fn sequential_simple_conflict_preserves_total() {
 
     // Check final balances
     let txn = db.begin();
-    let b0 = u64::from_le_bytes(txn.read("acc_0").unwrap().try_into().unwrap());
-    let b1 = u64::from_le_bytes(txn.read("acc_1").unwrap().try_into().unwrap());
+    let b0 = u64::from_le_bytes(txn.read("acc_0").unwrap().unwrap().try_into().unwrap());
+    let b1 = u64::from_le_bytes(txn.read("acc_1").unwrap().unwrap().try_into().unwrap());
 
     eprintln!("[FINAL] acc_0={}, acc_1={}, total={}", b0, b1, b0 + b1);
 

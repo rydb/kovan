@@ -6,14 +6,19 @@
 //! `kovan-mvcc` is a Multi-Version Concurrency Control (MVCC) implementation based on the Percolator model,
 //! built on top of the `kovan` memory reclamation system.
 //!
-//! It provides snapshot isolation and supports distributed transactions (conceptually, though currently local).
+//! It provides snapshot isolation (`begin_with_isolation(IsolationLevel::RepeatableRead)`), serializable
+//! snapshot isolation (`IsolationLevel::Serializable`) and read committed (`begin()`, the default), and supports
+//! distributed transactions (conceptually, though currently local).
 //!
 //! ## How it works
 //!
 //! The system uses a `LockTable` to manage active transactions and a `Storage` layer to persist versioned data.
 //!
 //! - **Writes**: Buffered locally and applied atomically at commit time using a 2-Phase Commit (2PC) protocol (Prewrite, Commit).
-//! - **Reads**: performed at a specific timestamp (snapshot), ignoring data committed after the start timestamp.
+//! - **Reads**: performed at a specific timestamp (snapshot), ignoring data committed after the start timestamp. A
+//!   read that meets another transaction's lock waits as the backoff strategy says, and answers
+//!   `Err(MvccError::LockConflict)` when it gives up.
+//! - **GC**: `Storage::gc_writes` and `Storage::gc_data` collect versions below `KovanMVCC::gc_watermark()`.
 //!
 //! ## Example
 //!
@@ -29,7 +34,7 @@
 //!
 //! // 2. Read the value
 //! let txn = db.begin();
-//! let val = txn.read("key1").expect("Should find key");
+//! let val = txn.read("key1").unwrap().expect("Should find key");
 //! assert_eq!(val, b"value1");
 //! ```
 

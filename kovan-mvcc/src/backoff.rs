@@ -5,7 +5,7 @@ pub enum BackoffAction {
     Retry,
     /// Yield the current thread and retry
     Yield,
-    /// Abort the operation
+    /// Give up: the read answers `Err(MvccError::LockConflict)`
     Abort,
 }
 

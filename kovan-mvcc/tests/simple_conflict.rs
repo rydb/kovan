@@ -27,8 +27,8 @@ fn test_simple_conflict() {
     let h1 = thread::spawn(move || {
         barrier1.wait(); // Wait for both threads to be ready
         let mut txn = db1.begin();
-        let b0 = u64::from_le_bytes(txn.read("acc_0").unwrap().try_into().unwrap());
-        let b1 = u64::from_le_bytes(txn.read("acc_1").unwrap().try_into().unwrap());
+        let b0 = u64::from_le_bytes(txn.read("acc_0").unwrap().unwrap().try_into().unwrap());
+        let b1 = u64::from_le_bytes(txn.read("acc_1").unwrap().unwrap().try_into().unwrap());
         eprintln!("[T1] Read: acc_0={}, acc_1={}", b0, b1);
 
         let write0_result = txn.write("acc_0", (b0 - 10).to_le_bytes().to_vec());
@@ -54,8 +54,8 @@ fn test_simple_conflict() {
     let h2 = thread::spawn(move || {
         barrier2.wait(); // Wait for both threads to be ready
         let mut txn = db2.begin();
-        let b0 = u64::from_le_bytes(txn.read("acc_0").unwrap().try_into().unwrap());
-        let b1 = u64::from_le_bytes(txn.read("acc_1").unwrap().try_into().unwrap());
+        let b0 = u64::from_le_bytes(txn.read("acc_0").unwrap().unwrap().try_into().unwrap());
+        let b1 = u64::from_le_bytes(txn.read("acc_1").unwrap().unwrap().try_into().unwrap());
         eprintln!("[T2] Read: acc_0={}, acc_1={}", b0, b1);
 
         let write0_result = txn.write("acc_0", (b0 - 10).to_le_bytes().to_vec());
@@ -84,8 +84,8 @@ fn test_simple_conflict() {
 
     // Check final balances
     let txn = db.begin();
-    let b0 = u64::from_le_bytes(txn.read("acc_0").unwrap().try_into().unwrap());
-    let b1 = u64::from_le_bytes(txn.read("acc_1").unwrap().try_into().unwrap());
+    let b0 = u64::from_le_bytes(txn.read("acc_0").unwrap().unwrap().try_into().unwrap());
+    let b1 = u64::from_le_bytes(txn.read("acc_1").unwrap().unwrap().try_into().unwrap());
 
     eprintln!("[FINAL] acc_0={}, acc_1={}, total={}", b0, b1, b0 + b1);
 
