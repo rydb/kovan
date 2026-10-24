@@ -99,6 +99,10 @@ name = "wasm_reclaim_fixes"
 path = "tests/wasm/reclaim_fixes.rs"
 
 [[test]]
+name = "wasm_recycle"
+path = "tests/wasm/recycle.rs"
+
+[[test]]
 name = "wasm_robust"
 path = "tests/wasm/robust.rs"
 

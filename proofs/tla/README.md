@@ -8,7 +8,7 @@ counterexample for every one, and none for the code as built.
 
 | where | what | run |
 |-------|------|-----|
-| `reclaim/` | `kovan`'s memory reclamation: the global epoch, each thread's reservation and helper slots, pin (the drained-epoch skip, the transition attempts, the helped slow path and the detach of its slot list), the protected load (the raise, the escalation to the unconditional reservation), the guard's drop, retire (batches, their placement in the eligible slots, the count, the merge of a batch that cannot be placed), the traversal and the free-list cache, destructors that pin, load and retire from inside a free, flush, a thread's exit (two rounds, the deactivation, the batches parked on its tid) and the tid's hand-over | `just tla reclaim` (32 to 73 minutes in the recorded runs, by the machine's load) |
+| `reclaim/` | `kovan`'s memory reclamation: the global epoch, each thread's reservation and helper slots, pin (the drained-epoch skip, the transition attempts, the helped slow path and the detach of its slot list), the protected load (the raise, the escalation to the unconditional reservation), the guard's drop, retire (batches, their placement in the eligible slots, the count, the merge of a batch that cannot be placed), the traversal and the free-list cache, destructors that pin, load and retire from inside a free, flush, a thread's exit (two rounds, the deactivation, the batches parked on its tid) and the tid's hand-over, and the recycling of retired nodes through a pool (`retire_reclaimable`: the destructor that hands a node to the pool, the take, the re-initialised header, each node's incarnations) | `just tla reclaim` (32 to 73 minutes in the recorded runs, by the machine's load) |
 | `chained/` | `kovan_map::HashMap`, the chained map: link words with a deleted mark, a frozen flag and a held flag, one CAS per write, the unlink-then-retire rule, the walk that steps past a deleted node only through a live link, the conditional writes that hold the key's link while their closure runs, the freezing migration (which waits for a hold) and clear, the bucket-snapshot walk | `just tla chained` (about 23 minutes) |
 | `hopscotch/` | `kovan_map::HopscotchMap`: home buckets with hop bits, writer guard and move stamp, the guarded insert (existence scan, the bit published before the link, displacement toward the home), the guarded remove, the conditional writes (closure under the home guard, a compute of an absent key reserving its slot first), the lookup that rescans on a moved stamp, the resize that holds every writer guard, the clear, the walk across a table swap, the shrink a remove asks for and its threshold (the table's shrink word) | `just tla hopscotch` (about 3 minutes in the recorded run) |
 
@@ -37,7 +37,8 @@ thread's slots, the reservation (index 0) and the helper slot (`hr_num + 1`), ea
 request (`state[0].result`); the nodes with their `next`, `batch_link`, `refs_or_next` and birth
 epoch; each thread's handle (the pin count, the accumulating batch and its count, the allocation
 counter, the free-list cache and its count, the cached, drained and birth epochs, `in_reclaim`,
-the tid); the word of released tids, each tid's orphan word and the count of tids holding orphans.
+the tid); the word of released tids, each tid's orphan word and the count of tids holding orphans;
+with `Recycle`, the pool of freed nodes and each node's incarnation (a ghost).
 
 The model is written in PlusCal: `pcal.trans` writes the TLA+ translation below the algorithm
 (edit the algorithm, run `java -cp proofs/tla/.tools/tla2tools.jar pcal.trans -nocfg
@@ -77,6 +78,9 @@ operations (`After`, `Join`, `AwaitRel`) only order a scenario's threads, as a t
 threads at chosen points does. A pointer loaded under a guard is held until that guard drops; the
 pointers a drop loads die with the drop's own guard.
 
+Recycling of retired nodes (`retire_reclaimable` with a `Reclaimable::dealloc` that puts the
+node on a free list, the constant `Recycle`): see "Recycling nodes" below.
+
 Not modelled, and why:
 
 - The object hand-over of the slow path and of `help_thread` (the `pointer` and `parent` words,
@@ -86,8 +90,15 @@ Not modelled, and why:
   pointer half and checks that it is 0 (`WellFormed`).
 - Memory orderings (see above), and the fallback `WordPair` of targets without native 128-bit
   atomics, whose sub-word operations are compare-exchange loops (`lib.rs`: not lock-free there).
-- Allocation (`Box::new`, `ensure_page`): a node is allocated in one step and never reused, and the
+- Allocation (`Box::new`, `ensure_page`): a fresh node is allocated in one step, and the
   tids stay below `MaxTid` (65,536 in the code).
+- The pool's own code: the free list is the recycler's (the example in `reclaim.rs` is a
+  `Mutex<Vec>`), and the model takes from it and adds to it in one step each, leaving the
+  node's words as kovan left them, except where a configuration puts an intrusive pool's link
+  in the header (`stale_reuse_link_next`, `stale_reuse_link_birth`). A recycler that writes
+  `RetiredNode::new()` at the take overwrites whatever a pool wrote there. A value's drop in
+  place is the destructor's program, as for any node. Every node of a configuration with
+  `Recycle` recycles, the nodes the cells hold at first included.
 - Thread-local storage teardown: a drop that the exit runs reaches the handle, as the code does by
   keeping the exiting handle in `EXITING`; the mutation `exit_handle_unreachable` puts back the
   handle a drop could not reach. No operation runs after a thread's exit, so the model has no
@@ -104,7 +115,11 @@ Not modelled, and why:
 
 - `NoUseAfterFree`: a pointer a thread loaded under a guard is not freed before that guard drops
   (a destructor's own guard for what a destructor loads), and the reclamation never reads or writes
-  a freed node. `ListsHoldNoFreed`: no slot list holds a freed node.
+  a freed node. With `Recycle` a pointer names the incarnation it loaded, and the node keeps that
+  incarnation until the guard drops (neither handed to the pool nor taken out again), and the
+  reclamation reads or writes no node outside the retirement it frees: none in the pool, none
+  live again. `ListsHoldNoFreed`: no slot list holds a freed node (with `Recycle`, one in the
+  pool or live again).
 - `NoDoubleFree`: no destructor runs twice. `NoNullDeref`: a retire at a batch boundary finalizes
   the batch its cells hold, never an emptied one.
 - `NoLoss`: when every thread has exited, every retired node is freed or in a batch parked on a
@@ -150,24 +165,39 @@ a bound); elsewhere `LoopBounds` checks only the exit's rounds. `help_thread`'s 
 era's seqno check this branch added (see Findings).
 
 `WaitFree` bounds every operation's steps. `wf[t]` keeps one count per operation in progress on
-thread t, its own program's and each destructor's; a step counts for the innermost operation, so a
-destructor's operations are counted on their own, each against its own bound. The bound (`OpBound`)
-depends on T, the constants and the retirement history only: a protected load takes at most 3 x
-`LoadAttempts` + 1 steps (a raise, a load and an epoch read per attempt, then the load after
-escalating) and an unprotected load one; pin, the guard's drop, a write or retire, flush and exit
-take their `*Ctl` term plus 16 x `Hist` (flush's and exit's terms count a tid claim, which a flush
-or an exit on a thread with no tid makes while it has something to submit or adopt;
+thread t, its own program's and each destructor's; a step counts for the innermost operation, so
+a destructor's operations are counted on their own, each against its own bound. The bound
+(`OpBound`) depends on T, the constants and the retirement history only: a protected load takes at
+most 3 x `LoadAttempts` + 1 steps (a raise, a load and an epoch read per attempt, then the load
+after escalating) and an unprotected load one; pin, the guard's drop, a write or retire, flush and
+exit take their `*Ctl` term plus 16 x `Hist` (flush's and exit's terms count a tid claim, which a
+flush or an exit on a thread with no tid makes while it has something to submit or adopt;
 `RC_flush_orphan`, `RC_wf_unpinned_flush` and `RC_wf_unpinned_exit` count the steps of such
-claims). `Hist` = nodes x (1 + threads) bounds
-the placements of nodes into slot lists (a node is placed at most once per submission of its batch:
+claims). `Hist` = node objects x (1 + threads) bounds the
+placements of nodes into slot lists (a node is placed at most once per submission of its batch:
 the first, and one more per exit that re-arms it), and each placement costs at most 16 steps over
-its life (its insert, the traversal that takes it, its free). The `*Ctl` terms count every other
-step, label by label (`Reclaim.tla`): for instance a slow path takes 5 steps to publish its
-request, at most T + 2 passes of 8 steps and a traversal's last step each, then either the
-self-completion (4 steps and a drain) or the detach and the republication (9 steps, a detach of at
-most 1 + 3 x `DetachBound` steps, a traversal and a drain); a `help_thread` takes 4 steps to read
-the request, at most T + 2 passes of a `do_update` and 5 steps, then the answer, a detach, the
+its life (its insert, the traversal that takes it, its free). Without `Recycle` the node objects
+are the node ids (`MaxNodes`). With `Recycle` every take from the pool starts one more object,
+so the objects are `MaxNodes` plus the sum of every id's incarnation count, evaluated in the state
+checked; a write or a retire of a fresh node also takes one step more, the take (`TakeCtl`). The `*Ctl` terms count every other step,
+label by label (`Reclaim.tla`): for instance a slow path takes 5 steps to publish its request,
+at most T + 2 passes of 8 steps and a traversal's last step each, then either the self-completion
+(4 steps and a drain) or the detach and the republication (9 steps, a detach of at most
+1 + 3 x `DetachBound` steps, a traversal and a drain); a `help_thread` takes 4 steps to read the
+request, at most T + 2 passes of a `do_update` and 5 steps, then the answer, a detach, the
 hand-over and the helper slot left (10 steps, a detach, two traversals and a drain).
+
+Counting objects rather than ids is what makes the bound hold under recycling: the argument for
+16 steps per placement is about one life of a node, and one operation can, in principle, free
+more objects than there are ids, since the drops it runs can take back a node it freed and
+retire it again (an argument; the configurations here are too small to tell the two counts
+apart, TLC finding the id count respected too). `RC_wf_recycle` and `RC_wf_recycle_dtor` check
+`LoopBounds` and `WaitFree` with recycling on: a reader with a writer whose later writes take
+back freed nodes, and a drop that takes back, inside the walk that freed it, the node freed a
+step before; `RC_wit_wf_reuse` and `RC_wit_wf_dtor_reuse` show both reuses happen in those
+exact settings. The loop bounds do not change with recycling: only the detach bound involves
+nodes, through the nesting of destructors counted per id, and an id's next life starts only
+after its destructor ended, so an id never nests inside its own destructor.
 
 A stalled thread delays no one: `RC_live_stall` schedules only thread 2 fairly and lets thread 1
 stop for good at any step of its exit, the park of its orphans and the release of its tid
@@ -177,6 +207,219 @@ mutations take each mechanism a bound rests on out: `no_help` (a slow path passe
 `no_escalate` (a load retries without bound), `help_follows_next_request`,
 `help_no_seqno_check`, `detach_unclosed`, `exit_loop` and `ttas_locks` (a thread stopped holding a
 lock stops every first pin).
+
+### Recycling nodes (`retire_reclaimable`)
+
+#### A worked story
+
+One `Atomic` cell holds node A. Every node starts with a header, a `RetiredNode`, which records
+the epoch at which the node was created (its birth epoch).
+
+1. A reader pins (`kovan::pin()`). Its reservation slot now publishes the current global epoch,
+   say 3. It loads A from the cell and keeps the pointer while its guard lives. The model writes
+   down what the reader holds: A, incarnation 0.
+2. A writer swaps a new node B into the cell and calls `retire_reclaimable(A)`. A goes into the
+   writer's batch. When kovan submits that batch, it gives one node of the batch to each active
+   slot whose published epoch is at least the batch's earliest birth epoch (`try_retire` in the
+   code map has the exact checks). A was created no later than epoch 3 (it was already in the
+   cell when the reader loaded it under epoch 3), so the reader's slot gets one. The batch
+   counts how many slots hold one of its nodes. (A batch with fewer nodes than such slots is
+   kept back and submitted later with more nodes; until then A is not freed either.)
+3. The writer goes on: it flushes, and the epoch moves to 4, then 5. A stays where it is: its
+   batch's count is not zero while the reader's slot holds a node of it.
+4. The reader drops its guard, and later pins again. Since the epoch moved, that pin walks its
+   slot list and lowers the batch's count; when the count reaches zero the batch is freed. To
+   free node A, kovan first reads what it still needs from A (the next node of the batch, the
+   destructor), then calls `<Node as Reclaimable>::dealloc(A)`, which drops A's value and puts A
+   on the pool, the structure's free list. From then on kovan never touches A again.
+5. The writer's next write takes A from the pool, writes `RetiredNode::new()` over its header
+   (fresh words, and a birth epoch from the writer's own cached epoch) and stores it in the cell.
+   Same address, new object: the model calls it A, incarnation 1. A reader that loads it now
+   holds A, incarnation 1.
+
+Why the reader of step 1 was safe: A could reach the pool only once the reader's slot let go of
+A's batch, and the slot lets go only when the reader pins again, after its guard dropped. So for
+as long as the reader held A, incarnation 0, A was neither in the pool nor reused. The model
+checks exactly this rule (`NoUseAfterFree`): every pointer a thread holds names a node that is not
+in the pool and still has the incarnation the load returned. TLC checks it in every interleaving
+of the configurations below, which have two threads, a few nodes and epochs up to 10: evidence
+for those scenarios, not a proof for every number of threads and nodes.
+
+If the writer in step 5 skipped `RetiredNode::new()`, A would go out with the header of its first
+life, birth epoch included. The first version of the recycling docs in `reclaim.rs` said memory
+safety does not depend on that write; the model checks that claim, "What TLC found" below says
+where it holds and where it does not, and the docs now require the write.
+
+#### What the model adds
+
+- The constant `Recycle`. When it is TRUE, every node is retired with `retire_reclaimable` and
+  its `dealloc` recycles it. When it is FALSE, none of the steps below ever runs: the 85
+  configurations that do not recycle set it FALSE and keep their meaning (see "TLC results" for
+  the state counts).
+- The pool (`pool`): the nodes `dealloc` handed back that no one has taken yet. It is a set, so
+  the next take may pick any of them, which covers every order a real free list could hand nodes
+  out in. The model takes from it and adds to it in one step each.
+- Each node's incarnation (`ninc`): how many times the node was taken from the pool to be used
+  again. It is not in the Rust code; the model keeps it to tell "the same address" from "the same
+  object". Without it, a node reused under a reader would look like the node the reader loaded.
+- The end of every destructor (`Dealloc`), wherever the model already runs destructors (on any
+  thread, inside any kovan call that frees a batch: a pin, a guard's drop, a retire, a flush, an
+  exit): the node is freed, or with `Recycle` put on the pool.
+- The take (`WR1`, `RN1`): a write, or a retire of a node never published, takes a node from the
+  pool when the pool holds any, else it allocates a fresh one. The take starts the node's next
+  incarnation; the node is the taker's own until it publishes it.
+- The fresh header (`WR2`, `RN2`): `RetiredNode::new()` written over the taken node's header (its
+  words cleared, its birth epoch stamped from the thread's cached epoch, `guard.rs`
+  `current_birth_epoch`, as for a fresh node), then the swap into the cell and the retire of the
+  value it replaced, or the retire of the node itself.
+- Loads (`LD1`, `LD4`, `LD6`, `LU1`) record the incarnation of the node they return, at the load
+  itself, so a reuse between the load and the check after it counts as a different object.
+
+#### What is checked
+
+- `NoUseAfterFree`, made stricter: for every pointer a thread holds, its node is not in the pool
+  and still has the incarnation the load returned; and kovan's own reclamation code (the walk
+  over a slot list, the free of a batch, a retire's inserts) never reads or writes a node that is
+  in the pool or in use again. Before recycling the rule was only "not freed", which a reused
+  node would pass.
+- `ListsHoldNoFreed`, made stricter the same way: no slot list reaches a node in the pool or in
+  use again.
+- `WaitFree`, with its bound counting node objects: every operation, and every operation a drop
+  runs, ends within its step bound, which counts each take from the pool as one more object
+  (see "Wait-freedom" above). `LoopBounds` as before.
+- Every other property is unchanged and checked as before (`NoDoubleFree` also catches a second
+  `dealloc` of a node already in the pool).
+- `BirthFresh` checks the birth epochs `RetiredNode::new()` stamps; the configurations that skip
+  that write leave it out, since they stamp nothing.
+
+#### The configurations, one by one
+
+All use two threads unless said otherwise, and every node recycles.
+
+- `RC_recycle` (pass). Thread 1 reads cell 1 and holds what it read; thread 2 replaces cell 1
+  again and again and flushes in between, so its retired nodes are freed into the pool and taken
+  back by its later writes, each with `RetiredNode::new()` written over its header. It checks
+  every safety property. It would catch kovan calling `dealloc` while a reader could still reach
+  the node (the reader would then see another object at the same address), or kovan touching a
+  node after its `dealloc`.
+- `RC_recycle_dtor` (pass). Node 1 and a fresh node can be freed in one batch, the fresh one
+  first, and node 1's own drop, run inside that walk, reads cell 2 and replaces it, possibly with
+  the node the same walk freed a step before; thread 2 replaces and reads cell 2 meanwhile. It
+  would catch the walk reading or writing a node after handing it to the pool (the next drop may
+  already have reused it), or a reuse inside a drop corrupting the batch being freed.
+- `RC_recycle_stale` (pass). `RC_recycle` with the recycler skipping `RetiredNode::new()`
+  (stale_reuse): a node goes out again with the header and birth epoch kovan left on it. It checks
+  the claim of `reclaim.rs` that memory safety does not depend on the write, and would catch
+  kovan reading a stale header word before rewriting it, or a kept birth epoch that lets a batch
+  skip the slot of a reader holding the node.
+- `RC_recycle_dtor_stale` (pass). The same claim on `RC_recycle_dtor`: the node a drop takes back
+  from the walk that freed it keeps the header it had in that batch, its words still describing
+  the batch being freed.
+- `RC_recycle_stale_link_next` (pass). The same claim with an intrusive pool: no
+  `RetiredNode::new()`, and `dealloc` writes the pool's own link into the node's first header word
+  (`next`), which the reuse keeps. It would catch kovan reading `next` before rewriting it.
+- `RC_recycle_stale_lag` (pass). The same claim on a recycler whose cached epoch lags: thread 1,
+  pinned at the first epoch, can take back a node thread 2 stamped with a later epoch and
+  publish it with that later epoch, later than its own `RetiredNode::new()` would stamp. It would
+  catch a kept birth epoch later than the epoch at which the node is published, which would let
+  its batch skip a reader's slot.
+- `RC_mut_reuse_retired` (`NoUseAfterFree` must break). A defect in a recycler: it may take a node
+  that is still retired (its batch not freed, its `dealloc` not called), as a structure would if
+  it reused a node as soon as it unlinked it. The model must see that a reader's pointer now
+  names another object; a model blind to reuse would pass here.
+- `RC_mut_read_after_dealloc` (`NoUseAfterFree` must break). A defect in kovan: `free_batch_list`
+  reads a node's `batch_next` after calling its destructor instead of before. With recycling the
+  destructor has already handed the node to the pool and another thread may have taken it. It
+  shows the model catches kovan touching a node after `dealloc`.
+- `RC_mut_stale_link_birth` (`NoUseAfterFree` must break). No `RetiredNode::new()`, and `dealloc`
+  writes the pool's link (a pointer, above every epoch) over the `birth_epoch` word, which
+  `reclaim.rs` allows (`dealloc` owns the whole allocation, the header included). It shows where
+  the claim that the write is not needed stops holding.
+- `RC_mut_pool_lock_held` (must deadlock). A defect in a recycler: its pool has a lock, and a
+  write keeps it from taking a node until its retire of the old value returns. One thread. That
+  retire frees the old value's batch at once and calls its `dealloc` on the same thread, which
+  waits for the same lock: the thread waits for itself.
+- `RC_mut_cache_ahead` (`CacheBelowPublished` must break), `RC_mut_early_free`
+  (`ListsHoldNoFreed` must break), `RC_mut_help_hands_pointer` (`WellFormed` must break) and
+  `RC_mut_drain_published_term` (`Termination` must break). These four give the properties no
+  mutation above broke on its own a mutation of their own, so every property the family checks
+  has one that breaks it: a raise that caches the epoch it read without storing it in the slot; a
+  traversal that frees a batch one decrement early, while a slot list still holds a node of it; a
+  helper that hands a pointer over in the result word; and the drain that waits on a published
+  reservation, with every thread scheduled fairly. Each checks the other safety properties beside
+  its own, listed after it, so the property breaks on its own: TLC stops at the first state that
+  breaks any of them, and it names the one that mutation is for. (Checked against these
+  properties alone, earlier mutations do break some of them, but only after a use after free
+  that breaks `NoUseAfterFree` first.)
+- `RC_wit_reuse`, `RC_wit_dtor_reuse`, `RC_wit_stale_reuse`, `RC_wit_stale_later` (each must
+  break its witness). They show the passing configurations reach the cases they are for: a
+  reader holding a node in its second or a later incarnation; a drop inside a walk taking a node
+  from the pool; a node going out with a birth epoch older than `RetiredNode::new()` would stamp;
+  and one going out with a birth epoch later than it would stamp. If TLC found none of these, the
+  passing configurations would check nothing about them.
+- `RC_wf_recycle` (pass). Step counts with recycling: a cut-down `RC_recycle` (thread 1 reads
+  cell 1 in two guards, thread 2 replaces it three times and flushes between), every operation's
+  steps counted. It checks `LoopBounds` and `WaitFree` with the bound counting node objects, and
+  would catch a recycling path that makes an operation loop or wait beyond those bounds.
+- `RC_wf_recycle_dtor` (pass). Step counts with reuse inside a walk: a cut-down
+  `RC_recycle_dtor`, node 1's drop taking back, inside the walk that frees its batch, the node the
+  same walk freed a step before. It checks `LoopBounds` and `WaitFree`, the walk's operation and
+  each operation the drop runs counted on their own.
+- `RC_wit_wf_reuse`, `RC_wit_wf_dtor_reuse` (each must break its witness). In the two
+  step-counted settings exactly: a reader holds a node in a later incarnation, and a drop inside
+  a walk takes a node from the pool, so the two checks above really count steps through reuse.
+
+#### What TLC found
+
+With `Recycle` the code as built passes (`RC_recycle`, `RC_recycle_dtor`): in these scenarios a
+pointer a guard holds keeps its incarnation until the guard drops, and kovan reads or writes no
+node once its destructor ran, also when a drop the walk runs takes back from the pool the node
+the same walk freed a step before (`RC_wit_dtor_reuse` shows that case is reached). With step
+counts on (`RC_wf_recycle`, 1,638,997 distinct states; `RC_wf_recycle_dtor`, 1,639,234), every
+operation stays within its step bound and every loop within its bound, the bound counting node
+objects. About the contract in the Recycling nodes section of `reclaim.rs`:
+
+- **Skipping `RetiredNode::new()` is safe only while the header is the one kovan left.**
+  `RC_recycle_stale`, `RC_recycle_dtor_stale`, `RC_recycle_stale_lag` and
+  `RC_recycle_stale_link_next` pass; `RC_mut_stale_link_birth` breaks `NoUseAfterFree` (121,028
+  states). The first version of these docs said memory safety does not depend on the write. That
+  holds while the header is the one kovan left: retirement rewrites `batch_link` and `refs_or_next` (and the
+  destructor, which the model does not keep in the node) before anything reads them, `next` is
+  written before each read (reset before the node enters a slot list, set on a refs-node before
+  it serves as a free-list or orphan link), and a kept `birth_epoch` is one kovan stamped or
+  lowered, never later than the global epoch when the node goes out again, so never later than
+  the epoch a reader publishes before it loads the node. It holds as well for a pool that links
+  its nodes through `next`. But the same docs give `dealloc` the whole allocation, "the
+  embedded `RetiredNode` included", and a pool whose link lands on the `birth_epoch` word sends
+  the node out with a pointer for its birth epoch. The batch it is retired in then has an
+  earliest birth above the epoch of every reservation that has not escalated, and the retire
+  frees it at once. In the counterexample thread 1 loads node 1 in its second incarnation under a
+  reservation at epoch 3; thread 2 replaces and retires it, its scan skips thread 1's slot, and
+  the batch is freed while thread 1 still holds node 1. The claim needed a condition those docs
+  did not state: nothing but kovan wrote the header since the node's last retirement. The docs
+  now require the write instead.
+- **A kept birth epoch can be later than the stamp it stands in for** (`RC_wit_stale_later`;
+  `RC_recycle_stale_lag` passes). The first version of the docs presented a kept epoch as older
+  than a fresh stamp (it "can only make kovan defer a batch"). A thread whose cached epoch lags (thread 1, pinned at the
+  first epoch) can take back a node another thread stamped later; skipping the write then keeps
+  the later epoch, so the node's batch is given to fewer slots than the write would give it. In
+  `RC_recycle_stale_lag` that never let a batch go too early: the kept epoch is still at most the
+  global epoch when the node goes out.
+- **A walk that reads a node after its destructor** (`RC_mut_read_after_dealloc`, 216,939 states):
+  thread 1's drain frees node 2 into the pool, thread 2's write takes it (its second
+  incarnation), and only then does thread 1's walk read node 2's `batch_next`, a word thread 2 is
+  about to overwrite with the new header. `free_batch_list` reads everything it needs from a node
+  before `d(curr)`, as the comment this branch added there says, and with that order the
+  passing configurations find no such read.
+- **A recycler that takes a node still in a batch** (`RC_mut_reuse_retired`, 6,827 states):
+  thread 2's second write takes node 1 out of thread 2's own unsubmitted batch, before any
+  destructor ran, while thread 1 holds node 1: the pointer thread 1 holds now names another
+  incarnation.
+- **A pool lock held across a call into kovan** (`RC_mut_pool_lock_held`, a deadlock after 58
+  states): a write with no guard takes node 1 back holding the pool's lock and retires the value
+  it replaced; no slot holds that batch, so the retire frees it at once, and its `dealloc` waits,
+  on the same thread, for the lock the write holds. `reclaim.rs` states the rule (never hold the
+  free list's lock across a call into kovan); the trace shows the retire itself is such a call.
 
 ### Code map
 
@@ -201,135 +444,137 @@ that does nothing without it).
 | `OrphanAdopt3` | `adopt_orphans` | `slot.rs:726` | a tid's orphan word loaded |
 | `OrphanAdopt4` | `adopt_orphans` | `slot.rs:730` | swapped to null |
 | `OrphanAdopt5` | `adopt_orphans` | `slot.rs:732` | the `ORPHANED` count's fetch_sub |
-| `OrphanMerge` | `Handle::adopt_orphans` | `guard.rs:1238-1246` | each batch of the chain merged (merge_batch) |
-| `TV1` | `traverse` | `reclaim.rs:81-100` | the end of the list; next swapped with INVPTR |
-| `TV2` | `traverse` | `reclaim.rs:108` | batch_link.load |
-| `TV3` | `traverse` | `reclaim.rs:109-114` | refs fetch_sub; the count's last decrement pushes the batch |
-| `DS1` | `free_batch_list` | `reclaim.rs:145-152` | the destructor called |
-| `DS2` | `retire::destructor` | `guard.rs:1112-1114` | the value's drop, then its memory freed |
-| `FB1` | `free_batch_list` | `reclaim.rs:131-160` | one node: the batch words, batch_next, its destructor called |
-| `TC1` | `traverse_into_cache` | `guard.rs:1467-1471` | a full cache taken out of its cell and freed |
-| `TC2` | `traverse_into_cache` | `guard.rs:1472-1474` | in_reclaim restored; traverse_onto_cache |
-| `DF1` | `drain_free_list` | `guard.rs:1502-1516` | in_reclaim; the cache taken out of its cell and freed |
-| `DF2` | `drain_free_list` | `guard.rs:1508-1519` | again until the cell stays empty |
-| `DU1` | `do_update` | `guard.rs:459` | first.load_lo |
-| `DU2` | `do_update` | `guard.rs:461-463` | exchange_lo(0); the list traversed |
-| `DU3` | `do_update` | `guard.rs:466` | epoch() after the traversal |
-| `DU4` | `do_update` | `guard.rs:467-482` | store_lo(curr_epoch), fence, mirror_transition |
-| `DetachEra` | `detach_nodes` | `guard.rs:766` | the era's compare_exchange_hi(tag, tag + 1) |
-| `DetachList` | `detach_nodes` | `guard.rs:770` | first.load(): lo |
-| `DetachList2` | `detach_nodes` | `guard.rs:771-772` | then hi; taken by the other detach |
-| `DetachList3` | `detach_nodes` | `guard.rs:777-780` | compare_exchange (lo, tag) -> (0, tag + 1) |
-| `SP1` | `slow_path` | `guard.rs:604-607` | in_reclaim; prev_epoch = epoch.load_lo |
-| `SP2` | `slow_path` | `guard.rs:608` | inc_slow |
-| `SP3` | `slow_path` | `guard.rs:611-615` | the state words stored 0; seqno = epoch.load_hi |
-| `SP4` | `slow_path` | `guard.rs:618-620` | result.store(INVPTR, seqno): hi (WordPair::store) |
-| `SP5` | `slow_path` | `guard.rs:620` | then lo |
-| `SL1` | `slow_path` | `guard.rs:641-642` | epoch() compared with prev_epoch |
-| `SL2` | `slow_path` | `guard.rs:646` | the self-completion CAS |
-| `SL2a` | `slow_path` | `guard.rs:649` | epoch.store_hi(seqno + 2) |
-| `SL2b` | `slow_path` | `guard.rs:650` | first.store_hi(seqno + 2) |
-| `SL2c` | `slow_path` | `guard.rs:651-661` | dec_slow, mirror_transition, fence, drain_free_list |
-| `SL2d` | `slow_path` | `guard.rs:661-663` | in_reclaim restored |
-| `SL3` | `slow_path` | `guard.rs:670` | first.load_lo |
-| `SL4` | `slow_path` | `guard.rs:672` | exchange_lo(0) |
-| `SL5` | `slow_path` | `guard.rs:674-679` | first.load_hi: detached (produced); else onto the cache |
-| `SL5b` | `slow_path` | `guard.rs:681` | epoch() read again |
-| `SL6` | `slow_path` | `guard.rs:686-687` | the era DCAS (prev, seqno) -> (curr, seqno) |
-| `SL7` | `slow_path` | `guard.rs:689-691` | result.load_lo: answered |
-| `DN1` | `slow_path` | `guard.rs:698-700` | detach_nodes unless produced |
-| `Produced` | `slow_path` | `guard.rs:705` | result.load_hi |
-| `Produced2` | `slow_path` | `guard.rs:706` | epoch.store_lo(result_epoch) |
-| `Produced3` | `slow_path` | `guard.rs:707-711` | epoch.store_hi(seqno + 2), mirror_transition, fence |
-| `Produced4` | `slow_path` | `guard.rs:712` | first.store_hi(seqno + 2) |
-| `DN9` | `slow_path` | `guard.rs:717-729` | result.load_lo; the hand-over branch, never taken |
-| `DN10` | `slow_path` | `guard.rs:733-737` | dec_slow; the list onto the cache |
-| `DN11` | `slow_path` | `guard.rs:740` | drain_free_list |
-| `DN12` | `slow_path` | `guard.rs:741` | in_reclaim restored |
-| `HR1` | `help_read` | `guard.rs:794` | slow_counter |
-| `HR2` | `help_read` | `guard.rs:798` | max_threads |
-| `HR3` | `help_read` | `guard.rs:805-807` | each result.load_lo; help_thread |
-| `HT1` | `help_thread` | `guard.rs:841-843` | result.load(): lo; nothing to help unless pending |
-| `HT2` | `help_thread` | `guard.rs:841` | then hi |
-| `HT3` | `help_thread` | `guard.rs:846-860` | state words (0, no parent); seqno = epoch.load_hi |
-| `HT4` | `help_thread` | `guard.rs:861` | curr_epoch = epoch() |
-| `HelpPass` | `help_thread` | `guard.rs:869` | do_update of the helper slot hr_num + 1 |
-| `HT6` | `help_thread` | `guard.rs:873-875` | epoch() compared |
-| `HT7` | `help_thread` | `guard.rs:879-882` | the result CAS; detach_nodes |
-| `HT10` | `help_thread` | `guard.rs:883-884` | traverse_into_cache |
-| `HandOverEpoch` | `help_thread` | `guard.rs:895` | epoch.load(): lo |
-| `HandOverEpoch2` | `help_thread` | `guard.rs:895` | then hi |
-| `HandOverEpoch3` | `help_thread` | `guard.rs:896-903` | the strong CAS loop |
-| `HandOverList` | `help_thread` | `guard.rs:913` | first.compare_exchange_hi(seqno + 1, seqno + 2) |
-| `HT12` | `help_thread` | `guard.rs:929` | result.load_lo() |
-| `HT12b` | `help_thread` | `guard.rs:932-933` | result.load_hi(); the request the one read first? |
-| `HT12c` | `help_thread` | `guard.rs:933` | the era's seqno still the request's: another pass |
-| `HelperLeave` | `help_thread` | `guard.rs:939-941` | the helper slot's first.exchange_lo(INVPTR); traversed |
-| `HT20` | `help_thread` | `guard.rs:945-967` | the parent words (no parent); drain_free_list |
-| `TR1` | `try_retire` | `guard.rs:1279-1288` | max_threads, min_epoch, the fence |
-| `TS2` | `try_retire` | `guard.rs:1299` | first.load_lo (reservation slot) |
-| `TS3` | `try_retire` | `guard.rs:1305` | first.load_hi odd |
-| `TS4` | `try_retire` | `guard.rs:1309` | epoch.load_lo |
-| `TS5` | `try_retire` | `guard.rs:1315-1326` | epoch.load_hi odd; a node assigned |
-| `TG1` | `try_retire` | `guard.rs:1331` | first.load_lo (helper slot) |
-| `TG2` | `try_retire` | `guard.rs:1336-1348` | epoch.load_lo; a node assigned |
-| `TN2` | `try_retire` | `guard.rs:1361-1371` | slot info, next null; first.load_lo |
-| `TN3` | `try_retire` | `guard.rs:1377` | epoch re-checked |
-| `TN4` | `try_retire` | `guard.rs:1386` | exchange_lo(curr) |
-| `InsertRollback` | `try_retire` | `guard.rs:1399-1407` | compare_exchange_lo(curr, INVPTR); a node captured counts |
-| `TL1` | `try_retire` | `guard.rs:1414` | next CAS null -> prev |
-| `TL2` | `try_retire` | `guard.rs:1426-1427` | the list it displaced traversed and freed |
-| `TL3` | `try_retire` | `guard.rs:1433` | counted |
-| `TF1` | `try_retire` | `guard.rs:1438-1443` | refs fetch_add(adjs); zero frees the batch |
-| `TF2` | `try_retire` | `guard.rs:1446` | placed |
-| `RE1` | `enqueue_node` | `guard.rs:997-1034` | the node linked into the batch, the count (nightly: a thread with no tid registers its cleanup sentinel, not modelled) |
-| `RE2` | `enqueue_node` | `guard.rs:1036-1049` | in_reclaim; take_batch, try_retire |
-| `RE3` | `enqueue_node` | `guard.rs:1055-1057` | merge_batch; in_reclaim restored |
-| `RE4` | `enqueue_node` | `guard.rs:1067-1070` | alloc_counter; tid() |
-| `RE5` | `increment_era` | `guard.rs:1083-1084` | in_reclaim; help_read |
-| `RE6` | `increment_era` | `guard.rs:1085-1086` | advance_epoch; the birth stamp |
-| `PN1` | `pin` | `guard.rs:526-534` | the count; epoch() vs drained_epoch |
-| `PNU` | `transition` | `guard.rs:554` | do_update |
-| `PNC` | `transition` | `guard.rs:557-567` | attempts; epoch() compared; slow_path |
-| `UP1` | `unpin` | `guard.rs:376-385` | the count; escalated? |
-| `UP2` | `unpin_outermost` | `guard.rs:407-409` | count 1, epoch(), do_update |
-| `UP3` | `unpin_outermost` | `guard.rs:410` | count 0 |
-| `LD1` | `protect_load` | `guard.rs:292` | data.load |
-| `LD2` | `protect_load` | `guard.rs:295-310` | epoch() vs cached_epoch |
-| `LD3` | `protect_load_cold` | `guard.rs:325-342` | attempts; escalate, or store_lo, fence, cached_epoch |
-| `LD4` | `protect_load_cold` | `guard.rs:344` | data.load |
-| `LD5` | `protect_load_cold` | `guard.rs:347-351` | epoch() compared |
-| `LD6` | `protect_load_cold` | `guard.rs:330` | the load after escalating |
+| `OrphanMerge` | `Handle::adopt_orphans` | `guard.rs:1230-1238` | each batch of the chain merged (merge_batch) |
+| `TV1` | `traverse` | `reclaim.rs:262-281` | the end of the list; next swapped with INVPTR |
+| `TV2` | `traverse` | `reclaim.rs:289` | batch_link.load |
+| `TV3` | `traverse` | `reclaim.rs:290-295` | refs fetch_sub; the count's last decrement pushes the batch |
+| `DS1` | `free_batch_list` | `reclaim.rs:331-338` | the destructor called |
+| `DS2` | `drop_boxed`, `dealloc_reclaimable` | `guard.rs:2089-2095` | the value's drop, then its memory freed or (Recycle) the node handed to the pool |
+| `FB1` | `free_batch_list` | `reclaim.rs:312-346` | one node: the batch words, batch_next, its destructor called |
+| `TC1` | `traverse_into_cache` | `guard.rs:1459-1463` | a full cache taken out of its cell and freed |
+| `TC2` | `traverse_into_cache` | `guard.rs:1464-1466` | in_reclaim restored; traverse_onto_cache |
+| `DF1` | `drain_free_list` | `guard.rs:1494-1508` | in_reclaim; the cache taken out of its cell and freed |
+| `DF2` | `drain_free_list` | `guard.rs:1500-1511` | again until the cell stays empty |
+| `DU1` | `do_update` | `guard.rs:460` | first.load_lo |
+| `DU2` | `do_update` | `guard.rs:462-464` | exchange_lo(0); the list traversed |
+| `DU3` | `do_update` | `guard.rs:467` | epoch() after the traversal |
+| `DU4` | `do_update` | `guard.rs:468-483` | store_lo(curr_epoch), fence, mirror_transition |
+| `DetachEra` | `detach_nodes` | `guard.rs:767` | the era's compare_exchange_hi(tag, tag + 1) |
+| `DetachList` | `detach_nodes` | `guard.rs:771` | first.load(): lo |
+| `DetachList2` | `detach_nodes` | `guard.rs:772-773` | then hi; taken by the other detach |
+| `DetachList3` | `detach_nodes` | `guard.rs:778-781` | compare_exchange (lo, tag) -> (0, tag + 1) |
+| `SP1` | `slow_path` | `guard.rs:605-608` | in_reclaim; prev_epoch = epoch.load_lo |
+| `SP2` | `slow_path` | `guard.rs:609` | inc_slow |
+| `SP3` | `slow_path` | `guard.rs:612-616` | the state words stored 0; seqno = epoch.load_hi |
+| `SP4` | `slow_path` | `guard.rs:619-621` | result.store(INVPTR, seqno): hi (WordPair::store) |
+| `SP5` | `slow_path` | `guard.rs:621` | then lo |
+| `SL1` | `slow_path` | `guard.rs:642-643` | epoch() compared with prev_epoch |
+| `SL2` | `slow_path` | `guard.rs:647` | the self-completion CAS |
+| `SL2a` | `slow_path` | `guard.rs:650` | epoch.store_hi(seqno + 2) |
+| `SL2b` | `slow_path` | `guard.rs:651` | first.store_hi(seqno + 2) |
+| `SL2c` | `slow_path` | `guard.rs:652-662` | dec_slow, mirror_transition, fence, drain_free_list |
+| `SL2d` | `slow_path` | `guard.rs:662-664` | in_reclaim restored |
+| `SL3` | `slow_path` | `guard.rs:671` | first.load_lo |
+| `SL4` | `slow_path` | `guard.rs:673` | exchange_lo(0) |
+| `SL5` | `slow_path` | `guard.rs:675-680` | first.load_hi: detached (produced); else onto the cache |
+| `SL5b` | `slow_path` | `guard.rs:682` | epoch() read again |
+| `SL6` | `slow_path` | `guard.rs:687-688` | the era DCAS (prev, seqno) -> (curr, seqno) |
+| `SL7` | `slow_path` | `guard.rs:690-692` | result.load_lo: answered |
+| `DN1` | `slow_path` | `guard.rs:699-701` | detach_nodes unless produced |
+| `Produced` | `slow_path` | `guard.rs:706` | result.load_hi |
+| `Produced2` | `slow_path` | `guard.rs:707` | epoch.store_lo(result_epoch) |
+| `Produced3` | `slow_path` | `guard.rs:708-712` | epoch.store_hi(seqno + 2), mirror_transition, fence |
+| `Produced4` | `slow_path` | `guard.rs:713` | first.store_hi(seqno + 2) |
+| `DN9` | `slow_path` | `guard.rs:718-730` | result.load_lo; the hand-over branch, never taken |
+| `DN10` | `slow_path` | `guard.rs:734-738` | dec_slow; the list onto the cache |
+| `DN11` | `slow_path` | `guard.rs:741` | drain_free_list |
+| `DN12` | `slow_path` | `guard.rs:742` | in_reclaim restored |
+| `HR1` | `help_read` | `guard.rs:795` | slow_counter |
+| `HR2` | `help_read` | `guard.rs:799` | max_threads |
+| `HR3` | `help_read` | `guard.rs:806-808` | each result.load_lo; help_thread |
+| `HT1` | `help_thread` | `guard.rs:842-844` | result.load(): lo; nothing to help unless pending |
+| `HT2` | `help_thread` | `guard.rs:842` | then hi |
+| `HT3` | `help_thread` | `guard.rs:847-861` | state words (0, no parent); seqno = epoch.load_hi |
+| `HT4` | `help_thread` | `guard.rs:862` | curr_epoch = epoch() |
+| `HelpPass` | `help_thread` | `guard.rs:870` | do_update of the helper slot hr_num + 1 |
+| `HT6` | `help_thread` | `guard.rs:874-876` | epoch() compared |
+| `HT7` | `help_thread` | `guard.rs:880-883` | the result CAS; detach_nodes |
+| `HT10` | `help_thread` | `guard.rs:884-885` | traverse_into_cache |
+| `HandOverEpoch` | `help_thread` | `guard.rs:896` | epoch.load(): lo |
+| `HandOverEpoch2` | `help_thread` | `guard.rs:896` | then hi |
+| `HandOverEpoch3` | `help_thread` | `guard.rs:897-904` | the strong CAS loop |
+| `HandOverList` | `help_thread` | `guard.rs:914` | first.compare_exchange_hi(seqno + 1, seqno + 2) |
+| `HT12` | `help_thread` | `guard.rs:930` | result.load_lo() |
+| `HT12b` | `help_thread` | `guard.rs:933-934` | result.load_hi(); the request the one read first? |
+| `HT12c` | `help_thread` | `guard.rs:934` | the era's seqno still the request's: another pass |
+| `HelperLeave` | `help_thread` | `guard.rs:940-942` | the helper slot's first.exchange_lo(INVPTR); traversed |
+| `HT20` | `help_thread` | `guard.rs:946-968` | the parent words (no parent); drain_free_list |
+| `TR1` | `try_retire` | `guard.rs:1271-1280` | max_threads, min_epoch, the fence |
+| `TS2` | `try_retire` | `guard.rs:1291` | first.load_lo (reservation slot) |
+| `TS3` | `try_retire` | `guard.rs:1297` | first.load_hi odd |
+| `TS4` | `try_retire` | `guard.rs:1301` | epoch.load_lo |
+| `TS5` | `try_retire` | `guard.rs:1307-1318` | epoch.load_hi odd; a node assigned |
+| `TG1` | `try_retire` | `guard.rs:1323` | first.load_lo (helper slot) |
+| `TG2` | `try_retire` | `guard.rs:1328-1340` | epoch.load_lo; a node assigned |
+| `TN2` | `try_retire` | `guard.rs:1353-1363` | slot info, next null; first.load_lo |
+| `TN3` | `try_retire` | `guard.rs:1369` | epoch re-checked |
+| `TN4` | `try_retire` | `guard.rs:1378` | exchange_lo(curr) |
+| `InsertRollback` | `try_retire` | `guard.rs:1391-1399` | compare_exchange_lo(curr, INVPTR); a node captured counts |
+| `TL1` | `try_retire` | `guard.rs:1406` | next CAS null -> prev |
+| `TL2` | `try_retire` | `guard.rs:1418-1419` | the list it displaced traversed and freed |
+| `TL3` | `try_retire` | `guard.rs:1425` | counted |
+| `TF1` | `try_retire` | `guard.rs:1430-1435` | refs fetch_add(adjs); zero frees the batch |
+| `TF2` | `try_retire` | `guard.rs:1438` | placed |
+| `RE1` | `enqueue_node` | `guard.rs:998-1035` | the node linked into the batch, the count (nightly: a thread with no tid registers its cleanup sentinel, not modelled) |
+| `RE2` | `enqueue_node` | `guard.rs:1037-1050` | in_reclaim; take_batch, try_retire |
+| `RE3` | `enqueue_node` | `guard.rs:1056-1058` | merge_batch; in_reclaim restored |
+| `RE4` | `enqueue_node` | `guard.rs:1068-1071` | alloc_counter; tid() |
+| `RE5` | `increment_era` | `guard.rs:1084-1085` | in_reclaim; help_read |
+| `RE6` | `increment_era` | `guard.rs:1086-1087` | advance_epoch; the birth stamp |
+| `PN1` | `pin` | `guard.rs:527-535` | the count; epoch() vs drained_epoch |
+| `PNU` | `transition` | `guard.rs:555` | do_update |
+| `PNC` | `transition` | `guard.rs:558-568` | attempts; epoch() compared; slow_path |
+| `UP1` | `unpin` | `guard.rs:377-386` | the count; escalated? |
+| `UP2` | `unpin_outermost` | `guard.rs:408-410` | count 1, epoch(), do_update |
+| `UP3` | `unpin_outermost` | `guard.rs:411` | count 0 |
+| `LD1` | `protect_load` | `guard.rs:293` | data.load |
+| `LD2` | `protect_load` | `guard.rs:296-311` | epoch() vs cached_epoch |
+| `LD3` | `protect_load_cold` | `guard.rs:326-343` | attempts; escalate, or store_lo, fence, cached_epoch |
+| `LD4` | `protect_load_cold` | `guard.rs:345` | data.load |
+| `LD5` | `protect_load_cold` | `guard.rs:348-352` | epoch() compared |
+| `LD6` | `protect_load_cold` | `guard.rs:331` | the load after escalating |
 | `LU1` | `Atomic::load_unprotected` | `atomic.rs:140` | data.load, no era check |
-| `WR1` | `Atomic::swap` | `atomic.rs:247` | the swap (after RetiredNode::new; then retire) |
-| `RN1` | `RetiredNode::new` | `retired.rs:118` | a node allocated, its birth stamped (then retire) |
-| `FL1` | `flush` | `guard.rs:1547-1571` | tid; with none, the own batch and orphans_parked (orphaned.load); in_reclaim, the pin count; with none, tid() claims one |
-| `FL2` | `flush` | `guard.rs:1593-1595` | the own list exchanged to 0 |
-| `FL3` | `flush` | `guard.rs:1602` | adopt_orphans |
-| `FL4` | `flush` | `guard.rs:1603-1605` | take_batch, try_retire |
-| `FL6` | `flush` | `guard.rs:1606-1612` | merge_batch; increment_era: help_read |
-| `FL7` | `flush` | `guard.rs:1612-1614` | increment_era: advance_epoch, the birth stamp; drain_free_list |
-| `FlushClear` | `flush` | `guard.rs:1629-1631` | the own list exchanged to 0 once more |
-| `FlushClear2` | `flush` | `guard.rs:1634` | drain_free_list |
-| `FlushClear3` | `flush` | `guard.rs:1636-1639` | epoch.store_lo(0); cached and drained epochs 0 |
-| `FL9` | `flush` | `guard.rs:1642-1643` | restored |
-| `EX1` | `cleanup` | `guard.rs:1655-1678` | with no tid and a batch, claim_tid; in_reclaim, the pin count, own |
-| `ExitSubmit` | `cleanup` | `guard.rs:1697` | submit_at_exit: take_batch, try_retire |
-| `ExitSubmit2` | `submit_at_exit` | `guard.rs:1791` | not placed: parked |
-| `ExitTake` | `cleanup` | `guard.rs:1706-1708` | the own list taken |
-| `ExitFree` | `cleanup` | `guard.rs:1712-1713` | drain_free_list |
-| `ExitRound` | `cleanup` | `guard.rs:1687` | EXIT_ROUNDS rounds |
-| `ExitParkRest` | `cleanup` | `guard.rs:1720-1721` | the last batch parked |
+| `WR1` | `Atomic::swap` | `atomic.rs:247` | the swap (after RetiredNode::new; then retire); with Recycle and a node in the pool, the take (the recycler's code) |
+| `WR2` | `RetiredNode::new`, `Atomic::swap` | `retired.rs:113-120`, `atomic.rs:247` | (Recycle) the taken node's header rewritten, the swap (then retire) |
+| `RN1` | `RetiredNode::new` | `retired.rs:118` | a node allocated, its birth stamped (then retire); with Recycle and a node in the pool, the take |
+| `RN2` | `RetiredNode::new` | `retired.rs:113-120` | (Recycle) the taken node's header rewritten (then retire) |
+| `FL1` | `flush` | `guard.rs:1539-1563` | tid; with none, the own batch and orphans_parked (orphaned.load); in_reclaim, the pin count; with none, tid() claims one |
+| `FL2` | `flush` | `guard.rs:1585-1587` | the own list exchanged to 0 |
+| `FL3` | `flush` | `guard.rs:1594` | adopt_orphans |
+| `FL4` | `flush` | `guard.rs:1595-1597` | take_batch, try_retire |
+| `FL6` | `flush` | `guard.rs:1598-1604` | merge_batch; increment_era: help_read |
+| `FL7` | `flush` | `guard.rs:1604-1606` | increment_era: advance_epoch, the birth stamp; drain_free_list |
+| `FlushClear` | `flush` | `guard.rs:1621-1623` | the own list exchanged to 0 once more |
+| `FlushClear2` | `flush` | `guard.rs:1626` | drain_free_list |
+| `FlushClear3` | `flush` | `guard.rs:1628-1631` | epoch.store_lo(0); cached and drained epochs 0 |
+| `FL9` | `flush` | `guard.rs:1634-1635` | restored |
+| `EX1` | `cleanup` | `guard.rs:1647-1670` | with no tid and a batch, claim_tid; in_reclaim, the pin count, own |
+| `ExitSubmit` | `cleanup` | `guard.rs:1689` | submit_at_exit: take_batch, try_retire |
+| `ExitSubmit2` | `submit_at_exit` | `guard.rs:1783` | not placed: parked |
+| `ExitTake` | `cleanup` | `guard.rs:1698-1700` | the own list taken |
+| `ExitFree` | `cleanup` | `guard.rs:1704-1705` | drain_free_list |
+| `ExitRound` | `cleanup` | `guard.rs:1679` | EXIT_ROUNDS rounds |
+| `ExitParkRest` | `cleanup` | `guard.rs:1712-1713` | the last batch parked |
 | `EX6` | `deactivate_slots` | `slot.rs:657` | the reservation's epoch lo 0 |
 | `EX7` | `deactivate_slots` | `slot.rs:658-660` | its first exchanged to INVPTR |
 | `EX7b` | `deactivate_slots` | `slot.rs:657` | the helper slot's epoch lo 0 |
 | `EX7c` | `deactivate_slots` | `slot.rs:658-660` | its first exchanged to INVPTR |
-| `EX8` | `cleanup` | `guard.rs:1732-1738` | each captured list traversed |
-| `EX9` | `cleanup` | `guard.rs:1739` | the batches released |
-| `EX10` | `cleanup` | `guard.rs:1740-1750` | re-armed, parked |
-| `EX12` | `cleanup` | `guard.rs:1758-1759` | park_orphans |
-| `EX12b` | `cleanup` | `guard.rs:1768` | release_tid |
-| `EX13` | `cleanup` | `guard.rs:1770-1779` | restored, the tid unset |
+| `EX8` | `cleanup` | `guard.rs:1724-1730` | each captured list traversed |
+| `EX9` | `cleanup` | `guard.rs:1731` | the batches released |
+| `EX10` | `cleanup` | `guard.rs:1732-1742` | re-armed, parked |
+| `EX12` | `cleanup` | `guard.rs:1750-1751` | park_orphans |
+| `EX12b` | `cleanup` | `guard.rs:1760` | release_tid |
+| `EX13` | `cleanup` | `guard.rs:1762-1771` | restored, the tid unset |
 | `SK1` | (model) | | the spin lock's test (ttas_locks only) |
 | `SK2` | (model) | | its test-and-set (ttas_locks only) |
 | `SK3` | (model) | | the lock taken (ttas_locks only) |
@@ -340,6 +585,8 @@ that does nothing without it).
 | `TC3` | (model) | | the copies written back (cache_copied, cache_overwritten only) |
 | `DN2` | (model) | | the detached list traversed into the cache before the republication (slow_path_frees only) |
 | `EX11` | (model) | | the cache drained with the slots inactive (exit_frees_inactive only; a step that does nothing otherwise) |
+| `FB2` | (model) | | batch_next read after the destructor ran (read_after_dealloc only) |
+| `WR3` | (model) | | the pool's lock released after the retire (pool_lock_held only; a step that does nothing otherwise) |
 | `TH2` | (model) | | the program's next operation |
 | `THJ` | (model) | | spawned after another thread ended |
 | `THR` | (model) | | spawned once a tid was released |
@@ -353,8 +600,8 @@ Two threads, two tids and one cell (holding node 1) unless a configuration says 
 retire submits its batch at every retire (`RETIRE_FREQ` 1), the epoch advances at every second
 retire (`EPOCH_FREQ` 2), the cache holds one traversal's batches, two load attempts, two
 transition attempts, two exit rounds, the global epoch at most 10 (the state constraint), no
-step counts. RF, EF, cache and epochs abbreviate `RetireFreq`, `EpochFreq`, `MaxCache` and
-`MaxEpoch`.
+step counts, no recycling. RF, EF, cache and epochs abbreviate `RetireFreq`, `EpochFreq`,
+`MaxCache` and `MaxEpoch`; recycle is `Recycle` TRUE.
 
 | configuration | scenario | constants | expected |
 |---|---|---|---|
@@ -439,6 +686,28 @@ step counts. RF, EF, cache and epochs abbreviate `RetireFreq`, `EpochFreq`, `Max
 | `RC_wit_undo` | an insert finds its slot deactivated and takes its node back. | cells 2, nodes 5 | `NoUndoW` broken |
 | `RC_wit_broken_link` | a traversal takes a node before its inserter links it, and the inserter traverses what it displaced. | nodes 5, cache 0 | `NoBrokenLinkW` broken |
 | `RC_wit_reentrant_transition` | a drop pins outermost and transitions inside a retire. | threads 1, tids 1, nodes 3 | `NoReentrantTransitionW` broken |
+| `RC_recycle` | A reader holding what it loaded while a writer replaces and retires it and flushes between its writes, so later writes take freed nodes back from the pool while the reader loads again. | nodes 4, recycle | pass |
+| `RC_recycle_dtor` | Node 1 retired with a fresh node in one batch, the fresh node freed first; node 1's drop, in the same walk, reads cell 2 and replaces it with the node just freed, taken back from the pool, while thread 2 replaces and reads cell 2. | cells 2, nodes 6, recycle | pass |
+| `RC_recycle_stale` | `RC_recycle` with stale_reuse: the recycler skips `RetiredNode::new`, so a node goes out again with the header and birth epoch kovan left on it. Every invariant but `BirthFresh`, which checks the epochs `RetiredNode::new` stamps (a stale reuse stamps none). | nodes 4, recycle | pass |
+| `RC_recycle_dtor_stale` | `RC_recycle_dtor` with stale_reuse: the node a drop takes back from the walk that freed it keeps the header it had in that batch. Every invariant but `BirthFresh`. | cells 2, nodes 6, recycle | pass |
+| `RC_recycle_stale_link_next` | `RC_recycle` with stale_reuse_link_next: no `RetiredNode::new`, and the pool links its nodes through the header's first word (`next`), which the reuse keeps. Every invariant but `BirthFresh`. | nodes 4, recycle | pass |
+| `RC_recycle_stale_lag` | stale_reuse on a lagging thread: thread 1 pins at the first epoch and waits while thread 2's flushes advance the epoch and free a node it stamped later into the pool; thread 1 takes that node back with a write and flushes while thread 2 loads the cell. Every invariant but `BirthFresh`. | nodes 5, recycle | pass |
+| `RC_mut_reuse_retired` | reuse_retired: the recycler takes a node still in a retirement batch, its destructor not yet run. | nodes 4, recycle | `NoUseAfterFree` broken |
+| `RC_mut_read_after_dealloc` | read_after_dealloc: the reclamation walk reads a node's batch_next after its destructor handed the node to the pool. | nodes 4, recycle | `NoUseAfterFree` broken |
+| `RC_mut_stale_link_birth` | stale_reuse_link_birth: no `RetiredNode::new`, and the pool links its nodes through the word of `birth_epoch`, so a reused node goes out with a pointer for its birth epoch. | nodes 4, recycle | `NoUseAfterFree` broken |
+| `RC_mut_pool_lock_held` | pool_lock_held: a recycler holds its pool's lock from a write's take until the retire of the old value returns; that retire frees the value's batch at once, and the destructor, on the same thread, waits for the lock. | threads 1, tids 1, nodes 3, recycle | deadlock |
+| `RC_mut_cache_ahead` | cache_ahead, the programs of `RC_two_loads`: the reader's raise caches the epoch it read and leaves its slot's word as it was. | as `RC_two_loads` | `CacheBelowPublished` broken |
+| `RC_mut_early_free` | early_free, the programs of `RC_exit_tid`: three pinned threads, so a batch goes into two slot lists, freed one traversal early. | as `RC_exit_tid` | `ListsHoldNoFreed` broken |
+| `RC_mut_help_hands_pointer` | help_hands_pointer, the programs of `RC_find_help_torn_request`: the helper's result carries a pointer. | as `RC_find_help_torn_request` | `WellFormed` broken |
+| `RC_mut_drain_published_term` | drain_published as in `RC_mut_drain_published_live`, every thread scheduled fairly, checked against `Termination` with the safety properties beside it. | as `RC_mut_drain_published_live` | `Termination` broken |
+| `RC_wit_reuse` | a section holds a node in a later incarnation than its first. | nodes 4, recycle | `NoHeldReusedW` broken |
+| `RC_wit_dtor_reuse` | a drop, run inside a reclamation walk, takes a node from the pool. | cells 2, nodes 6, recycle | `NoDtorReuseW` broken |
+| `RC_wit_stale_reuse` | a recycled node is about to go out with a birth epoch older than the one `RetiredNode::new` would stamp. | nodes 4, recycle | `NoStaleReuseW` broken |
+| `RC_wit_stale_later` | a recycled node is about to go out with a birth epoch later than the one `RetiredNode::new` would stamp on the recycling thread. | nodes 5, recycle | `NoStaleLaterW` broken |
+| `RC_wf_recycle` | Step counts with recycling: a reader in two guards while a writer replaces cell 1 three times and flushes between, taking back freed nodes. | nodes 4, recycle, steps counted yes | pass |
+| `RC_wf_recycle_dtor` | Step counts with reuse inside a walk: node 1's drop takes back the node the same walk freed a step before. | cells 2, nodes 6, recycle, steps counted yes | pass |
+| `RC_wit_wf_reuse` | in `RC_wf_recycle`'s setting, a section holds a node in a later incarnation. | nodes 4, recycle, steps counted yes | `NoHeldReusedW` broken |
+| `RC_wit_wf_dtor_reuse` | in `RC_wf_recycle_dtor`'s setting, a drop inside a walk takes a node from the pool. | cells 2, nodes 6, recycle, steps counted yes | `NoDtorReuseW` broken |
 
 ### Findings
 
@@ -542,6 +811,9 @@ The defects this branch fixed, each put back by a mutation:
 Four more mutations take a mechanism out to show the properties depend on it: `load_traverses` (a
 load that traverses the list instead of raising the reservation releases what the section loaded
 first), `no_era_check`, `no_help` and `no_escalate`.
+
+What the model shows about recycling (`retire_reclaimable`, this branch), including where a claim
+in `reclaim.rs` stops holding, is under "Recycling nodes" above ("What TLC found").
 
 The model this replaces, `model_chk/Kovan.tla`, modelled a former per-slot reference-count design
 without epochs; its use-after-free check was not part of the next-state relation, so it never ran,
@@ -734,15 +1006,22 @@ program. The nightly sentinel registration is not modelled (the model's exit alw
 
 ### TLC results
 
-The run recorded in `reclaim/tlc-run.txt` (6 workers for a passing configuration, one for a
-violation, beside other work on a 36-core machine): 81 of 81 configurations match `EXPECTED.txt`,
-in 2511 s of TLC time. The largest passing ones are `RC_wf_mix` (8,363,530 distinct states,
-275 s), `RC_unpinned_retire` (8,173,791, 276 s), `RC_hand_over` (5,601,019, 302 s) and
-`RC_find_help_torn_request` (3,371,877, 74 s); the longest runs that break a property, on one
-worker, are `RC_mut_help_no_seqno_check` (2,351,551 distinct states, 297 s) and
-`RC_mut_tid_released_early` (1,544,254, 260 s). TLC checks a temporal property on the part of the
-state space found so far, at intervals during the search, so where it stops on a broken one, and
-the state count it reports, can differ between runs (`RC_mut_ttas_locks`, for one).
+The run recorded in `reclaim/tlc-run.txt` (12 workers for a passing configuration, one for a
+violation, on a 36-core machine shared with other heavy work, other TLC runs among it): 103 of 103
+configurations match `EXPECTED.txt`, in 2518 s of wall time. The largest passing ones are
+`RC_recycle_dtor` (10,055,217 distinct states, 177 s), `RC_recycle_dtor_stale` (9,977,235
+distinct states, 217 s), `RC_wf_mix` (8,363,530 distinct states, 143 s), `RC_unpinned_retire`
+(8,173,791 distinct states, 152 s), `RC_hand_over` (5,601,019 distinct states, 112 s),
+`RC_find_help_torn_request` (3,371,877 distinct states, 59 s), `RC_two_loads` (2,790,043 distinct
+states, 49 s) and `RC_flush_orphan` (2,197,419 distinct states, 47 s); the longest runs that break
+a property, on one worker, are `RC_mut_help_no_seqno_check` (2,351,551 distinct states, 268 s) and
+`RC_mut_tid_released_early` (1,544,254 distinct states, 260 s). The four mutations that give
+`CacheBelowPublished`, `ListsHoldNoFreed`, `WellFormed` and `Termination` one of their own each
+stop within seconds: `RC_mut_cache_ahead` (4,703 distinct states), `RC_mut_early_free` (16,954),
+`RC_mut_help_hands_pointer` (27,719) and `RC_mut_drain_published_term` (57). TLC checks a temporal
+property on the part of the state space found so far, at intervals during the search, so where it
+stops on a broken one, and the state count it reports, can differ between runs
+(`RC_mut_ttas_locks`, for one).
 
 ## What the map models check
 

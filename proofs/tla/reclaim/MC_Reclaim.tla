@@ -8,7 +8,9 @@
 (* thread to end (Join, the thread being spawned after it) and Idle (pin   *)
 (* and unpin forever). Nodes are allocated in id order, cells 1 .. NCells  *)
 (* holding nodes 1 .. NCells at first, so a configuration names the node   *)
-(* whose drop runs a program of its own (Dtor).                            *)
+(* whose drop runs a program of its own (Dtor). With Recycle a node id     *)
+(* comes back from the pool, and its drop runs the same program in every   *)
+(* incarnation.                                                            *)
 (***************************************************************************)
 EXTENDS Reclaim
 
@@ -179,6 +181,68 @@ P_reenter_rt == [t \in {1, 2} |-> IF t = 1 THEN <<P, Wr(1), Rt, U, P, U, Rt, Rt,
 \* a transition inside the retire), loads cell 1 and drops its guard.
 P_reentrant == [t \in {1} |-> <<P, Wr(1), U, Fl, Rt>>]
 DtorR1At3 == DtorOf(3, DRead(1))
+
+\* ------------------------------------------------------------ recycling (Recycle)
+
+\* How to read a program: P pins (kovan::pin(), a guard), U drops that guard, Ld(c) loads cell c
+\* under the guard and keeps the pointer until the guard drops, Wr(c) puts a new node in cell c
+\* (a recycled one when the pool has any) and retires the node it replaced with
+\* retire_reclaimable, Rt retires a node never published, Fl is kovan::flush(), Ex is the
+\* thread's exit, After(t, n) waits until thread t has done its first n operations. TLC tries
+\* every interleaving of the two programs, so each comment below says what the scenario makes
+\* possible, not one fixed order of events.
+
+\* The basic case. Thread 1 reads cell 1 and holds what it read, drops its guard, then reads
+\* again. Thread 2 keeps replacing cell 1 and flushes between its writes, so the nodes it
+\* retired can be freed into the pool and its later writes can take them back: a node may be
+\* reused while thread 1 still reads the cell. The check is that thread 1 never holds a node
+\* that went to the pool or came back as a new object while its guard lived.
+P_recycle == [t \in {1, 2} |-> IF t = 1 THEN <<P, Ld(1), Ld(1), U, P, Ld(1), U, Ex>>
+                                        ELSE <<P, Wr(1), U, Fl, P, Wr(1), U, Fl, P, Wr(1), U, Ex>>]
+\* Recycling inside the walk that frees. Thread 1 retires node 1 (by replacing it) and then a
+\* fresh node, so both can sit in one batch, which kovan's walk frees fresh node first. Node 1's
+\* own drop (DtorRW2Recycle) pins, reads cell 2, replaces it and drops its guard: when it runs
+\* inside that walk, its write can take from the pool the very node the same walk freed a step
+\* before. Meanwhile thread 2 replaces cell 2 and reads it. The check is that kovan's walk
+\* never reads or writes a node after handing it to the pool, even when the next node's drop
+\* reuses it at once, and that no reader's pointer changes object under its guard.
+P_recycle_dtor == [t \in {1, 2} |-> IF t = 1 THEN <<P, Wr(1), Rt, U, Fl, Ex>>
+                                             ELSE <<P, Wr(2), U, Fl, P, Ld(2), U, Ex>>]
+\* Node 1's drop (its value's Drop, run by dealloc before the node goes to the pool): a guard,
+\* a read of cell 2, a write of cell 2 that may take a node from the pool, the guard dropped.
+DtorRW2Recycle == DtorOf(1, <<P, Ld(2), Wr(2), U>>)
+\* A recycler whose epoch lags. Thread 1 pins at the first epoch and waits there while
+\* thread 2 writes and flushes three times. Each flush moves the epoch on, so thread 2's later
+\* nodes are stamped with later epochs than thread 1's slot publishes; such a node can be
+\* retired and freed into the pool without waiting for thread 1. Then thread 1, whose cached
+\* epoch is still the first one, writes: it can take back a node thread 2 stamped later. Under
+\* stale_reuse that node goes out with its old, later birth epoch, later than the epoch thread
+\* 1's own RetiredNode::new() would have stamped. Thread 2 reads the cell while this happens.
+P_recycle_lag == [t \in {1, 2} |-> IF t = 1 THEN <<P, After(2, 12), Wr(1), U, Fl>>
+                                            ELSE <<P, Wr(1), U, Fl, P, Wr(1), U, Fl, P, Wr(1), U, Fl,
+                                                   P, Ld(1), U>>]
+\* dealloc inside retire, on the same thread. One thread: its flush frees node 1 into the pool;
+\* then a write with no guard takes node 1 back and retires the node it replaced. No slot can
+\* hold that batch (the thread's own slot was released by the flush), so the retire frees it at
+\* once, which runs that node's dealloc inside the retire call, on the writing thread. Under
+\* pool_lock_held the write still holds the pool's lock at that moment.
+P_pool_lock == [t \in {1} |-> <<P, Wr(1), U, Fl, Wr(1)>>]
+\* Step counting with recycling, the basic case, cut down from P_recycle so that counting every
+\* operation's steps stays small enough to check: thread 1 reads cell 1 in two guards; thread 2
+\* replaces cell 1 three times, flushing after the first two writes, so a later write can take
+\* back a node an earlier one retired while thread 1 reads (RC_wit_wf_reuse shows that happens).
+\* The check: no operation of either thread takes more steps than its bound, the bound counting
+\* every node object (each reuse of an id is one more object).
+P_wf_recycle == [t \in {1, 2} |-> IF t = 1 THEN <<P, Ld(1), U, P, Ld(1), U>>
+                                           ELSE <<P, Wr(1), U, Fl, P, Wr(1), U, Fl, P, Wr(1), U>>]
+\* Step counting with reuse inside a walk, cut down from P_recycle_dtor: thread 1 retires node 1
+\* (by replacing it) and a fresh node, then flushes; node 1's drop (DtorRW2Recycle), run inside
+\* the walk that frees its batch, reads and replaces cell 2, and can take back the node the walk
+\* freed a step before (RC_wit_wf_dtor_reuse shows that happens); thread 2 replaces cell 2 and
+\* flushes. The check: the walk's operation, and each operation the drop runs, counted on its own,
+\* stay within their bounds.
+P_wf_recycle_dtor == [t \in {1, 2} |-> IF t = 1 THEN <<P, Wr(1), Rt, U, Fl>>
+                                                ELSE <<P, Wr(2), U, Fl>>]
 
 \* ------------------------------------------------------------ liveness and bounds
 

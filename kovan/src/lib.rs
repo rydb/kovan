@@ -32,7 +32,7 @@
 //!   helps the pending requests first, and a helper completes the request.
 //!   A thread's first pin also claims a thread ID: one pass over the
 //!   released IDs, no lock.
-//! - **`retire()`: wait-free.** O(1) per call; every 64th submits the
+//! - **`retire()`, `retire_reclaimable()`: wait-free.** O(1) per call; every 64th submits the
 //!   batch (one pass over the slots, one insert per eligible slot), every
 //!   128th helps the pending slow-path requests (O(T) each) and advances
 //!   the epoch.
@@ -149,7 +149,7 @@ pub use reclaim::Reclaimable;
 pub use retired::RetiredNode;
 
 // Re-export retire from guard (it's the public API)
-pub use guard::retire;
+pub use guard::{retire, retire_reclaimable};
 
 // Re-export for convenience
 pub use core::sync::atomic::Ordering;

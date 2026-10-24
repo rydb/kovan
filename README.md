@@ -108,6 +108,14 @@ if !old.is_null() {
 }
 ```
 
+To recycle retired nodes through a free list instead of freeing them (so a
+structure that publishes one node per update allocates nothing in the steady
+state), implement `Reclaimable::dealloc` to drop the value and push the node
+back, retire with `retire_reclaimable` instead of `retire`, and re-initialise
+the embedded `RetiredNode` with `RetiredNode::new()` when taking a node from
+the list. The [`Reclaimable`](https://docs.rs/kovan/latest/kovan/trait.Reclaimable.html)
+docs give the contract and a complete example.
+
 ## How It Works
 
 1. **`pin()`** - Enter critical section, get a guard

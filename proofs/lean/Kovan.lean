@@ -1,6 +1,7 @@
 import Kovan.FlushExit
 import Kovan.HopscotchShrink
 import Kovan.HopscotchShrinkThreads
+import Kovan.Recycle
 
 /-!
 # The Lean proofs of kovan
