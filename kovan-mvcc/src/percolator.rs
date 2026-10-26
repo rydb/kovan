@@ -17,17 +17,20 @@ fn take_timestamp(oracle: &dyn TimestampOracle, issued: &AtomicU64) -> u64 {
 
 /// Registry of active transactions, used for GC watermark computation.
 pub struct ActiveTxnRegistry {
-    txns: kovan_map::HashMap<u128, u64>, // txn_id -> start_ts
+    txns: HopscotchMap<u128, u64>, // txn_id -> start_ts
 }
 
 impl ActiveTxnRegistry {
     pub fn new() -> Self {
         Self {
-            txns: kovan_map::HashMap::new(),
+            txns: HopscotchMap::new(),
         }
     }
 
-    /// Register a new active transaction.
+    /// Register `txn_id` as active at `start_ts`. Registering it again moves
+    /// it to the new `start_ts`, later or earlier: `KovanMVCC::begin`
+    /// registers a transaction under a bound, then again at its `start_ts`.
+    /// (`InflightWriteRegistry::register` keeps the first instead.)
     pub fn register(&self, txn_id: u128, start_ts: u64) {
         self.txns.insert(txn_id, start_ts);
     }
@@ -127,7 +130,12 @@ impl InflightWriteRegistry {
         }
     }
 
-    /// Register a write txn as in-flight (idempotent; keeps first start_ts).
+    /// Register a write txn as in-flight. Idempotent: registering it again
+    /// keeps its first `start_ts`, later or earlier (since 0.2.0; 0.1.x took
+    /// the new one). To move a writer, unregister it and register it again,
+    /// or, so that no instant leaves its snapshot unpinned, register a new
+    /// id at the new `start_ts` before unregistering the old one.
+    /// (`ActiveTxnRegistry::register` takes the new `start_ts` instead.)
     pub fn register(&self, txn_id: u128, start_ts: u64) {
         self.writers.insert_if_absent(txn_id, start_ts);
         // AFTER the insert: a min_ts pass that read the epoch before this

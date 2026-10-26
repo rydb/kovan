@@ -366,7 +366,7 @@ struct SlotPage([ThreadSlots; SLOTS_PER_PAGE]);
 /// Batch retirement frequency (try_retire every `freq` retires)
 pub(crate) const RETIRE_FREQ: usize = 64;
 
-/// Epoch advancement frequency (in terms of retire calls per thread)
+/// Epoch advancement frequency: a thread advances at its first retire, then every `EPOCH_FREQ`th
 pub(crate) const EPOCH_FREQ: usize = 128;
 
 /// Unconditional reservation marker for a slot's epoch word.
@@ -595,7 +595,7 @@ impl ASMRState {
         for (w, word) in self.released[..handed_out.div_ceil(64)].iter().enumerate() {
             let mut seen = word.load(Ordering::Relaxed);
             while seen != 0 {
-                let bit = seen & seen.wrapping_neg();
+                let bit = seen.isolate_lowest_one();
                 seen ^= bit;
                 // Acquire: pairs with the release in `release_tid`, so the
                 // exited owner's last writes to the ID's slots happen before

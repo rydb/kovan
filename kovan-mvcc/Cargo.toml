@@ -10,6 +10,9 @@ description = "Multi-Version Concurrency Control (MVCC) implementation based on 
 keywords = ["concurrency", "mvcc", "transaction", "percolator", "database"]
 categories = ["concurrency", "database-implementations"]
 readme.workspace = true
+# Shares kovan's test harnesses by path (kovan/tests/support), which a
+# published package of this crate does not hold.
+exclude = ["tests/thread_exit.rs", "tests/steady_memory.rs", "tests/construct_memory.rs"]
 
 [lib]
 name = "kovan_mvcc"
