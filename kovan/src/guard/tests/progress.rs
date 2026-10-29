@@ -676,18 +676,10 @@ fn traversal_walks_only_the_list_it_captured() {
             crate::slot::advance_epoch();
             drop(pin());
             traversed.store(true, Ordering::SeqCst);
-            // What the traversal freed waits in the cache: one traversal,
-            // the captured batches.
-            let (traversals, freed) = with_handle(|h| {
-                let mut n = 0;
-                let mut refs = h.free_list.get();
-                while !refs.is_null() {
-                    n += 1;
-                    refs = unsafe { (*refs).next.load(Ordering::Relaxed) };
-                }
-                (h.list_count.get(), n)
-            });
-            assert_eq!((traversals, freed), (1, CAPTURED));
+            // The transition freed what its traversal released, so none of it
+            // waits in the cache.
+            assert!(with_handle(|h| h.free_list.get().is_null()));
+            assert_eq!(with_handle(|h| h.list_count.get()), 0);
             assert!(eventually(|| checked.go.load(Ordering::SeqCst)));
         })
     };
@@ -708,6 +700,13 @@ fn traversal_walks_only_the_list_it_captured() {
     join_within(retirer, "the retiring thread");
     traversing.release();
     assert!(eventually(|| traversed.load(Ordering::SeqCst)));
+    // The captured batches were freed with the transition, and the ones
+    // inserted while it was held were not.
+    assert_eq!(
+        live.load(Ordering::SeqCst),
+        INSERTED * RETIRE_FREQ,
+        "the transition freed a batch inserted after its capture"
+    );
 
     // Every entry inserted during the traversal is still in the slot.
     let mut in_slot = 0;
@@ -1071,5 +1070,240 @@ fn insert_into_an_exited_slot_rolls_back() {
         crate::retired::INVPTR as u64,
         "the exited slot kept the node an insert put into it"
     );
+    drain(&live);
+}
+
+/// One retired batch takes a node in the retiring thread's own helper slot
+/// when that slot is active and publishes an era at or above the batch's
+/// birth epoch. The test sets that state with the `do_update` a help runs at
+/// its HelpPass step, then reads every slot list that holds a node of the
+/// batch: a published node's `next` is its list link, so the lists are the
+/// evidence of where placement put it.
+#[test]
+#[cfg_attr(miri, ignore)] // multi-threaded: hits the intentional mixed-size DCAS, outside Miri's model
+fn batch_placement_includes_the_helper_slot() {
+    let _l = lock();
+    let live = Arc::new(AtomicUsize::new(0));
+
+    // Pinned in a loop and never flushed: its reservation slot stays active,
+    // so the batch takes a node there too.
+    let (up, stop) = (Hold::new(), Hold::new());
+    let reader_tid = Arc::new(AtomicUsize::new(0));
+    let reader = {
+        let (up, stop, reader_tid) = (up.clone(), stop.clone(), Arc::clone(&reader_tid));
+        thread::spawn(move || {
+            reader_tid.store(own_tid(), Ordering::SeqCst);
+            drop(pin());
+            up.arrived.store(true, Ordering::SeqCst);
+            while !stop.go.load(Ordering::SeqCst) {
+                drop(pin());
+                thread::yield_now();
+            }
+        })
+    };
+    up.reached("the reader");
+
+    // The helper slot a help publishes before its passes: active, publishing
+    // the current era. Nothing else activates it, `state.parent` staying 0.
+    let tid = own_tid();
+    let global = crate::slot::global();
+    let hr_num = global.hr_num();
+    with_handle(|h| h.do_update(crate::slot::epoch(), hr_num + 1, tid));
+
+    // One batch of oldest-born values, finalized and placed: a node in every
+    // active slot whose era covers it.
+    let mut nodes = std::vec::Vec::new();
+    for _ in 0..RETIRE_FREQ - 1 {
+        live.fetch_add(1, Ordering::SeqCst);
+        let retired = RetiredNode::new();
+        retired.set_birth_epoch(1);
+        let node = Box::into_raw(Box::new(Counted {
+            retired,
+            live: Arc::clone(&live),
+        }));
+        nodes.push(node as usize);
+        unsafe { retire(node) };
+    }
+    with_handle(|h| {
+        let (first, last) = h.take_batch().expect("the batch just retired");
+        assert!(h.try_retire(first, last, None), "the batch was not placed");
+    });
+
+    // Every slot list whose head is one of the batch's nodes: the scan
+    // assigns one node per eligible slot, so each of these heads is one.
+    let mut placed = std::vec::Vec::new();
+    for i in 0..global.max_threads() {
+        let slots = global.thread_slots(i);
+        for (j, word) in slots.first.iter().enumerate() {
+            let head = word.load_lo() as usize;
+            if head != 0 && head != crate::retired::INVPTR && nodes.contains(&head) {
+                placed.push((i, j));
+            }
+        }
+    }
+    // Both reservation slots and this thread's helper slot: the parent slot
+    // stays inactive, so the batch takes nothing there.
+    let mut expected = std::vec![
+        (reader_tid.load(Ordering::SeqCst), 0),
+        (tid, 0),
+        (tid, hr_num + 1)
+    ];
+    expected.sort();
+    placed.sort();
+    assert_eq!(
+        placed, expected,
+        "placement put the batch's nodes in other slot lists"
+    );
+
+    // Leave the batch as a help's next pass leaves it: the reservation and
+    // the helper lists traversed, then the batches they released freed.
+    stop.go.store(true, Ordering::SeqCst);
+    join_within(reader, "the reader");
+    with_handle(|h| h.do_update(crate::slot::epoch(), hr_num + 1, tid));
+    crate::slot::advance_epoch();
+    drop(pin());
+    with_handle(|h| h.drain_free_list());
+    assert_eq!(
+        live.load(Ordering::SeqCst),
+        0,
+        "the batch was not freed once every slot that took a node was traversed"
+    );
+}
+
+/// A node a batch takes in a thread's helper slot is released by that
+/// thread's own transition: the helper slot is one more list the transition
+/// has to traverse, and a batch completes only once every slot holding one
+/// of its nodes has been traversed. The reader keeps its own slot moving, so
+/// the helper slot is the only list left holding the batch back, and the
+/// count reaches zero once it is traversed.
+#[test]
+#[cfg_attr(miri, ignore)] // multi-threaded: hits the intentional mixed-size DCAS, outside Miri's model
+fn a_helper_slot_node_is_released_by_its_owners_transition() {
+    /// Lets the reader go when the test unwinds, so a failed assertion ends
+    /// its loop.
+    struct LetGo(Hold);
+
+    impl Drop for LetGo {
+        fn drop(&mut self) {
+            self.0.release();
+        }
+    }
+
+    let _l = lock();
+    let live = Arc::new(AtomicUsize::new(0));
+
+    // Pins and drops in a loop and never flushes: its slot takes a node of
+    // the batch and traverses it on a later pin.
+    let (up, stop) = (Hold::new(), Hold::new());
+    let reader = {
+        let (up, stop) = (up.clone(), stop.clone());
+        thread::spawn(move || {
+            own_tid();
+            drop(pin());
+            up.arrived.store(true, Ordering::SeqCst);
+            while !stop.go.load(Ordering::SeqCst) {
+                drop(pin());
+                thread::yield_now();
+            }
+        })
+    };
+    up.reached("the reader");
+    let _let_go = LetGo(stop.clone());
+
+    // This thread's helper slot, active at the current era, as a help leaves
+    // it before its passes.
+    let tid = own_tid();
+    let hr_num = crate::slot::global().hr_num();
+    with_handle(|h| h.do_update(crate::slot::epoch(), hr_num + 1, tid));
+
+    // One batch of oldest-born values, taking a node in the reader's slot and
+    // in both of this thread's active slots.
+    Counted::place_oldest(&live);
+    let global = crate::slot::global();
+    let helper = global.thread_slots(tid).first[hr_num + 1].load_lo();
+    assert!(
+        helper != 0 && helper != crate::retired::INVPTR as u64,
+        "the helper slot took no node"
+    );
+
+    // A transition on this thread, with the epoch moved so the next pin runs
+    // one: it traverses the reservation slot and takes the helper slot.
+    let drained = Arc::new(AtomicBool::new(false));
+    {
+        let drained = Arc::clone(&drained);
+        stall::arm(Step::HelperDrain, tid, move || {
+            drained.store(true, Ordering::SeqCst);
+            false
+        });
+    }
+    crate::slot::advance_epoch();
+    drop(pin());
+    assert!(
+        drained.load(Ordering::SeqCst),
+        "the transition did not reach the helper slot"
+    );
+    assert_eq!(
+        crate::slot::global().thread_slots(tid).first[hr_num + 1].load_lo(),
+        0,
+        "the helper slot still holds a node after its owner's transition"
+    );
+    assert_eq!(
+        global.thread_slots(tid).first[0].load_lo(),
+        0,
+        "the reservation slot still holds a node"
+    );
+    // The reader's next pin traverses its own slot, and the transition frees
+    // what that traversal released, so the batch ends while the reader runs.
+    // Until that pin the reader's slot holds its node, which is why the count
+    // below, not a slot read here, is the witness.
+    assert!(
+        eventually(|| live.load(Ordering::SeqCst) == 0),
+        "{} values of the batch are still retained while the reader pins",
+        live.load(Ordering::SeqCst)
+    );
+
+    stop.release();
+    join_within(reader, "the reader");
+}
+
+/// A drain held between reading a helper slot and emptying it waits for no
+/// one: another thread retires a batch into the same slot, so the take either
+/// captures both nodes or leaves the displaced list to the insert's link. The
+/// owner ends its transition, and every value is freed exactly once.
+#[test]
+#[cfg_attr(miri, ignore)] // multi-threaded: hits the intentional mixed-size DCAS, outside Miri's model
+fn drain_takes_a_list_an_insert_joins() {
+    let _l = lock();
+    let live = Arc::new(AtomicUsize::new(0));
+
+    // The draining thread: its helper slot active at the current era, and a
+    // transition that finds the batch below in it.
+    let (ready, go) = (Hold::new(), Hold::new());
+    let parking = Hold::new();
+    let drainer = {
+        let (ready, go, parking) = (ready.clone(), go.clone(), parking.clone());
+        thread::spawn(move || {
+            let tid = own_tid();
+            let hr_num = crate::slot::global().hr_num();
+            with_handle(|h| h.do_update(crate::slot::epoch(), hr_num + 1, tid));
+            ready.arrived.store(true, Ordering::SeqCst);
+            assert!(eventually(|| go.go.load(Ordering::SeqCst)));
+            parking.arm(Step::DetachList, tid);
+            crate::slot::advance_epoch();
+            drop(pin());
+        })
+    };
+    ready.reached("the draining thread");
+
+    // A batch in every active slot, the draining thread's helper slot among
+    // them: the list its drain reads.
+    Counted::place_oldest(&live);
+    go.release();
+    parking.reached("the drain");
+
+    // While the drain is held: another retire takes the same slot.
+    Counted::place_oldest(&live);
+    parking.release();
+    join_within(drainer, "the draining thread");
     drain(&live);
 }

@@ -55,6 +55,9 @@ pub(crate) enum Step {
     InsertExchanged,
     /// A thread holds a slot list it captured and has not yet walked it.
     Traverse,
+    /// A transition has found a helper slot with a list to take and not yet
+    /// detached it.
+    HelperDrain,
 }
 
 type Hook = Box<dyn FnMut() -> bool + Send>;

@@ -527,6 +527,46 @@ impl Handle {
         self.cached_birth_epoch.set(epoch);
     }
 
+    /// drain_helper_slots: take the lists this thread's helper slots hold.
+    ///
+    /// A helper slot holds a list only while a help works it, and no owner
+    /// path traverses one, so a batch that took a node there waits for a
+    /// traversal that never runs. A transition runs where no guard of this
+    /// thread is live, which is the point such a list can be taken.
+    ///
+    /// # Progress: wait-free; one take per non-empty helper slot
+    ///
+    /// An empty or inactive slot costs one load. A slot whose request is open
+    /// belongs to the helper working it and is skipped. The take is
+    /// `detach_nodes`, tagged with the era's sequence number, which is the
+    /// list's sequence number too.
+    #[cold]
+    fn drain_helper_slots(&self, tid: usize) {
+        let global = self.global();
+        let slots = global.thread_slots(tid);
+        let hr_num = global.hr_num();
+
+        for j in hr_num..hr_num + 2 {
+            // Empty or inactive: no list to take.
+            let list = slots.first[j].load_lo();
+            if list == 0 || list == INVPTR as u64 {
+                continue;
+            }
+            // The helper working the slot owns it while its request is open.
+            if slots.state[j].result.load_lo() == INVPTR as u64 {
+                continue;
+            }
+            #[cfg(test)]
+            crate::stall::at(crate::stall::Step::HelperDrain, tid);
+            // The tag moves both sequence numbers on, so the next take reads
+            // the pair it left and no hand-over sees a stale one.
+            let head = self.detach_nodes(slots, j, slots.epoch[j].load_hi());
+            if head != 0 && head != INVPTR as u64 {
+                unsafe { self.traverse_into_cache(head as *mut RetiredNode) };
+            }
+        }
+    }
+
     /// Pin: enter a critical section (matches ASMR reserve_slot).
     ///
     /// Nested pin() calls are safe: only the outermost pin() does real work
@@ -611,15 +651,22 @@ impl Handle {
             crate::stall::at(crate::stall::Step::TransitionAttempt, tid);
             attempts -= 1;
             if attempts == 0 {
+                // Slow path: set up helping state and wait for stable epoch
+                self.slow_path(index, tid);
                 break;
             }
             curr_epoch = slot::epoch();
             if curr_epoch == prev_epoch {
-                return;
+                break;
             }
         }
-        // Slow path: set up helping state and wait for stable epoch
-        self.slow_path(index, tid);
+        // Both ways in end with the slot published, so the helper slots are
+        // taken after either one, on the thread that owns them.
+        self.drain_helper_slots(tid);
+        // The traversals above released batches into the cache. Freeing them
+        // here keeps a thread that only pins from carrying a cache of them
+        // until its next flush, which is what a bounded backlog needs.
+        self.drain_free_list();
     }
 
     /// Slow path for pin when epoch keeps changing.
