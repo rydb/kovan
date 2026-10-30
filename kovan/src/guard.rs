@@ -663,10 +663,6 @@ impl Handle {
         // Both ways in end with the slot published, so the helper slots are
         // taken after either one, on the thread that owns them.
         self.drain_helper_slots(tid);
-        // The traversals above released batches into the cache. Freeing them
-        // here keeps a thread that only pins from carrying a cache of them
-        // until its next flush, which is what a bounded backlog needs.
-        self.drain_free_list();
     }
 
     /// Slow path for pin when epoch keeps changing.

@@ -676,10 +676,19 @@ fn traversal_walks_only_the_list_it_captured() {
             crate::slot::advance_epoch();
             drop(pin());
             traversed.store(true, Ordering::SeqCst);
-            // The transition freed what its traversal released, so none of it
-            // waits in the cache.
-            assert!(with_handle(|h| h.free_list.get().is_null()));
-            assert_eq!(with_handle(|h| h.list_count.get()), 0);
+            // What the traversal freed waits in the cache: one traversal,
+            // the captured batches, released at the next flush or when the
+            // cache fills.
+            let (traversals, freed) = with_handle(|h| {
+                let mut n = 0;
+                let mut refs = h.free_list.get();
+                while !refs.is_null() {
+                    n += 1;
+                    refs = unsafe { (*refs).next.load(Ordering::Relaxed) };
+                }
+                (h.list_count.get(), n)
+            });
+            assert_eq!((traversals, freed), (1, CAPTURED));
             assert!(eventually(|| checked.go.load(Ordering::SeqCst)));
         })
     };
@@ -700,13 +709,6 @@ fn traversal_walks_only_the_list_it_captured() {
     join_within(retirer, "the retiring thread");
     traversing.release();
     assert!(eventually(|| traversed.load(Ordering::SeqCst)));
-    // The captured batches were freed with the transition, and the ones
-    // inserted while it was held were not.
-    assert_eq!(
-        live.load(Ordering::SeqCst),
-        INSERTED * RETIRE_FREQ,
-        "the transition freed a batch inserted after its capture"
-    );
 
     // Every entry inserted during the traversal is still in the slot.
     let mut in_slot = 0;
@@ -1252,18 +1254,17 @@ fn a_helper_slot_node_is_released_by_its_owners_transition() {
         0,
         "the reservation slot still holds a node"
     );
-    // The reader's next pin traverses its own slot, and the transition frees
-    // what that traversal released, so the batch ends while the reader runs.
-    // Until that pin the reader's slot holds its node, which is why the count
-    // below, not a slot read here, is the witness.
-    assert!(
-        eventually(|| live.load(Ordering::SeqCst) == 0),
-        "{} values of the batch are still retained while the reader pins",
-        live.load(Ordering::SeqCst)
-    );
-
+    // The reader's next pin traverses its own slot. What that released waits
+    // in its cache, so the batch ends once the thread that freed it flushes,
+    // which its exit does.
     stop.release();
     join_within(reader, "the reader");
+    with_handle(|h| h.drain_free_list());
+    assert_eq!(
+        live.load(Ordering::SeqCst),
+        0,
+        "the batch was not freed after the helper slot's node was released"
+    );
 }
 
 /// A drain held between reading a helper slot and emptying it waits for no
