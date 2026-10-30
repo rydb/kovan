@@ -2,6 +2,8 @@
 
 use criterion::{BenchmarkId, Criterion, Throughput, black_box, criterion_group, criterion_main};
 use kovan::{Atomic, RetiredNode, pin, retire};
+#[cfg(feature = "recycle")]
+use kovan::{alloc_node, retire_node};
 use std::sync::Arc;
 use std::sync::atomic::Ordering;
 use std::thread;
@@ -217,12 +219,82 @@ fn bench_contention(c: &mut Criterion) {
     group.finish();
 }
 
+/// The same swap loop, with nodes taken from and given back to the per-thread
+/// magazine cache. This row separates a cost on the transition that reaches the
+/// global allocator from one that stops inside kovan.
+#[cfg(feature = "recycle")]
+fn bench_atomic_swap_recycle(c: &mut Criterion) {
+    let mut group = c.benchmark_group("atomic_swap_recycle");
+
+    for threads in [1, 2, 4, 8].iter() {
+        group.throughput(Throughput::Elements(1000 * *threads as u64));
+        group.bench_with_input(
+            BenchmarkId::from_parameter(threads),
+            threads,
+            |b, &num_threads| {
+                b.iter(|| {
+                    let atomic = Arc::new(Atomic::new(alloc_node(Node {
+                        retired: RetiredNode::new(),
+                        value: 0,
+                    })));
+                    let handles: Vec<_> = (0..num_threads)
+                        .map(|tid| {
+                            let atomic = atomic.clone();
+                            thread::spawn(move || {
+                                for i in 0..1000 {
+                                    let new_node = alloc_node(Node {
+                                        retired: RetiredNode::new(),
+                                        value: tid * 1000 + i,
+                                    });
+                                    let guard = pin();
+                                    let old = atomic.swap(
+                                        unsafe { kovan::Shared::from_raw(new_node) },
+                                        Ordering::Release,
+                                        &guard,
+                                    );
+                                    if !old.is_null() {
+                                        unsafe { retire_node(old.as_raw()) };
+                                    }
+                                }
+                            })
+                        })
+                        .collect();
+
+                    for handle in handles {
+                        handle.join().unwrap();
+                    }
+
+                    // Cleanup
+                    let guard = pin();
+                    let old = atomic.swap(
+                        unsafe { kovan::Shared::from_raw(std::ptr::null_mut()) },
+                        Ordering::Release,
+                        &guard,
+                    );
+                    if !old.is_null() {
+                        unsafe { retire_node(old.as_raw()) };
+                    }
+                });
+            },
+        );
+    }
+
+    group.finish();
+}
+
+/// The feature is off, so there is no magazine for this row to measure.
+#[cfg(not(feature = "recycle"))]
+fn bench_atomic_swap_recycle(c: &mut Criterion) {
+    let _ = c;
+}
+
 criterion_group!(
     benches,
     bench_pin_unpin,
     bench_retire,
     bench_atomic_load,
     bench_atomic_swap,
+    bench_atomic_swap_recycle,
     bench_contention
 );
 criterion_main!(benches);
