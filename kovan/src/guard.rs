@@ -663,6 +663,10 @@ impl Handle {
         // Both ways in end with the slot published, so the helper slots are
         // taken after either one, on the thread that owns them.
         self.drain_helper_slots(tid);
+        // The batches the traversals released go back to this thread's
+        // magazines, so a thread that only pins holds none of them.
+        #[cfg(feature = "recycle")]
+        self.drain_free_list();
     }
 
     /// Slow path for pin when epoch keeps changing.

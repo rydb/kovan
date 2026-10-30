@@ -639,7 +639,9 @@ fn pin_and_retire_end_while_an_insert_is_held() {
 /// A traversal walks the list its exchange captured and no more: held
 /// after the capture while another thread retires batch after batch into
 /// the same slot, the transition, let go, frees exactly the batches it
-/// captured, and every entry inserted meanwhile is still in the slot.
+/// captured, and every entry inserted meanwhile is still in the slot. What
+/// it freed waits in the cache, or goes back to this thread's magazines
+/// when the transition can free it there.
 #[test]
 #[cfg_attr(miri, ignore)] // multi-threaded: hits the intentional mixed-size DCAS, outside Miri's model
 fn traversal_walks_only_the_list_it_captured() {
@@ -676,9 +678,7 @@ fn traversal_walks_only_the_list_it_captured() {
             crate::slot::advance_epoch();
             drop(pin());
             traversed.store(true, Ordering::SeqCst);
-            // What the traversal freed waits in the cache: one traversal,
-            // the captured batches, released at the next flush or when the
-            // cache fills.
+            // The cache after the transition.
             let (traversals, freed) = with_handle(|h| {
                 let mut n = 0;
                 let mut refs = h.free_list.get();
@@ -688,7 +688,18 @@ fn traversal_walks_only_the_list_it_captured() {
                 }
                 (h.list_count.get(), n)
             });
-            assert_eq!((traversals, freed), (1, CAPTURED));
+            #[cfg(not(feature = "recycle"))]
+            assert_eq!(
+                (traversals, freed),
+                (1, CAPTURED),
+                "the captured batches did not wait in the cache"
+            );
+            #[cfg(feature = "recycle")]
+            assert_eq!(
+                (traversals, freed),
+                (0, 0),
+                "the transition left the captured batches in the cache"
+            );
             assert!(eventually(|| checked.go.load(Ordering::SeqCst)));
         })
     };
